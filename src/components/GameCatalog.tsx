@@ -791,6 +791,65 @@ function HighlightText({ text, query }: { text: string; query: string }) {
   );
 }
 
+function VerifiedBadge() {
+  const [open, setOpen] = React.useState(false);
+  const rootRef = React.useRef<HTMLSpanElement>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  const canHover = () =>
+    typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  return (
+    <span ref={rootRef} className="relative inline-flex shrink-0 items-center">
+      <button
+        type="button"
+        aria-label="Verified game — what does this mean?"
+        aria-expanded={open}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setOpen((value) => !value);
+        }}
+        onMouseEnter={() => {
+          if (canHover()) setOpen(true);
+        }}
+        onMouseLeave={() => {
+          if (canHover()) setOpen(false);
+        }}
+        className="inline-flex cursor-help items-center justify-center text-emerald-400"
+      >
+        <CheckCircle2
+          aria-hidden="true"
+          className="h-3.5 w-3.5 fill-emerald-500/20 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.35)]"
+        />
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          className="absolute left-1/2 top-full z-30 mt-1.5 w-40 -translate-x-1/2 rounded-lg border border-white/10 bg-[#1c1c1e] px-2 py-1.5 text-[10.5px] font-normal leading-snug text-zinc-300 shadow-[0_8px_24px_rgba(0,0,0,0.6)] sm:w-44"
+        >
+          Checked by an admin — this game loads and plays.
+        </span>
+      )}
+    </span>
+  );
+}
+
 function GameCard({
   game,
   isRecent,
@@ -844,18 +903,7 @@ function GameCard({
                 <span className="sr-only"> (opens in a new tab)</span>
               </a>
             )}
-            {isVerified && (
-              <span
-                title="Verified game"
-                className="inline-flex shrink-0 items-center justify-center text-emerald-400"
-              >
-                <CheckCircle2
-                  aria-hidden="true"
-                  className="h-3.5 w-3.5 fill-emerald-500/20 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.35)]"
-                />
-                <span className="sr-only">Verified game</span>
-              </span>
-            )}
+            {isVerified && <VerifiedBadge />}
             {game.editorsPick && (
               <span
                 title="Editor's Pick"
@@ -1231,8 +1279,50 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Search runs on the server so the browser does not filter the whole catalog;
+  // a failed request falls back to the local filter below.
+  const [serverMatches, setServerMatches] = React.useState<GameItem[] | null>(null);
+  const [serverSearching, setServerSearching] = React.useState(false);
+
+  React.useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setServerMatches(null);
+      setServerSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setServerSearching(true);
+    const timer = window.setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(query)}`, {
+        signal: controller.signal,
+        headers: { Accept: "application/json" },
+      })
+        .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Search unavailable"))))
+        .then((data) => {
+          const remote: GameItem[] = Array.isArray(data.games) ? data.games : [];
+          const localById = new Map(games.map((game) => [game.id, game]));
+          setServerMatches(remote.map((game) => localById.get(game.id) ?? game));
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setServerMatches(null);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setServerSearching(false);
+        });
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery, games]);
+
   const filteredGames = React.useMemo(() => {
-    let list = games;
+    const trimmedQuery = searchQuery.trim();
+    const usingServer = trimmedQuery.length >= 2 && serverMatches !== null;
+    let list = usingServer ? serverMatches : games;
     if (selectedCategory === "favorites") {
       list = list.filter((game) => favoriteIds.has(game.id));
     } else if (selectedCategory === "editors") {
@@ -1246,15 +1336,15 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
     } else if (selectedCategory !== "all") {
       list = list.filter((game) => matchesCategory(game, selectedCategory));
     }
-    if (!searchQuery.trim()) return list;
-    const terms = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (usingServer || !trimmedQuery) return list;
+    const terms = trimmedQuery.toLowerCase().split(/\s+/).filter(Boolean);
     return list.filter((game) => {
       const searchableText = [game.name, game.description, ...game.tags]
         .join(" ")
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, popularGameId, searchQuery]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, popularGameId, searchQuery, serverMatches]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1330,7 +1420,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
               style={CHIP_STYLE}
               className="shrink-0 px-2.5 py-0.5 text-[11px] tabular-nums text-[#caccd2]"
             >
-              {filteredGames.length} {filteredGames.length === 1 ? "game" : "games"}
+              {serverSearching ? "Searching…" : `${filteredGames.length} ${filteredGames.length === 1 ? "game" : "games"}`}
             </span>
           </div>
 

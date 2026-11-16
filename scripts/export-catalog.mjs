@@ -1,0 +1,37 @@
+// Regenerates api/_catalog.json from the single source of truth (DEFAULT_GAMES in
+// GameCatalog) so the server-side search and the client show the same catalog.
+import { build } from "esbuild";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const root = path.resolve(import.meta.dirname, "..");
+const outfile = path.join(os.tmpdir(), `polytrack-catalog-${Date.now()}.mjs`);
+
+const result = await build({
+  stdin: {
+    contents:
+      'import { DEFAULT_GAMES } from "@/components/GameCatalog";\nprocess.stdout.write(JSON.stringify(DEFAULT_GAMES, null, 2));\n',
+    resolveDir: root,
+    loader: "tsx",
+    sourcefile: "catalog-entry.tsx",
+  },
+  bundle: true,
+  platform: "node",
+  format: "esm",
+  write: false,
+  alias: { "@": path.join(root, "src") },
+  logLevel: "silent",
+});
+
+fs.writeFileSync(outfile, result.outputFiles[0].text);
+
+try {
+  const json = execFileSync(process.execPath, [outfile], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+  JSON.parse(json);
+  fs.writeFileSync(path.join(root, "api", "_catalog.json"), `${json}\n`);
+  console.log(`Wrote api/_catalog.json (${JSON.parse(json).length} games)`);
+} finally {
+  fs.rmSync(outfile, { force: true });
+}

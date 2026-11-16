@@ -97,29 +97,6 @@ function pickQuickReactions(count = 8): string[] {
   return pool.slice(0, count);
 }
 
-function getDiceBearAvatarUrl(name: string): string {
-  return `/api/avatar?seed=${encodeURIComponent(name || "Racer")}&style=bottts`;
-}
-
-// Generate consistent avatar color based on name
-function getAvatarColor(name: string): { bg: string; text: string } {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const colors = [
-    { bg: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
-    { bg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" },
-    { bg: "bg-amber-500/20 text-amber-300 border-amber-500/30" },
-    { bg: "bg-purple-500/20 text-purple-300 border-purple-500/30" },
-    { bg: "bg-rose-500/20 text-rose-300 border-rose-500/30" },
-    { bg: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" },
-    { bg: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30" },
-  ];
-  const index = Math.abs(hash) % colors.length;
-  return { bg: colors[index].bg, text: colors[index].bg.split(" ")[1] };
-}
-
 export function LiveMessageBoard() {
   const [messages, setMessages] = React.useState<ChatMessage[]>(fallbackMessages);
   const [nickname, setNickname] = React.useState(() => localStorage.getItem("polytrack_nickname") || `Racer_${Math.floor(100 + Math.random() * 900)}`);
@@ -288,7 +265,7 @@ export function LiveMessageBoard() {
           <div style={CHIP_STYLE} className="p-1.5 text-zinc-300">
             <Radio aria-hidden="true" className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-semibold text-zinc-200">Side Chat</span>
+          <span className="text-xs font-semibold text-zinc-200">Chat</span>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -351,9 +328,6 @@ export function LiveMessageBoard() {
 
           {messages.map((message) => {
             const isUser = message.from === "user";
-            const avatar = getAvatarColor(message.author);
-            const initial = message.author.charAt(0).toUpperCase() || "R";
-
             return (
               <div
                 key={message.id}
@@ -362,15 +336,6 @@ export function LiveMessageBoard() {
                 }`}
               >
                 <div className="flex items-center gap-1.5 px-1 mb-1 text-[10px]">
-                  <img
-                    src={getDiceBearAvatarUrl(message.author)}
-                    alt=""
-                    loading="lazy"
-                    className="h-4 w-4 shrink-0 rounded-full border border-white/10 bg-zinc-800 object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
                   <span className="font-semibold text-zinc-300">
                     {message.author}
                   </span>
@@ -463,14 +428,6 @@ export function LiveMessageBoard() {
         onSubmit={handleSendMessage}
         className="p-2.5 sm:p-3 border-t border-white/[0.04] flex items-center gap-2 shrink-0 bg-[#191919]"
       >
-        <div className="relative flex items-center shrink-0" title={`Your avatar (${nickname})`}>
-          <img
-            src={getDiceBearAvatarUrl(nickname)}
-            alt=""
-            className="h-6 w-6 rounded-full border border-white/10 bg-zinc-800 object-cover shadow-sm"
-          />
-        </div>
-
         <label htmlFor="chat-name" className="sr-only">
           Your display name
         </label>

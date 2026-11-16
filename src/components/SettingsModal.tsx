@@ -286,7 +286,7 @@ export function SettingsModal({
       setNotificationsEnabled(true);
       setNotificationsOn(true);
       setNotificationError("");
-      const sent = showNewGameNotification();
+      const sent = await showNewGameNotification();
       setNotificationNotice(
         sent ? "Enabled — check for your new game alert." : "Enabled. Alerts are on for this browser."
       );

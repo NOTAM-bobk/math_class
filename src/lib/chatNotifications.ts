@@ -1,3 +1,5 @@
+import { deliverNotification } from "./gameNotifications";
+
 export const CHAT_NOTIFICATIONS_KEY = "polytrack_chat_notifications";
 
 export function isChatNotificationsEnabled(): boolean {
@@ -21,16 +23,9 @@ export function notifyNewChatMessage(author: string, text: string): void {
   // Don't disturb if user is active in this tab
   if (!document.hidden && document.hasFocus()) return;
 
-  try {
-    const notification = new Notification(`New chat message from ${author}`, {
-      body: text.length > 120 ? text.slice(0, 117) + "…" : text,
-      icon: `/api/avatar?seed=${encodeURIComponent(author)}&style=bottts`,
-      badge: "/images/app-icon-192.png",
-      tag: "polytrack-chat-msg",
-    });
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-  } catch {}
+  void deliverNotification(
+    `New chat message from ${author}`,
+    text.length > 120 ? text.slice(0, 117) + "…" : text,
+    "polytrack-chat-msg"
+  );
 }

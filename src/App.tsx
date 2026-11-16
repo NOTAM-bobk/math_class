@@ -1,5 +1,5 @@
 import * as React from "react";
-import { GameCatalog } from "./components/GameCatalog";
+import { DEFAULT_GAMES, GameCatalog } from "./components/GameCatalog";
 import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
@@ -67,8 +67,9 @@ export function App() {
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
   const [submitModalOpen, setSubmitModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
+  // The nav starts closed; an explicit open/close choice is remembered.
   const [navCollapsed, setNavCollapsed] = React.useState(
-    () => localStorage.getItem("polytrack_nav_collapsed") === "true"
+    () => localStorage.getItem("polytrack_nav_collapsed") !== "false"
   );
   const [adSpotEnabled, setAdSpotEnabled] = React.useState(
     () => localStorage.getItem("polytrack_ad_spot_enabled") !== "false"
@@ -101,9 +102,9 @@ export function App() {
     return () => window.clearTimeout(timer);
   }, [installNoticeVisible]);
 
-  // Visitors who allowed notifications hear about new games once per version.
+  // Visitors who allowed notifications hear about games that were actually added.
   React.useEffect(() => {
-    maybeNotifyNewGames();
+    void maybeNotifyNewGames(DEFAULT_GAMES);
   }, []);
 
   React.useEffect(() => {

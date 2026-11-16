@@ -148,6 +148,16 @@ function urlKey(url: string) {
   return url.trim().toLowerCase().replace(/\/+$/, "");
 }
 
+function topGameIdsByClicks(stats: { id: string; clicks: number }[]): Set<string> {
+  return new Set(
+    [...stats]
+      .filter((game) => game.clicks > 0)
+      .sort((a, b) => b.clicks - a.clicks)
+      .slice(0, 3)
+      .map((game) => game.id)
+  );
+}
+
 function isSameOriginGame(url: string) {
   try {
     return new URL(url, window.location.origin).origin === window.location.origin;
@@ -1094,7 +1104,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const [launcherSlow, setLauncherSlow] = React.useState(false);
   const launcherBackRef = React.useRef<HTMLButtonElement>(null);
   const launcherReturnFocusRef = React.useRef<HTMLElement | null>(null);
-  const [popularGameId, setPopularGameId] = React.useState<string | null>(null);
+  const [popularGameIds, setPopularGameIds] = React.useState<Set<string>>(() => new Set());
   const [recentIds, setRecentIds] = React.useState<Set<string>>(
     () => new Set(loadRecentGames().map((entry) => entry.id))
   );
@@ -1220,7 +1230,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
             return stat ? { ...game, clicks: stat.clicks } : game;
           })
         );
-        setPopularGameId(stats[0].id);
+        setPopularGameIds(topGameIdsByClicks(stats));
       })
       .catch(() => {});
   }, []);
@@ -1252,7 +1262,14 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
         item.id === game.id ? { ...item, clicks: (item.clicks || 0) + 1 } : item
       )
     );
-    setPopularGameId(game.id);
+    setPopularGameIds(
+      topGameIdsByClicks(
+        games.map((item) => ({
+          id: item.id,
+          clicks: (item.clicks || 0) + (item.id === game.id ? 1 : 0),
+        }))
+      )
+    );
     recordGameClick({ id: game.id, name: game.name, url: game.url })
       .then((updated) => {
         if (!updated) return;
@@ -1262,7 +1279,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
           )
         );
         loadGameStats()
-          .then((stats) => setPopularGameId(stats[0]?.id || null))
+          .then((stats) => setPopularGameIds(topGameIdsByClicks(stats)))
           .catch(() => {});
       })
       .catch(() => {});
@@ -1402,7 +1419,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
     } else if (selectedCategory === "verified") {
       list = list.filter((game) => verifiedIds.has(game.id) || !!game.verified);
     } else if (selectedCategory === "trending") {
-      list = list.filter((game) => popularGameId === game.id);
+      list = list.filter((game) => popularGameIds.has(game.id));
     } else if (selectedCategory === "buggy") {
       list = list.filter((game) => buggyIds.has(game.id) || !!game.errorBug);
     } else if (selectedCategory === "blocked") {
@@ -1418,7 +1435,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameId, searchQuery, serverMatches]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameIds, searchQuery, serverMatches]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1781,7 +1798,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   key={game.id}
                   game={game}
                   isRecent={recentIds.has(game.id)}
-                  isPopular={popularGameId === game.id}
+                  isPopular={popularGameIds.has(game.id)}
                   isFavorite={favoriteIds.has(game.id)}
                   isBuggy={buggyIds.has(game.id) || !!game.errorBug}
                   isVerified={verifiedIds.has(game.id) || !!game.verified}
@@ -1810,7 +1827,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   key={game.id}
                   game={game}
                   isRecent={recentIds.has(game.id)}
-                  isPopular={popularGameId === game.id}
+                  isPopular={popularGameIds.has(game.id)}
                   isFavorite={favoriteIds.has(game.id)}
                   isBuggy={buggyIds.has(game.id) || !!game.errorBug}
                   isVerified={verifiedIds.has(game.id) || !!game.verified}

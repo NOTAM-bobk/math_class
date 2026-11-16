@@ -12,7 +12,7 @@ import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
-import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X, BellOff } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
   backgroundIsLight,
@@ -24,6 +24,7 @@ import { formatLastUpdated, LAST_UPDATED_ISO } from "./lib/lastUpdated";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
 import { finalizePlaySession } from "./lib/playStats";
+import { areNotificationAdsBlocked, setNotificationAdsBlocked } from "./lib/adNotifications";
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -65,9 +66,13 @@ function BackgroundWrapper({
 }
 
 const INSTALL_NOTICE_SEEN_KEY = "polytrack_install_notice_seen";
+const SITE_VISITS_KEY = "polytrack_site_visits";
+const ADS_NUDGE_SEEN_KEY = "polytrack_ads_nudge_seen";
 
 export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [adsNudgeOpen, setAdsNudgeOpen] = React.useState(false);
+  const visitCountedRef = React.useRef(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
   const [submitModalOpen, setSubmitModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
@@ -95,6 +100,28 @@ export function App() {
     return onBackgroundConfigChange((newConfig) => {
       setBgConfig(newConfig);
     });
+  }, []);
+
+  React.useEffect(() => {
+    if (visitCountedRef.current) return;
+    visitCountedRef.current = true;
+
+    try {
+      const previousVisits = Number.parseInt(localStorage.getItem(SITE_VISITS_KEY) || "0", 10);
+      const visits = Number.isFinite(previousVisits) && previousVisits > 0 ? previousVisits + 1 : 1;
+      localStorage.setItem(SITE_VISITS_KEY, String(visits));
+
+      if (
+        visits === 4 &&
+        !areNotificationAdsBlocked() &&
+        localStorage.getItem(ADS_NUDGE_SEEN_KEY) !== "true"
+      ) {
+        localStorage.setItem(ADS_NUDGE_SEEN_KEY, "true");
+        setAdsNudgeOpen(true);
+      }
+    } catch {
+      // The visit prompt is optional when browser storage is unavailable.
+    }
   }, []);
 
   React.useEffect(() => {
@@ -517,6 +544,56 @@ export function App() {
         isOpen={adminModalOpen}
         onClose={() => setAdminModalOpen(false)}
       />
+
+      {adsNudgeOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setAdsNudgeOpen(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ads-nudge-title"
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#1d1d1d] p-5 text-zinc-100 shadow-[0_24px_60px_rgba(0,0,0,0.7)]"
+          >
+            <div className="flex items-start gap-3">
+              <span className="rounded-full bg-amber-500/10 p-2 text-amber-300">
+                <BellOff aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 id="ads-nudge-title" className="text-base font-semibold">
+                  Dont like the ads??? turn them off
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                  You can turn off notification ads for this browser anytime in Settings.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setAdsNudgeOpen(false)}
+                className="rounded-lg px-3 py-2 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100"
+              >
+                Maybe later
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNotificationAdsBlocked(true);
+                  setAdsNudgeOpen(false);
+                  window.location.reload();
+                }}
+                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100"
+              >
+                Turn off ads
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       <FeatureTooltips />
     </BackgroundWrapper>

@@ -793,8 +793,11 @@ export function SettingsModal({
           </div>
         </section>
 
-        {/* Section 1: Site Lock */}
-        <div className="flex flex-col gap-3">
+        {/* Security: Site Lock */}
+        <section
+          aria-labelledby="site-lock-title"
+          className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div
@@ -812,7 +815,7 @@ export function SettingsModal({
               </div>
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                  <span>Site Lock (Classroom Mode)</span>
+                  <span id="site-lock-title">Site Lock (Classroom Mode)</span>
                   {siteLockEnabled && (
                     <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
                       Active
@@ -941,9 +944,9 @@ export function SettingsModal({
               </p>
             </form>
           </div>
-        </div>
+        </section>
 
-        {/* Section 2: Background Controls (Solids, Gradients, Shaders) */}
+        {/* Appearance: Background style */}
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="background-controls-title">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -1174,7 +1177,7 @@ export function SettingsModal({
           </div>
         </section>
 
-        {/* Section 3: Notification settings */}
+        {/* Notifications: chat messages and new games */}
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="notifications-title">
           <div className="flex items-center gap-2">
             <div
@@ -1287,9 +1290,15 @@ export function SettingsModal({
           </p>
         </section>
 
-        {/* Section 4: Notification ads */}
-
-        <div className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+        {/* Notifications: ads */}
+        <section
+          aria-labelledby="ads-title"
+          className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+            <BellOff aria-hidden="true" className="h-4 w-4 text-zinc-400" />
+            <h3 id="ads-title">Notification ads</h3>
+          </div>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div
@@ -1359,9 +1368,9 @@ export function SettingsModal({
               </button>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Offline copy */}
+        {/* Offline access: downloaded copy and schedule */}
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="offline-title">
           <div className="flex items-start gap-2">
             <div
@@ -1536,7 +1545,7 @@ export function SettingsModal({
           )}
         </section>
 
-        {/* Section 3: Custom tab cloaking */}
+        {/* Appearance: browser tab */}
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="tab-cloak-title">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -1631,8 +1640,11 @@ export function SettingsModal({
           </form>
         </section>
 
-        {/* Section 4: Emergency Panic Redirect */}
-        <div className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+        {/* Safety: emergency redirect */}
+        <section
+          aria-labelledby="panic-title"
+          className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
+        >
           <div className="flex items-center gap-2">
             <div
               style={{
@@ -1646,7 +1658,7 @@ export function SettingsModal({
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
-                <span>Emergency Panic Redirect</span>
+                <span id="panic-title">Emergency Panic Redirect</span>
                 <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
                   ]
                 </kbd>
@@ -1727,10 +1739,10 @@ export function SettingsModal({
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Footer: change log */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-3">
+        {/* About: change log */}
+        <section aria-label="Change log" className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-3">
           <p className="text-[10.5px] leading-relaxed text-zinc-500">
             See what changed in each site update.
           </p>
@@ -1747,10 +1759,10 @@ export function SettingsModal({
             <History aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
             <span>View change log</span>
           </button>
-        </div>
+        </section>
 
-        {/* Footer: source code and other proxies */}
-        <div className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+        {/* About: source code and proxy links */}
+        <section aria-label="Source code and proxies" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="text-sm font-semibold text-zinc-100">Source code</div>
@@ -1845,7 +1857,7 @@ export function SettingsModal({
           <p className="text-[10.5px] text-zinc-500" title={`Build ${LAST_UPDATED_ISO}`}>
             Last updated {formatLastUpdated()}
           </p>
-        </div>
+        </section>
       </div>
     </div>
   );

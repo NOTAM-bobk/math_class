@@ -2,6 +2,8 @@ import * as React from "react";
 import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, Smile, Sparkles } from "lucide-react";
 import { HubMessage, loadMessages, sendMessage } from "@/lib/hubApi";
 import { notifyNewChatMessage } from "@/lib/chatNotifications";
+import { isChatVerified } from "@/lib/turnstile";
+import { TurnstileGate } from "./TurnstileGate";
 
 export interface ChatMessage extends HubMessage {
   from: "user" | "assistant" | "system" | "racer";
@@ -80,6 +82,18 @@ const CHIP_STYLE: React.CSSProperties = {
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
 
+// Chat paints a page of messages instead of the whole backlog, grows a page on
+// request, and polls only the newest slice on each refresh.
+const INITIAL_VISIBLE_MESSAGES = 25;
+const OLDER_PAGE_SIZE = 25;
+const FETCH_LIMIT = 50;
+const POLL_LIMIT = 25;
+
+// Client-side send throttle: one message every few seconds, capped per minute.
+const SEND_COOLDOWN_MS = 4000;
+const SEND_WINDOW_MS = 60_000;
+const SEND_WINDOW_MAX = 6;
+
 const QUICK_REACTION_POOL = [
   "🏎️", "🔥", "🎮", "🏆", "⚡", "🚀", "👋", "GG",
   "😮", "🎯", "💀", "🕹️", "🤯", "👾", "🍕", "☕",
@@ -109,6 +123,13 @@ export function LiveMessageBoard() {
   const [isScrolledUp, setIsScrolledUp] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [quickReactions] = React.useState(pickQuickReactions);
+  const [visibleCount, setVisibleCount] = React.useState(INITIAL_VISIBLE_MESSAGES);
+  const [chatVerified, setChatVerified] = React.useState(isChatVerified);
+  const pendingScrollAdjustRef = React.useRef(0);
+  const lastSendAtRef = React.useRef(0);
+  const sendTimesRef = React.useRef<number[]>([]);
+
+  const handleChatVerified = React.useCallback(() => setChatVerified(true), []);
 
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -139,27 +160,23 @@ export function LiveMessageBoard() {
     }
   }, []);
 
-  const refreshMessages = React.useCallback(async () => {
-    setRefreshing(true);
+  const refreshMessages = React.useCallback(async (mode: "full" | "poll" = "full") => {
+    if (mode === "full") setRefreshing(true);
     try {
-      const loaded = await loadMessages();
+      const loaded = await loadMessages(mode === "poll" ? POLL_LIMIT : FETCH_LIMIT);
       setMessages((prev) => {
-        const next = mergeMessages(
-          loaded.map((message) => toChatMessage(message)),
-          loadLocalSentMessages()
-        );
-        // Notify if new messages arrived from other users
-        if (prev.length > 0 && next.length > prev.length) {
-          const prevIds = new Set(prev.map((m) => m.id));
-          const incoming = next.filter((m) => !prevIds.has(m.id) && m.author !== nickname);
-          if (incoming.length > 0) {
-            const newest = incoming[incoming.length - 1];
-            notifyNewChatMessage(newest.author, newest.text);
-          }
-        }
-        // If new messages came and user is scrolled up, update unread count
-        if (next.length > prev.length && isScrolledUp) {
-          setUnreadCount((c) => c + (next.length - prev.length));
+        const fetched = loaded.map((message) => toChatMessage(message));
+        const next =
+          mode === "poll"
+            ? mergeMessages(prev, fetched, loadLocalSentMessages())
+            : mergeMessages(fetched, loadLocalSentMessages());
+        const prevIds = new Set(prev.map((message) => message.id));
+        const incoming = next.filter((message) => !prevIds.has(message.id) && message.author !== nickname);
+        // Notify only about messages this tab has not seen before.
+        if (incoming.length > 0) {
+          const newest = incoming[incoming.length - 1];
+          notifyNewChatMessage(newest.author, newest.text);
+          if (isScrolledUp) setUnreadCount((count) => count + incoming.length);
         }
         return next;
       });
@@ -168,7 +185,7 @@ export function LiveMessageBoard() {
       setError("Chat is offline. Check your connection, then retry.");
     } finally {
       setLoading(false);
-      setRefreshing(false);
+      if (mode === "full") setRefreshing(false);
     }
   }, [isScrolledUp, nickname]);
 
@@ -178,7 +195,7 @@ export function LiveMessageBoard() {
 
   React.useEffect(() => {
     const interval = window.setInterval(() => {
-      void refreshMessages();
+      void refreshMessages("poll");
     }, 35_000);
     return () => window.clearInterval(interval);
   }, [refreshMessages]);
@@ -220,10 +237,27 @@ export function LiveMessageBoard() {
     event?.preventDefault();
     const cleanText = inputText.trim();
     if (!cleanText || sending) return;
+    if (!chatVerified) {
+      setError("Verify you're human before sending messages.");
+      return;
+    }
+    const now = Date.now();
+    sendTimesRef.current = sendTimesRef.current.filter((stamp) => now - stamp < SEND_WINDOW_MS);
+    const cooldownLeft = SEND_COOLDOWN_MS - (now - lastSendAtRef.current);
+    if (lastSendAtRef.current > 0 && cooldownLeft > 0) {
+      setError(`Slow down — try again in ${Math.ceil(cooldownLeft / 1000)}s.`);
+      return;
+    }
+    if (sendTimesRef.current.length >= SEND_WINDOW_MAX) {
+      setError("Message limit reached. You can send again in a minute.");
+      return;
+    }
     setSending(true);
     setError("");
     try {
       const saved = await sendMessage(nickname.trim() || "Guest", cleanText);
+      lastSendAtRef.current = Date.now();
+      sendTimesRef.current = [...sendTimesRef.current, Date.now()];
       const message = toChatMessage(saved, "user");
       persistSentMessage(message);
       setMessages((current) => mergeMessages(current, [message]));
@@ -245,6 +279,26 @@ export function LiveMessageBoard() {
     setNickname(value);
     localStorage.setItem("polytrack_nickname", value);
   };
+
+  const visibleMessages = React.useMemo(
+    () => messages.slice(-visibleCount),
+    [messages, visibleCount]
+  );
+
+  const loadOlderMessages = React.useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container) pendingScrollAdjustRef.current = container.scrollHeight;
+    setVisibleCount((count) => count + OLDER_PAGE_SIZE);
+  }, []);
+
+  // Keep the reader's place when older messages are prepended.
+  React.useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    const previousHeight = pendingScrollAdjustRef.current;
+    if (!container || !previousHeight) return;
+    pendingScrollAdjustRef.current = 0;
+    container.scrollTop += container.scrollHeight - previousHeight;
+  }, [visibleCount]);
 
   const remainingChars = 280 - inputText.length;
 
@@ -326,7 +380,21 @@ export function LiveMessageBoard() {
             </div>
           )}
 
-          {messages.map((message) => {
+          {messages.length > visibleMessages.length && (
+            <div className="flex justify-center pb-1">
+              <button
+                type="button"
+                onClick={loadOlderMessages}
+                style={CHIP_STYLE}
+                className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+              >
+                <ArrowDown aria-hidden="true" className="h-3 w-3 rotate-180" />
+                <span>Load older messages</span>
+              </button>
+            </div>
+          )}
+
+          {visibleMessages.map((message) => {
             const isUser = message.from === "user";
             return (
               <div
@@ -403,6 +471,8 @@ export function LiveMessageBoard() {
         </div>
       )}
 
+      {!chatVerified && <TurnstileGate onVerified={handleChatVerified} />}
+
       {/* Quick Reactions Bar (Expandable or always subtle) */}
       <div className="px-3 pt-2 pb-1 border-t border-white/[0.06] flex items-center justify-between gap-1 shrink-0 bg-white/[0.01]">
         <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -463,7 +533,7 @@ export function LiveMessageBoard() {
               void handleSendMessage();
             }
           }}
-          placeholder="Send a message (Press Enter)…"
+          placeholder={chatVerified ? "Send a message (Press Enter)…" : "Verify you're human to chat…"}
           maxLength={280}
           enterKeyHint="send"
           autoComplete="off"
@@ -477,8 +547,8 @@ export function LiveMessageBoard() {
 
         <button
           type="submit"
-          disabled={!inputText.trim() || sending}
-          aria-label={sending ? "Sending message" : "Send message"}
+          disabled={!inputText.trim() || sending || !chatVerified}
+          aria-label={sending ? "Sending message" : chatVerified ? "Send message" : "Verify to send messages"}
           style={{
             borderRadius: 12,
           }}

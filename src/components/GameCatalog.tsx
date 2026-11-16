@@ -35,6 +35,7 @@ export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
   { id: "favorites", label: "⭐ Favorites" },
   { id: "editors", label: "✨ Editor’s Pick" },
+  { id: "verified", label: "✅ Verified" },
   { id: "trending", label: "🔥 Trending" },
   { id: "flash", label: "⚡ Flash" },
   { id: "action", label: "⚔️ Action" },
@@ -51,6 +52,15 @@ export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilter
 type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 
 const DEFAULT_SORT: SortOption = "popular";
+
+const TAG_FILTERS = [
+  { id: "editors", emoji: "✨", label: "Editor’s Pick" },
+  { id: "verified", emoji: "✅", label: "Verified" },
+  { id: "buggy", emoji: "🐛", label: "Error: bug" },
+  { id: "blocked", emoji: "😿", label: "Blocked" },
+] as const satisfies readonly { id: CategoryId; emoji: string; label: string }[];
+
+type TagFilterId = (typeof TAG_FILTERS)[number]["id"];
 
 const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: "popular", label: "Most played" },
@@ -1327,6 +1337,8 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
       list = list.filter((game) => favoriteIds.has(game.id));
     } else if (selectedCategory === "editors") {
       list = list.filter((game) => !!game.editorsPick);
+    } else if (selectedCategory === "verified") {
+      list = list.filter((game) => verifiedIds.has(game.id) || !!game.verified);
     } else if (selectedCategory === "trending") {
       list = list.filter((game) => popularGameId === game.id);
     } else if (selectedCategory === "buggy") {
@@ -1344,7 +1356,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, popularGameId, searchQuery, serverMatches]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameId, searchQuery, serverMatches]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1405,6 +1417,16 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   }, [games, recentIds]);
 
   const searching = searchQuery.trim().length > 0;
+  const tagCounts: Record<TagFilterId, number> = React.useMemo(
+    () => ({
+      editors: games.filter((game) => !!game.editorsPick).length,
+      verified: games.filter((game) => verifiedIds.has(game.id) || !!game.verified).length,
+      buggy: games.filter((game) => buggyIds.has(game.id) || !!game.errorBug).length,
+      blocked: blockedIds.size,
+    }),
+    [games, verifiedIds, buggyIds, blockedIds]
+  );
+
   const isFiltered = searching || selectedCategory !== "all";
 
   return (
@@ -1478,6 +1500,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
         {/* Category Filter Chips Bar near search */}
         <div className="flex min-w-0 items-center gap-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <div className="relative min-w-0 flex-1">
             <div
               role="tablist"
               aria-label="Filter games by category"
@@ -1514,6 +1537,10 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                 );
               })}
             </div>
+            {/* Soft blur over the clipped edges of the scrolling chip row. */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,transparent)] [-webkit-mask-image:linear-gradient(to_right,black,transparent)]" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_left,black,transparent)] [-webkit-mask-image:linear-gradient(to_left,black,transparent)]" />
+            </div>
 
             <div className="relative shrink-0" ref={filterRef}>
               <button
@@ -1521,27 +1548,23 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                 aria-haspopup="menu"
                 aria-expanded={filterOpen}
                 aria-label={`Sort & filter games: ${
-                  selectedCategory === "buggy"
-                    ? "Error: bug"
-                    : selectedCategory === "blocked"
-                    ? "Blocked"
-                    : SORT_OPTIONS.find((option) => option.id === sortOption)?.label || "Most played"
+                  TAG_FILTERS.find((tag) => tag.id === selectedCategory)?.label ??
+                  SORT_OPTIONS.find((option) => option.id === sortOption)?.label ??
+                  "Most played"
                 }`}
                 onClick={() => setFilterOpen((open) => !open)}
                 style={CHIP_STYLE}
                 className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[11px] font-medium transition-colors ${
-                  sortOption !== DEFAULT_SORT || selectedCategory === "buggy" || selectedCategory === "blocked"
+                  sortOption !== DEFAULT_SORT || TAG_FILTERS.some((tag) => tag.id === selectedCategory)
                     ? "bg-white/[0.12] text-white"
                     : "text-zinc-300 hover:bg-white/[0.08] hover:text-white"
                 }`}
               >
                 <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">
-                  {selectedCategory === "buggy"
-                    ? "Error: bug"
-                    : selectedCategory === "blocked"
-                    ? "Blocked"
-                    : SORT_OPTIONS.find((option) => option.id === sortOption)?.label || "Most played"}
+                  {TAG_FILTERS.find((tag) => tag.id === selectedCategory)?.label ??
+                    SORT_OPTIONS.find((option) => option.id === sortOption)?.label ??
+                    "Most played"}
                 </span>
               </button>
               {filterOpen && (
@@ -1578,53 +1601,36 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
                     Tag filters
                   </div>
-                  <button
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={selectedCategory === "buggy"}
-                    onClick={() => {
-                      setSelectedCategory((current) => (current === "buggy" ? "all" : "buggy"));
-                      setFilterOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${
-                      selectedCategory === "buggy" ? "text-amber-300 font-medium" : "text-zinc-200"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <span>🐛</span>
-                      <span>Error: bug</span>
-                      {buggyIds.size > 0 && (
-                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[10px] font-mono text-zinc-400">
-                          {buggyIds.size}
+                  {TAG_FILTERS.map((tag) => {
+                    const active = selectedCategory === tag.id;
+                    const count = tagCounts[tag.id];
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        role="menuitemcheckbox"
+                        aria-checked={active}
+                        onClick={() => {
+                          setSelectedCategory((current) => (current === tag.id ? "all" : tag.id));
+                          setFilterOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${
+                          active ? "text-amber-300 font-medium" : "text-zinc-200"
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <span>{tag.id === "blocked" ? blockedEmoji || tag.emoji : tag.emoji}</span>
+                          <span>{tag.label}</span>
+                          {count > 0 && (
+                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[10px] font-mono text-zinc-400">
+                              {count}
+                            </span>
+                          )}
                         </span>
-                      )}
-                    </span>
-                    {selectedCategory === "buggy" && <Check aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={selectedCategory === "blocked"}
-                    onClick={() => {
-                      setSelectedCategory((current) => (current === "blocked" ? "all" : "blocked"));
-                      setFilterOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${
-                      selectedCategory === "blocked" ? "text-amber-300 font-medium" : "text-zinc-200"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <span>{blockedEmoji || "😿"}</span>
-                      <span>Blocked</span>
-                      {blockedIds.size > 0 && (
-                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[10px] font-mono text-zinc-400">
-                          {blockedIds.size}
-                        </span>
-                      )}
-                    </span>
-                    {selectedCategory === "blocked" && <Check aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />}
-                  </button>
+                        {active && <Check aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1682,6 +1688,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                 <h3 id="catalog-recent-heading" className="text-[11px] font-medium text-zinc-400">Recently played</h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
               </div>
+              <div className="relative">
               <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
                 {recentGameItems.map((game) => (
                   <a key={game.id} href={game.url} target="_blank" rel="noopener noreferrer" onClick={() => handleGameClick(game)} className="group flex w-44 shrink-0 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 text-left transition hover:border-white/[0.16] hover:bg-white/[0.07]">
@@ -1690,6 +1697,10 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                     <Play className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition group-hover:text-zinc-200" />
                   </a>
                 ))}
+              </div>
+              {/* Soft blur over the clipped edges of the recently played row. */}
+              <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,transparent)] [-webkit-mask-image:linear-gradient(to_right,black,transparent)]" />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_left,black,transparent)] [-webkit-mask-image:linear-gradient(to_left,black,transparent)]" />
               </div>
             </section>
           )}

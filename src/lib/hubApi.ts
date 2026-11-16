@@ -36,8 +36,9 @@ export interface GameFlagsData {
   blocked: string[];
 }
 
-export async function loadMessages(): Promise<HubMessage[]> {
-  const response = await fetch(`${HUB_API}/messages?limit=100`, { headers: { Accept: "application/json" } });
+export async function loadMessages(limit = 50): Promise<HubMessage[]> {
+  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
+  const response = await fetch(`${HUB_API}/messages?limit=${safeLimit}`, { headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("Message service unavailable");
   const data = await response.json();
   return Array.isArray(data.messages) ? data.messages : [];

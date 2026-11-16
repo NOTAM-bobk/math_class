@@ -3,6 +3,14 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/api/avatar",
+      "destination": "/api/avatar"
+    },
+    {
+      "source": "/api/avatar/:path*",
+      "destination": "/api/avatar"
+    },
+    {
       "source": "/api/games/flags",
       "destination": "/api/flags"
     },

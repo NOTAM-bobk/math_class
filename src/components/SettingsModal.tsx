@@ -9,6 +9,10 @@ import {
 } from "@/lib/backgroundTheme";
 import { areNotificationAdsBlocked, setNotificationAdsBlocked } from "@/lib/adNotifications";
 import {
+  isChatNotificationsEnabled,
+  setChatNotificationsEnabled,
+} from "@/lib/chatNotifications";
+import {
   isNotificationsEnabled,
   notificationsSupported,
   notificationPermission,
@@ -87,6 +91,9 @@ export function SettingsModal({
 
   // Notification ads
   const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
+
+  // Chat notifications
+  const [chatNotificationsOn, setChatNotificationsOn] = React.useState(isChatNotificationsEnabled);
 
   // New game notifications
   const [notificationsOn, setNotificationsOn] = React.useState(isNotificationsEnabled);
@@ -218,6 +225,39 @@ export function SettingsModal({
     saveBackgroundConfig(next);
     setBgNotice("Applied custom background");
     setTimeout(() => setBgNotice(null), 2000);
+  };
+
+  const handleToggleChatNotifications = async () => {
+    if (chatNotificationsOn) {
+      setChatNotificationsEnabled(false);
+      setChatNotificationsOn(false);
+      setNotificationError("");
+      setNotificationNotice("Chat message alerts turned off.");
+      return;
+    }
+
+    if (!notificationsSupported()) {
+      setNotificationError("This browser does not support notifications.");
+      return;
+    }
+
+    const result = await requestNotificationPermission();
+    setPermission(notificationPermission());
+
+    if (result === "granted") {
+      setChatNotificationsEnabled(true);
+      setChatNotificationsOn(true);
+      setNotificationError("");
+      setNotificationNotice("Chat notifications turned on!");
+    } else {
+      setChatNotificationsOn(false);
+      setNotificationNotice("");
+      setNotificationError(
+        result === "denied"
+          ? "Notifications are blocked for this site. Allow them in your browser's site settings, then try again."
+          : "Notifications were not allowed."
+      );
+    }
   };
 
   const handleToggleNotifications = async () => {
@@ -757,41 +797,79 @@ export function SettingsModal({
           </div>
         </section>
 
-        {/* Section 3: New game notifications */}
+        {/* Section 3: Notification settings */}
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="notifications-title">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div
-                style={{
-                  borderRadius: 36,
-                  background: notificationsOn ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-                }}
-                className="p-1.5 text-zinc-300"
-              >
-                <Bell
-                  aria-hidden="true"
-                  className={`w-4 h-4 ${notificationsOn ? "text-emerald-400" : "text-zinc-400"}`}
-                />
+          <div className="flex items-center gap-2">
+            <div
+              style={{
+                borderRadius: 36,
+                background: notificationsOn || chatNotificationsOn ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              }}
+              className="p-1.5 text-zinc-300"
+            >
+              <Bell
+                aria-hidden="true"
+                className={`w-4 h-4 ${notificationsOn || chatNotificationsOn ? "text-emerald-400" : "text-zinc-400"}`}
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                <span id="notifications-title">Notification settings</span>
               </div>
-              <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                  <span id="notifications-title">New game notifications</span>
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                      notificationsOn
-                        ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
-                        : permission === "denied"
-                          ? "border-red-500/30 bg-red-500/15 text-red-300"
-                          : "border-white/10 bg-white/[0.06] text-zinc-400"
-                    }`}
-                  >
-                    {notificationStatusLabel}
-                  </span>
-                </div>
-                <div className="text-xs text-zinc-400">
-                  Ask your browser for permission, then get an alert when a new game drops
-                </div>
+              <div className="text-xs text-zinc-400">
+                Manage alerts for live chat and game updates
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200">
+            Must be “Add to home” for notification to work
+          </div>
+
+          {/* Option: Notfiy me when new chat message */}
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] p-2.5">
+            <div>
+              <div className="text-sm font-medium text-zinc-200">Notfiy me when new chat message</div>
+              <div className="text-xs text-zinc-400">Get browser notifications when other racers post in live chat</div>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleChatNotifications}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                chatNotificationsOn ? "bg-emerald-600" : "bg-zinc-700"
+              }`}
+              role="switch"
+              aria-checked={chatNotificationsOn}
+              aria-label="Notfiy me when new chat message"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
+                  chatNotificationsOn ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Option: New game notifications */}
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] p-2.5">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
+                <span>New game notifications</span>
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                    notificationsOn
+                      ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
+                      : permission === "denied"
+                        ? "border-red-500/30 bg-red-500/15 text-red-300"
+                        : "border-white/10 bg-white/[0.06] text-zinc-400"
+                  }`}
+                >
+                  {notificationStatusLabel}
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400">
+                Get an alert when a new game drops
               </div>
             </div>
 
@@ -828,7 +906,7 @@ export function SettingsModal({
           <p className="text-[11px] leading-normal text-zinc-500">
             {permission === "denied"
               ? "Your browser is blocking notifications for this site. Re-allow them in the site settings next to the address bar."
-              : "Alerts are sent once per new version of the site. The setting is stored on this device only."}
+              : "Alerts are sent once per new version of the site. Settings are stored on this device only."}
           </p>
         </section>
 

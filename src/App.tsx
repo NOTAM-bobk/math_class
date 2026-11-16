@@ -59,13 +59,21 @@ function BackgroundWrapper({
   );
 }
 
+const INSTALL_NOTICE_SEEN_KEY = "polytrack_install_notice_seen";
+
 export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
   const [navCollapsed, setNavCollapsed] = React.useState(false);
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
-  const [installNoticeVisible, setInstallNoticeVisible] = React.useState(true);
+  const [installNoticeVisible, setInstallNoticeVisible] = React.useState(() => {
+    try {
+      return localStorage.getItem(INSTALL_NOTICE_SEEN_KEY) !== "true";
+    } catch {
+      return false;
+    }
+  });
   const [adminModalOpen, setAdminModalOpen] = React.useState(false);
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
@@ -79,6 +87,9 @@ export function App() {
 
   React.useEffect(() => {
     if (!installNoticeVisible) return;
+    try {
+      localStorage.setItem(INSTALL_NOTICE_SEEN_KEY, "true");
+    } catch {}
     const timer = window.setTimeout(() => setInstallNoticeVisible(false), 5000);
     return () => window.clearTimeout(timer);
   }, [installNoticeVisible]);
@@ -260,7 +271,12 @@ export function App() {
         {installNoticeVisible && (
           <div className="fixed right-3 top-3 z-50 flex max-w-[min(24rem,calc(100vw-1.5rem))] items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 pr-2.5 text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300" role="status">
             <p className="text-xs leading-relaxed">Add to home for this site to act like app, and get more advanced features!</p>
-            <button type="button" aria-label="Close install notice" onClick={() => setInstallNoticeVisible(false)} className="shrink-0 rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
+            <button type="button" aria-label="Close install notice" onClick={() => {
+              setInstallNoticeVisible(false);
+              try {
+                localStorage.setItem(INSTALL_NOTICE_SEEN_KEY, "true");
+              } catch {}
+            }} className="shrink-0 rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
               <X aria-hidden="true" className="h-4 w-4" />
             </button>
           </div>

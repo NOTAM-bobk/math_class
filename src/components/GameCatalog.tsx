@@ -36,8 +36,6 @@ export const CATEGORY_FILTERS = [
   { id: "favorites", label: "⭐ Favorites" },
   { id: "editors", label: "✨ Editor’s Pick" },
   { id: "trending", label: "🔥 Trending" },
-  { id: "buggy", label: "🐛 Error: bug" },
-  { id: "blocked", label: "😿 Blocked" },
   { id: "flash", label: "⚡ Flash" },
   { id: "action", label: "⚔️ Action" },
   { id: "driving", label: "🏎️ Driving" },
@@ -47,7 +45,8 @@ export const CATEGORY_FILTERS = [
   { id: "casual", label: "🎮 Casual" },
 ] as const;
 
-type CategoryId = typeof CATEGORY_FILTERS[number]["id"];
+export type SpecialFilterId = "buggy" | "blocked";
+export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilterId;
 
 type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 
@@ -105,7 +104,7 @@ function initialSearchQuery() {
 function initialCategory(): CategoryId {
   try {
     const param = new URLSearchParams(window.location.search).get(CATEGORY_PARAM);
-    if (param && CATEGORY_FILTERS.some((c) => c.id === param)) {
+    if (param && (CATEGORY_FILTERS.some((c) => c.id === param) || param === "buggy" || param === "blocked")) {
       return param as CategoryId;
     }
   } catch {}
@@ -1431,26 +1430,39 @@ export function GameCatalog() {
                 type="button"
                 aria-haspopup="menu"
                 aria-expanded={filterOpen}
-                aria-label={`Sort games: ${SORT_OPTIONS.find((option) => option.id === sortOption)?.label || "Most played"}`}
+                aria-label={`Sort & filter games: ${
+                  selectedCategory === "buggy"
+                    ? "Error: bug"
+                    : selectedCategory === "blocked"
+                    ? "Blocked"
+                    : SORT_OPTIONS.find((option) => option.id === sortOption)?.label || "Most played"
+                }`}
                 onClick={() => setFilterOpen((open) => !open)}
                 style={CHIP_STYLE}
                 className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[11px] font-medium transition-colors ${
-                  sortOption !== DEFAULT_SORT
+                  sortOption !== DEFAULT_SORT || selectedCategory === "buggy" || selectedCategory === "blocked"
                     ? "bg-white/[0.12] text-white"
                     : "text-zinc-300 hover:bg-white/[0.08] hover:text-white"
                 }`}
               >
                 <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">
-                  {SORT_OPTIONS.find((option) => option.id === sortOption)?.label || "Most played"}
+                  {selectedCategory === "buggy"
+                    ? "Error: bug"
+                    : selectedCategory === "blocked"
+                    ? "Blocked"
+                    : SORT_OPTIONS.find((option) => option.id === sortOption)?.label || "Most played"}
                 </span>
               </button>
               {filterOpen && (
                 <div
                   role="menu"
-                  aria-label="Sort games"
-                  className="absolute right-0 top-full z-30 mt-2 min-w-44 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1d1d1d] p-1.5 shadow-2xl"
+                  aria-label="Sort and filter games"
+                  className="absolute right-0 top-full z-30 mt-2 min-w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1d1d1d] p-1.5 shadow-2xl"
                 >
+                  <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                    Sort by
+                  </div>
                   {SORT_OPTIONS.map((option) => {
                     const active = sortOption === option.id;
                     return (
@@ -1463,13 +1475,66 @@ export function GameCatalog() {
                           setSortOption(option.id);
                           setFilterOpen(false);
                         }}
-                        className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-xs text-zinc-200 transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                        className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs text-zinc-200 transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                       >
                         <span>{option.label}</span>
                         {active && <Check aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />}
                       </button>
                     );
                   })}
+
+                  <div className="my-1 border-t border-white/[0.08]" />
+
+                  <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                    Tag filters
+                  </div>
+                  <button
+                    type="button"
+                    role="menuitemcheckbox"
+                    aria-checked={selectedCategory === "buggy"}
+                    onClick={() => {
+                      setSelectedCategory((current) => (current === "buggy" ? "all" : "buggy"));
+                      setFilterOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${
+                      selectedCategory === "buggy" ? "text-amber-300 font-medium" : "text-zinc-200"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span>🐛</span>
+                      <span>Error: bug</span>
+                      {buggyIds.size > 0 && (
+                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[10px] font-mono text-zinc-400">
+                          {buggyIds.size}
+                        </span>
+                      )}
+                    </span>
+                    {selectedCategory === "buggy" && <Check aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitemcheckbox"
+                    aria-checked={selectedCategory === "blocked"}
+                    onClick={() => {
+                      setSelectedCategory((current) => (current === "blocked" ? "all" : "blocked"));
+                      setFilterOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${
+                      selectedCategory === "blocked" ? "text-amber-300 font-medium" : "text-zinc-200"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span>{blockedEmoji || "😿"}</span>
+                      <span>Blocked</span>
+                      {blockedIds.size > 0 && (
+                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[10px] font-mono text-zinc-400">
+                          {blockedIds.size}
+                        </span>
+                      )}
+                    </span>
+                    {selectedCategory === "blocked" && <Check aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />}
+                  </button>
                 </div>
               )}
             </div>

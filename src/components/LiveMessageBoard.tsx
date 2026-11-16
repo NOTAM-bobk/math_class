@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, Smile, Sparkles } from "lucide-react";
 import { HubMessage, loadMessages, sendMessage } from "@/lib/hubApi";
+import { notifyNewChatMessage } from "@/lib/chatNotifications";
 
 export interface ChatMessage extends HubMessage {
   from: "user" | "assistant" | "system" | "racer";
@@ -81,6 +82,10 @@ const CHIP_STYLE: React.CSSProperties = {
 
 const QUICK_REACTIONS = ["🏎️", "🔥", "🎮", "🏆", "⚡", "🚀", "👋", "GG"];
 
+function getDiceBearAvatarUrl(name: string): string {
+  return `/api/avatar?seed=${encodeURIComponent(name || "Racer")}&style=bottts`;
+}
+
 // Generate consistent avatar color based on name
 function getAvatarColor(name: string): { bg: string; text: string } {
   let hash = 0;
@@ -150,6 +155,15 @@ export function LiveMessageBoard() {
           loaded.map((message) => toChatMessage(message)),
           loadLocalSentMessages()
         );
+        // Notify if new messages arrived from other users
+        if (prev.length > 0 && next.length > prev.length) {
+          const prevIds = new Set(prev.map((m) => m.id));
+          const incoming = next.filter((m) => !prevIds.has(m.id) && m.author !== nickname);
+          if (incoming.length > 0) {
+            const newest = incoming[incoming.length - 1];
+            notifyNewChatMessage(newest.author, newest.text);
+          }
+        }
         // If new messages came and user is scrolled up, update unread count
         if (next.length > prev.length && isScrolledUp) {
           setUnreadCount((c) => c + (next.length - prev.length));
@@ -163,7 +177,7 @@ export function LiveMessageBoard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [isScrolledUp]);
+  }, [isScrolledUp, nickname]);
 
   React.useEffect(() => {
     void refreshMessages();
@@ -192,6 +206,9 @@ export function LiveMessageBoard() {
           author: newMessage.author || "Guest",
           text: newMessage.text,
         }, newMessage.from || "racer");
+        if (newMessage.author && newMessage.author !== nickname) {
+          notifyNewChatMessage(newMessage.author, newMessage.text);
+        }
         setMessages((current) => [...current, message].slice(-100));
         if (!isScrolledUp) {
           setTimeout(() => scrollToBottom(true), 50);
@@ -329,13 +346,15 @@ export function LiveMessageBoard() {
                 }`}
               >
                 <div className="flex items-center gap-1.5 px-1 mb-1 text-[10px]">
-                  {!isUser && (
-                    <span
-                      className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold border ${avatar.bg}`}
-                    >
-                      {initial}
-                    </span>
-                  )}
+                  <img
+                    src={getDiceBearAvatarUrl(message.author)}
+                    alt=""
+                    loading="lazy"
+                    className="h-4 w-4 shrink-0 rounded-full border border-white/10 bg-zinc-800 object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
                   <span className="font-semibold text-zinc-300">
                     {message.author}
                   </span>
@@ -428,6 +447,14 @@ export function LiveMessageBoard() {
         onSubmit={handleSendMessage}
         className="p-2.5 sm:p-3 border-t border-white/[0.04] flex items-center gap-2 shrink-0 bg-[#191919]"
       >
+        <div className="relative flex items-center shrink-0" title={`Your avatar (${nickname})`}>
+          <img
+            src={getDiceBearAvatarUrl(nickname)}
+            alt=""
+            className="h-6 w-6 rounded-full border border-white/10 bg-zinc-800 object-cover shadow-sm"
+          />
+        </div>
+
         <label htmlFor="chat-name" className="sr-only">
           Your display name
         </label>

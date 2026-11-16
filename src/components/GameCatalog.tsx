@@ -1,11 +1,12 @@
 import * as React from "react";
-import { Search, Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Star, Bug, CheckCircle2, Smartphone } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Search, Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Star, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
 import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandomBlockedEmoji } from "@/lib/blockedGames";
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
-import { noteGamePlayed } from "@/lib/playStats";
+import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 
 const RECENT_GAMES_KEY = "polytrack_recent_games";
 const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -145,6 +146,14 @@ function nameKey(name: string) {
 
 function urlKey(url: string) {
   return url.trim().toLowerCase().replace(/\/+$/, "");
+}
+
+function isSameOriginGame(url: string) {
+  try {
+    return new URL(url, window.location.origin).origin === window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 function isSubdomainUrl(url: string) {
@@ -885,9 +894,10 @@ function GameCard({
   isBlocked: boolean;
   blockedEmoji: string;
   searchQuery: string;
-  onPlay: (game: GameItem) => void;
+  onPlay: (game: GameItem, event?: React.MouseEvent) => void;
   onToggleFavorite: (id: string, event?: React.MouseEvent) => void;
 }) {
+  const opensInHub = !game.disabled && isSameOriginGame(game.url);
   return (
     <article
       key={game.id}
@@ -907,11 +917,11 @@ function GameCard({
                 href={game.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => onPlay(game)}
+                onClick={(event) => onPlay(game, event)}
                 className="game-card-link min-w-0 truncate transition-colors group-hover:text-white"
               >
                 <HighlightText text={game.name} query={searchQuery} />
-                <span className="sr-only"> (opens in a new tab)</span>
+                <span className="sr-only"> {opensInHub ? "(opens in the hub)" : "(opens in a new tab)"}</span>
               </a>
             )}
             {isVerified && <VerifiedBadge />}
@@ -1078,6 +1088,12 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const [sortOption, setSortOption] = React.useState<SortOption>(initialSortOption);
   const [filterOpen, setFilterOpen] = React.useState(false);
   const filterRef = React.useRef<HTMLDivElement>(null);
+  const [launcherGame, setLauncherGame] = React.useState<GameItem | null>(null);
+  const [launcherNonce, setLauncherNonce] = React.useState(0);
+  const [launcherLoaded, setLauncherLoaded] = React.useState(false);
+  const [launcherSlow, setLauncherSlow] = React.useState(false);
+  const launcherBackRef = React.useRef<HTMLButtonElement>(null);
+  const launcherReturnFocusRef = React.useRef<HTMLElement | null>(null);
   const [popularGameId, setPopularGameId] = React.useState<string | null>(null);
   const [recentIds, setRecentIds] = React.useState<Set<string>>(
     () => new Set(loadRecentGames().map((entry) => entry.id))
@@ -1209,6 +1225,25 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
       .catch(() => {});
   }, []);
 
+  const openLauncher = React.useCallback((game: GameItem) => {
+    launcherReturnFocusRef.current = document.activeElement as HTMLElement | null;
+    setLauncherGame(game);
+    setLauncherNonce((value) => value + 1);
+    setLauncherLoaded(false);
+    setLauncherSlow(false);
+  }, []);
+
+  const dismissLauncher = React.useCallback(() => {
+    setLauncherGame(null);
+    setLauncherSlow(false);
+    launcherReturnFocusRef.current?.focus?.();
+  }, []);
+
+  const closeLauncher = React.useCallback(() => {
+    finalizePlaySession();
+    dismissLauncher();
+  }, [dismissLauncher]);
+
   const handleGameClick = (game: GameItem) => {
     noteGamePlayed(game.id, game.name);
     markGamePlayed(game.id);
@@ -1232,6 +1267,31 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
       })
       .catch(() => {});
   };
+
+  const launchGame = (game: GameItem, event?: React.MouseEvent) => {
+    const embed = !game.disabled && isSameOriginGame(game.url);
+    if (embed) event?.preventDefault();
+    handleGameClick(game);
+    if (embed) openLauncher(game);
+  };
+
+  // The in-page launcher stays open while the game runs; Escape or the return
+  // bar closes it, and only then is the play session finalized.
+  React.useEffect(() => {
+    if (!launcherGame) return;
+    document.documentElement.dataset.gameLauncher = "open";
+    launcherBackRef.current?.focus();
+    const slowTimer = window.setTimeout(() => setLauncherSlow(true), 8000);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeLauncher();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      delete document.documentElement.dataset.gameLauncher;
+      window.clearTimeout(slowTimer);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [launcherGame, launcherNonce, closeLauncher]);
 
   // Keep search and category filter in the URL so filtered views can be shared or bookmarked.
   React.useEffect(() => {
@@ -1693,7 +1753,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
               <div className="relative">
               <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
                 {recentGameItems.map((game) => (
-                  <a key={game.id} href={game.url} target="_blank" rel="noopener noreferrer" onClick={() => handleGameClick(game)} className="group flex w-44 shrink-0 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 text-left transition hover:border-white/[0.16] hover:bg-white/[0.07]">
+                  <a key={game.id} href={game.url} target="_blank" rel="noopener noreferrer" onClick={(event) => launchGame(game, event)} className="group flex w-44 shrink-0 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 text-left transition hover:border-white/[0.16] hover:bg-white/[0.07]">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-zinc-200"><Gamepad2 className="h-4 w-4" /></span>
                     <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span><span className="mt-0.5 block text-[10px] text-zinc-500">Play again</span></span>
                     <Play className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition group-hover:text-zinc-200" />
@@ -1729,7 +1789,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   isBlocked={blockedIds.has(game.id)}
                   blockedEmoji={blockedEmoji}
                   searchQuery={searchQuery}
-                  onPlay={handleGameClick}
+                  onPlay={launchGame}
                   onToggleFavorite={toggleFavorite}
                 />
               ))}
@@ -1758,7 +1818,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   isBlocked={blockedIds.has(game.id)}
                   blockedEmoji={blockedEmoji}
                   searchQuery={searchQuery}
-                  onPlay={handleGameClick}
+                  onPlay={launchGame}
                   onToggleFavorite={toggleFavorite}
                 />
               ))}
@@ -1802,6 +1862,103 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
           )}
         </div>
       </div>
+
+      {launcherGame && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[60] flex flex-col bg-[#09090b]"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${launcherGame.name} game`}
+            >
+              <div
+                className="flex shrink-0 items-center gap-2 border-b border-white/[0.1] bg-[#171717] px-2 pb-2 sm:px-3"
+                style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top))" }}
+              >
+                <button
+                  ref={launcherBackRef}
+                  type="button"
+                  onClick={closeLauncher}
+                  className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-[0.98]"
+                >
+                  <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+                  <span>Back to hub</span>
+                </button>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-semibold text-zinc-100 sm:text-sm">
+                    {launcherGame.name}
+                  </div>
+                  <div className="hidden truncate text-[10px] text-zinc-500 sm:block">
+                    Playing inside the hub
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLauncherLoaded(false);
+                    setLauncherSlow(false);
+                    setLauncherNonce((value) => value + 1);
+                  }}
+                  aria-label="Reload game"
+                  title="Reload game"
+                  className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white"
+                >
+                  <RotateCcw aria-hidden="true" className="h-4 w-4" />
+                </button>
+                <a
+                  href={launcherGame.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={dismissLauncher}
+                  aria-label="Open game in a new tab"
+                  title="Open game in a new tab"
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                >
+                  <ExternalLink aria-hidden="true" className="h-4 w-4" />
+                  <span className="hidden sm:inline">New tab</span>
+                </a>
+              </div>
+
+              <div className="relative min-h-0 flex-1 bg-black">
+                {!launcherLoaded && (
+                  <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-[#09090b]">
+                    <div className="flex flex-col items-center gap-3 text-xs text-zinc-400">
+                      <span
+                        aria-hidden="true"
+                        className="h-5 w-5 animate-spin rounded-full border-2 border-white/15 border-t-white/80"
+                      />
+                      Loading {launcherGame.name}…
+                    </div>
+                  </div>
+                )}
+                <iframe
+                  key={`${launcherGame.id}-${launcherNonce}`}
+                  src={launcherGame.url}
+                  title={launcherGame.name}
+                  onLoad={() => setLauncherLoaded(true)}
+                  className="h-full w-full border-0 bg-black"
+                  allow="autoplay; fullscreen; gamepad; clipboard-write; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                />
+                {launcherSlow && !launcherLoaded && (
+                  <div className="absolute inset-x-3 bottom-3 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-[#171717]/95 px-3 py-2 text-[11px] text-zinc-300 shadow-lg">
+                    <span>This game is taking a while, or it may not allow embedding.</span>
+                    <a
+                      href={launcherGame.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={dismissLauncher}
+                      className="font-semibold text-sky-300 underline decoration-sky-400/40 underline-offset-2"
+                    >
+                      Open in a new tab
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }

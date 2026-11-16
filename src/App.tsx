@@ -119,15 +119,21 @@ export function App() {
   // Games open in a new tab, so finish timing the last one when the hub is
   // visible again (return, back navigation or a restored page).
   React.useEffect(() => {
+    // An in-page game keeps the hub visible while it runs, so only finish the
+    // session once the launcher is gone and the hub is actually back.
+    const hubIsActive = () => document.documentElement.dataset.gameLauncher !== "open";
     finalizePlaySession();
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") finalizePlaySession();
+      if (document.visibilityState === "visible" && hubIsActive()) finalizePlaySession();
+    };
+    const handlePageShow = () => {
+      if (hubIsActive()) finalizePlaySession();
     };
     document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("pageshow", finalizePlaySession);
+    window.addEventListener("pageshow", handlePageShow);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("pageshow", finalizePlaySession);
+      window.removeEventListener("pageshow", handlePageShow);
     };
   }, []);
 

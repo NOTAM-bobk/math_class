@@ -60,8 +60,58 @@ const PANIC_PRESETS = [
 ];
 
 const SITE_MIRRORS = [
-  { name: "polytrack.sawyerbobk563.deno.net", url: "https://polytrack.sawyerbobk563.deno.net/" },
+  { name: "poly2.benlaunches.icu", url: "https://poly2.benlaunches.icu/", timeoutMs: 10000 },
+  { name: "polytrack.sawyerbobk563.deno.net", url: "https://polytrack.sawyerbobk563.deno.net/", timeoutMs: 10000 },
+  { name: "polytrack.sawyerbobk563.workers.dev", url: "https://polytrack.sawyerbobk563.workers.dev/", timeoutMs: 10000 },
+  // This one can take a minute to wake up.
+  { name: "basket-random-1df0d.containers.snapdeploy.app", url: "https://basket-random-1df0d.containers.snapdeploy.app/", timeoutMs: 65000 },
 ];
+
+type ProxyCheckStatus = "idle" | "checking" | "reachable" | "blocked";
+
+/** Loads a proxy in an invisible frame; a load error or timeout means it did not load. */
+function testMirrorFrame(
+  url: string,
+  timeoutMs = 9000,
+  signal?: AbortSignal,
+): Promise<"reachable" | "blocked"> {
+  return new Promise((resolve) => {
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.tabIndex = -1;
+    iframe.title = `Connectivity check for ${url}`;
+    Object.assign(iframe.style, {
+      position: "fixed",
+      left: "-10000px",
+      top: "0",
+      width: "1px",
+      height: "1px",
+      opacity: "0",
+      pointerEvents: "none",
+      border: "0",
+    });
+
+    let settled = false;
+    const finish = (result: "reachable" | "blocked") => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      iframe.remove();
+      resolve(result);
+    };
+    const timer = window.setTimeout(() => finish("blocked"), timeoutMs);
+    const abort = () => finish("blocked");
+    if (signal?.aborted) {
+      finish("blocked");
+      return;
+    }
+    signal?.addEventListener("abort", abort, { once: true });
+    iframe.addEventListener("load", () => finish("reachable"), { once: true });
+    iframe.addEventListener("error", () => finish("blocked"), { once: true });
+    iframe.src = url;
+    document.body.appendChild(iframe);
+  });
+}
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -121,6 +171,10 @@ export function SettingsModal({
   // Local play statistics
   const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
 
+  // Proxy reachability, checked only once the mirrors scroll into view
+  const [proxyStatus, setProxyStatus] = React.useState<Record<string, ProxyCheckStatus>>({});
+  const proxySectionRef = React.useRef<HTMLDivElement>(null);
+
   // Offline copy and its scheduled cache-first window
   const [offlineSchedule, setOfflineSchedule] = React.useState<OfflineSchedule>(loadOfflineSchedule);
   const [offlineStatus, setOfflineStatus] = React.useState<OfflineStatus | null>(null);
@@ -163,6 +217,56 @@ export function SettingsModal({
   React.useEffect(() => {
     if (!isOpen) return;
     setPlayStats(loadPlayStats());
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const section = proxySectionRef.current;
+    if (!section) return;
+
+    let cancelled = false;
+    let started = false;
+    const controller = new AbortController();
+    setProxyStatus({});
+
+    const runChecks = () => {
+      if (started) return;
+      started = true;
+      setProxyStatus(
+        Object.fromEntries(SITE_MIRRORS.map((mirror) => [mirror.url, "checking" as ProxyCheckStatus]))
+      );
+      for (const mirror of SITE_MIRRORS) {
+        void testMirrorFrame(mirror.url, mirror.timeoutMs, controller.signal).then((result) => {
+          if (cancelled) return;
+          setProxyStatus((current) => ({ ...current, [mirror.url]: result }));
+        });
+      }
+    };
+
+    if (typeof IntersectionObserver === "undefined") {
+      runChecks();
+      return () => {
+        cancelled = true;
+        controller.abort();
+      };
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          observer.disconnect();
+          runChecks();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(section);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      observer.disconnect();
+    };
   }, [isOpen]);
 
   React.useEffect(() => {
@@ -1682,21 +1786,59 @@ export function SettingsModal({
             <p className="text-[11px] leading-relaxed text-zinc-400">
               Mirror and backup locations for this site.
             </p>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {SITE_MIRRORS.map((mirror) => (
-                <a
-                  key={mirror.url}
-                  href={mirror.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={mirror.url}
-                  style={CHIP_STYLE}
-                  className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
-                >
-                  <Globe aria-hidden="true" className="h-3 w-3 text-sky-400" />
-                  <span>{mirror.name}</span>
-                </a>
-              ))}
+            <div ref={proxySectionRef} className="mt-1 flex flex-col gap-2">
+              <div className="flex flex-wrap gap-1.5">
+                {SITE_MIRRORS.map((mirror) => {
+                  const status = proxyStatus[mirror.url] || "idle";
+                  const statusLabel =
+                    status === "checking"
+                      ? "Checking…"
+                      : status === "reachable"
+                        ? "Reachable"
+                        : status === "blocked"
+                          ? "Blocked"
+                          : "Not checked";
+                  return (
+                    <a
+                      key={mirror.url}
+                      href={mirror.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`${mirror.url} — ${statusLabel}`}
+                      style={CHIP_STYLE}
+                      className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                    >
+                      <Globe aria-hidden="true" className="h-3 w-3 shrink-0 text-sky-400" />
+                      <span className="truncate">{mirror.name}</span>
+                      <span
+                        aria-hidden="true"
+                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                          status === "checking"
+                            ? "animate-pulse bg-amber-400"
+                            : status === "reachable"
+                              ? "bg-emerald-400"
+                              : status === "blocked"
+                                ? "bg-red-400"
+                                : "bg-zinc-600"
+                        }`}
+                      />
+                      <span className="sr-only">{statusLabel}</span>
+                    </a>
+                  );
+                })}
+              </div>
+
+              <p role="status" className="text-[10.5px] leading-relaxed text-zinc-500">
+                {Object.values(proxyStatus).some((status) => status === "checking")
+                  ? "Checking which proxies load from this network…"
+                  : Object.values(proxyStatus).length > 0
+                    ? `${SITE_MIRRORS.filter((mirror) => proxyStatus[mirror.url] === "reachable").length} reachable · ${SITE_MIRRORS.filter((mirror) => proxyStatus[mirror.url] === "blocked").length} blocked`
+                    : "Scroll here to check the proxies from this network."}
+              </p>
+              <p className="text-[10px] leading-relaxed text-zinc-600">
+                The check loads each proxy in a hidden frame. “Blocked” means the frame did not load, so a filter can
+                also be the cause.
+              </p>
             </div>
           </div>
 

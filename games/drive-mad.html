@@ -36,6 +36,61 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
   <title>Drive Mad</title>
+
+  <script>
+  /* Drive Mad stores its saves in localStorage under com.martinmagni.drivemad/data/*.
+     Mirror those saves into a site-owned key and restore them if the game's own
+     namespace is ever missing, so progress survives a reset of the game data. */
+  (function () {
+    var GAME_NAMESPACE = "com.martinmagni.drivemad/";
+    var BACKUP_KEY = "polytrack_drivemad_progress_backup";
+
+    function readGameSaves() {
+      var saves = {};
+      try {
+        for (var i = 0; i < localStorage.length; i += 1) {
+          var key = localStorage.key(i);
+          if (key && key.indexOf(GAME_NAMESPACE + "data/") === 0) {
+            saves[key] = localStorage.getItem(key);
+          }
+        }
+      } catch (e) {}
+      return saves;
+    }
+
+    function backupProgress() {
+      var saves = readGameSaves();
+      if (!Object.keys(saves).length) return;
+      try {
+        localStorage.setItem(BACKUP_KEY, JSON.stringify(saves));
+      } catch (e) {}
+    }
+
+    function restoreProgress() {
+      if (Object.keys(readGameSaves()).length) return;
+      var saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(BACKUP_KEY) || "null");
+      } catch (e) {
+        return;
+      }
+      if (!saved || typeof saved !== "object") return;
+      Object.keys(saved).forEach(function (key) {
+        if (key.indexOf(GAME_NAMESPACE + "data/") !== 0 || typeof saved[key] !== "string") return;
+        try {
+          localStorage.setItem(key, saved[key]);
+        } catch (e) {}
+      });
+    }
+
+    restoreProgress();
+    window.setInterval(backupProgress, 3000);
+    window.addEventListener("pagehide", backupProgress);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") backupProgress();
+    });
+  })();
+  </script>
   <meta name="description" content="">
   <meta name="google" content="notranslate">
 

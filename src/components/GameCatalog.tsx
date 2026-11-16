@@ -1012,7 +1012,7 @@ function GameCard({
   );
 }
 
-export function GameCatalog() {
+export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const [games, setGames] = React.useState<GameItem[]>(DEFAULT_GAMES);
   const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryId>(initialCategory);
@@ -1551,38 +1551,40 @@ export function GameCatalog() {
         }}
       >
         <div className="flex flex-col gap-4">
-          <div
-            aria-label="Advertisement"
-            style={{
-              borderRadius: 16,
-              background: "rgba(255, 255, 255, 0.02)",
-              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03)",
-            }}
-            className="flex items-center justify-between gap-3 px-3.5 py-2.5"
-          >
-            <div className="min-w-0">
-              <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-zinc-500">Ad space</div>
-              <div className="flex flex-wrap items-center gap-x-1 text-xs text-zinc-400">
-                <span>Reach students and gamers here</span>
-                <span aria-hidden="true">·</span>
-                <a
-                  href="https://uplcm.com/4/12241749"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-zinc-300 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
-                >
-                  Support this site
-                </a>
-              </div>
-            </div>
-            <a
-              href="mailto:hello@base31.org?subject=Ad%20space%20on%20Education%20Games"
-              style={CHIP_STYLE}
-              className="inline-flex shrink-0 items-center px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:text-white"
+          {showAdSpot && (
+            <div
+              aria-label="Advertisement"
+              style={{
+                borderRadius: 16,
+                background: "rgba(255, 255, 255, 0.02)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03)",
+              }}
+              className="flex items-center justify-between gap-3 px-3.5 py-2.5"
             >
-              Advertise
-            </a>
-          </div>
+              <div className="min-w-0">
+                <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-zinc-500">Ad space</div>
+                <div className="flex flex-wrap items-center gap-x-1 text-xs text-zinc-400">
+                  <span>Reach students and gamers here</span>
+                  <span aria-hidden="true">·</span>
+                  <a
+                    href="https://uplcm.com/4/12241749"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-zinc-300 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
+                  >
+                    Support this site
+                  </a>
+                </div>
+              </div>
+              <a
+                href="mailto:hello@base31.org?subject=Ad%20space%20on%20Education%20Games"
+                style={CHIP_STYLE}
+                className="inline-flex shrink-0 items-center px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:text-white"
+              >
+                Advertise
+              </a>
+            </div>
+          )}
 
           {!isFiltered && recentGameItems.length > 0 && (
             <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">

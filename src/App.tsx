@@ -65,7 +65,12 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
-  const [navCollapsed, setNavCollapsed] = React.useState(false);
+  const [navCollapsed, setNavCollapsed] = React.useState(
+    () => localStorage.getItem("polytrack_nav_collapsed") === "true"
+  );
+  const [adSpotEnabled, setAdSpotEnabled] = React.useState(
+    () => localStorage.getItem("polytrack_ad_spot_enabled") !== "false"
+  );
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
   const [installNoticeVisible, setInstallNoticeVisible] = React.useState(() => {
     try {
@@ -131,6 +136,24 @@ export function App() {
 
   const isLocked = siteLockEnabled && siteLockPassword.trim().length > 0 && !isUnlocked;
 
+  // Remember whether the nav options are open or closed between visits.
+  const toggleNav = () => {
+    setNavCollapsed((collapsed) => {
+      const next = !collapsed;
+      try {
+        localStorage.setItem("polytrack_nav_collapsed", next ? "true" : "false");
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleAdSpotChange = (enabled: boolean) => {
+    try {
+      localStorage.setItem("polytrack_ad_spot_enabled", enabled ? "true" : "false");
+    } catch {}
+    setAdSpotEnabled(enabled);
+  };
+
   // Animate the collapse over the links' real width: transitioning a fixed max-width
   // leaves dead time before the links start to shrink, which reads as a snap.
   const navLinksRef = React.useRef<HTMLDivElement>(null);
@@ -155,7 +178,7 @@ export function App() {
   const renderNavToggle = (placement: string) => (
     <button
       type="button"
-      onClick={() => setNavCollapsed((collapsed) => !collapsed)}
+      onClick={toggleNav}
       aria-expanded={!navCollapsed}
       aria-label={navCollapsed ? "Expand navigation" : "Collapse navigation"}
       title={
@@ -295,7 +318,7 @@ export function App() {
             className={`${mobilePanel === "games" ? "flex" : "hidden"} md:flex flex-1 flex-col min-h-0 min-w-0`}
           >
             <div id="games" className="flex-1 flex flex-col min-h-0">
-              <GameCatalog />
+              <GameCatalog showAdSpot={adSpotEnabled} />
             </div>
           </section>
 
@@ -403,6 +426,8 @@ export function App() {
         tabCloakSettings={tabCloakSettings}
         onTabCloakChange={handleTabCloakChange}
         onOpenChangelog={() => setChangelogOpen(true)}
+        adSpotEnabled={adSpotEnabled}
+        onAdSpotChange={handleAdSpotChange}
         sideChatEnabled={sideChatEnabled}
         onSideChatChange={(enabled) => {
           localStorage.setItem("polytrack_side_chat_enabled", enabled ? "true" : "false");

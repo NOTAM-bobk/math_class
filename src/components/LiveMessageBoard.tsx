@@ -80,7 +80,22 @@ const CHIP_STYLE: React.CSSProperties = {
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
 
-const QUICK_REACTIONS = ["🏎️", "🔥", "🎮", "🏆", "⚡", "🚀", "👋", "GG"];
+const QUICK_REACTION_POOL = [
+  "🏎️", "🔥", "🎮", "🏆", "⚡", "🚀", "👋", "GG",
+  "😮", "🎯", "💀", "🕹️", "🤯", "👾", "🍕", "☕",
+  "🏁", "🙌", "💯", "🥇", "🎉", "🤝", "😎", "🧠",
+  "🛞", "😭", "🧨", "🥶", "🦆", "🌟",
+];
+
+// A different handful of reactions each time the page loads.
+function pickQuickReactions(count = 8): string[] {
+  const pool = [...QUICK_REACTION_POOL];
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
 
 function getDiceBearAvatarUrl(name: string): string {
   return `/api/avatar?seed=${encodeURIComponent(name || "Racer")}&style=bottts`;
@@ -116,6 +131,7 @@ export function LiveMessageBoard() {
   const [showEmojiBar, setShowEmojiBar] = React.useState(false);
   const [isScrolledUp, setIsScrolledUp] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
+  const [quickReactions] = React.useState(pickQuickReactions);
 
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -425,7 +441,7 @@ export function LiveMessageBoard() {
       {/* Quick Reactions Bar (Expandable or always subtle) */}
       <div className="px-3 pt-2 pb-1 border-t border-white/[0.06] flex items-center justify-between gap-1 shrink-0 bg-white/[0.01]">
         <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {QUICK_REACTIONS.map((emoji) => (
+          {quickReactions.map((emoji) => (
             <button
               key={emoji}
               type="button"

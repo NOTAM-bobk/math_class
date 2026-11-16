@@ -11,7 +11,7 @@ import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
-import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
   loadBackgroundConfig,
@@ -64,6 +64,8 @@ export function App() {
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
   const [navCollapsed, setNavCollapsed] = React.useState(false);
+  const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
+  const [installNoticeVisible, setInstallNoticeVisible] = React.useState(true);
   const [adminModalOpen, setAdminModalOpen] = React.useState(false);
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
@@ -74,6 +76,12 @@ export function App() {
       setBgConfig(newConfig);
     });
   }, []);
+
+  React.useEffect(() => {
+    if (!installNoticeVisible) return;
+    const timer = window.setTimeout(() => setInstallNoticeVisible(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [installNoticeVisible]);
 
   // Visitors who allowed notifications hear about new games once per version.
   React.useEffect(() => {
@@ -176,52 +184,40 @@ export function App() {
 
             <nav
               aria-label="Site"
-              className="no-scrollbar order-1 flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto py-0.5 sm:order-2 sm:justify-start sm:gap-1.5"
+              className="order-1 flex min-w-0 flex-1 items-center justify-end gap-1 py-0.5 sm:order-2 sm:justify-start sm:gap-1.5"
             >
-              <a
-                href="/submit/"
-                data-hint-target="submit-game"
-                aria-label="Submit a game"
-                style={CHIP_STYLE}
-                title="Submit a game"
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1"
+              <div
+                id="site-nav-links"
+                aria-hidden={navCollapsed}
+                className="flex min-w-0 items-center gap-1 overflow-hidden transition-[max-width,opacity,transform] duration-300 ease-in-out sm:gap-1.5"
+                style={{
+                  maxWidth: navCollapsed ? 0 : "1000px",
+                  opacity: navCollapsed ? 0 : 1,
+                  transform: navCollapsed ? "translateX(-8px)" : "translateX(0)",
+                }}
               >
-                <Send aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden sm:inline">Submit a game</span>
-              </a>
-              {!navCollapsed && (
-                <div id="site-nav-links" className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-                  <a
-                    href="/ai/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Open Unblocked AIs in a new tab"
-                    aria-label="Unblocked AIs (opens in a new tab)"
-                    style={CHIP_STYLE}
-                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1"
-                  >
-                    <Sparkles aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-                    <span className="hidden sm:inline">Unblocked AIs</span>
-                  </a>
-                  <a
-                    href="/outside/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Open outside games in a new tab"
-                    aria-label="Outside games (opens in a new tab)"
-                    style={CHIP_STYLE}
-                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1"
-                  >
-                    <Compass aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-                    <span className="hidden sm:inline">Outside games</span>
-                  </a>
-                  <ShareButton compact />
-                  {renderNavToggle("hidden sm:inline-flex")}
-                </div>
-              )}
+                <a
+                  href="/submit/"
+                  data-hint-target="submit-game"
+                  aria-label="Submit a game"
+                  tabIndex={navCollapsed ? -1 : 0}
+                  style={CHIP_STYLE}
+                  title="Submit a game"
+                  className="inline-flex h-8 shrink-0 items-center justify-center rounded-full px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:gap-1.5 sm:px-3 sm:py-1"
+                >
+                  <Send aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
+                  <span className="hidden sm:inline">Submit a game</span>
+                </a>
+                <a href="/ai/" target="_blank" rel="noopener noreferrer" title="Open Unblocked AIs in a new tab" aria-label="Unblocked AIs (opens in a new tab)" style={CHIP_STYLE} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1">
+                  <Sparkles aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" /><span className="hidden sm:inline">Unblocked AIs</span>
+                </a>
+                <a href="/outside/" target="_blank" rel="noopener noreferrer" title="Open outside games in a new tab" aria-label="Outside games (opens in a new tab)" style={CHIP_STYLE} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1">
+                  <Compass aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" /><span className="hidden sm:inline">Outside games</span>
+                </a>
+                <ShareButton compact />
+              </div>
+              {renderNavToggle("inline-flex")}
             </nav>
-
-            {!navCollapsed && renderNavToggle("order-2 sm:hidden")}
 
             <div className="order-2 ml-0 flex shrink-0 items-center gap-1 sm:ml-auto sm:gap-2">
               <button
@@ -243,6 +239,15 @@ export function App() {
           </div>
         </header>
 
+        {installNoticeVisible && (
+          <div className="fixed right-3 top-3 z-50 flex max-w-[min(24rem,calc(100vw-1.5rem))] items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 pr-2.5 text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300" role="status">
+            <p className="text-xs leading-relaxed">Add to home for this site to act like app, and get more advanced features!</p>
+            <button type="button" aria-label="Close install notice" onClick={() => setInstallNoticeVisible(false)} className="shrink-0 rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
+              <X aria-hidden="true" className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {/* Main Content Area */}
         <main
           id="main"
@@ -260,18 +265,20 @@ export function App() {
             </div>
           </section>
 
-          <aside
-            id="chat-panel"
-            aria-label="Chat and visitor count"
-            className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-80 lg:w-96 flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full`}
-          >
-            <div className="flex-1 min-h-0 flex flex-col">
-              <LiveMessageBoard />
-            </div>
-            <div className="shrink-0">
-              <VisitorCounter />
-            </div>
-          </aside>
+          {sideChatEnabled && (
+            <aside
+              id="chat-panel"
+              aria-label="Chat and visitor count"
+              className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-80 lg:w-96 flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full animate-in fade-in slide-in-from-right-2 duration-300`}
+            >
+              <div className="flex-1 min-h-0 flex flex-col">
+                <LiveMessageBoard />
+              </div>
+              <div className="shrink-0">
+                <VisitorCounter />
+              </div>
+            </aside>
+          )}
         </main>
 
         <nav
@@ -293,20 +300,22 @@ export function App() {
               <Gamepad2 aria-hidden="true" className="h-4 w-4" />
               <span>Games</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setMobilePanel("chat")}
-              aria-controls="chat-panel"
-              aria-pressed={mobilePanel === "chat"}
-              className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-                mobilePanel === "chat"
-                  ? "bg-white/[0.09] text-zinc-100 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
-                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
-              }`}
-            >
-              <MessageCircle aria-hidden="true" className="h-4 w-4" />
-              <span>Chat</span>
-            </button>
+            {sideChatEnabled && (
+              <button
+                type="button"
+                onClick={() => setMobilePanel("chat")}
+                aria-controls="chat-panel"
+                aria-pressed={mobilePanel === "chat"}
+                className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  mobilePanel === "chat"
+                    ? "bg-white/[0.09] text-zinc-100 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
+                    : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+                }`}
+              >
+                <MessageCircle aria-hidden="true" className="h-4 w-4" />
+                <span>Chat</span>
+              </button>
+            )}
           </div>
         </nav>
 
@@ -360,6 +369,12 @@ export function App() {
         tabCloakSettings={tabCloakSettings}
         onTabCloakChange={handleTabCloakChange}
         onOpenChangelog={() => setChangelogOpen(true)}
+        sideChatEnabled={sideChatEnabled}
+        onSideChatChange={(enabled) => {
+          localStorage.setItem("polytrack_side_chat_enabled", enabled ? "true" : "false");
+          setSideChatEnabled(enabled);
+          if (!enabled) setMobilePanel("games");
+        }}
       />
 
       <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />

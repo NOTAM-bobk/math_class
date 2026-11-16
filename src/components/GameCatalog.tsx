@@ -1524,7 +1524,6 @@ export function GameCatalog() {
               <div className="flex items-center gap-2">
                 <h3 id="catalog-recent-heading" className="text-[11px] font-medium text-zinc-400">Recently played</h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                <span className="text-[11px] tabular-nums text-zinc-500">Scroll to revisit</span>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
                 {recentGameItems.map((game) => (

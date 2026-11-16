@@ -26,6 +26,8 @@ interface SettingsModalProps {
   tabCloakSettings: TabCloakSettings;
   onTabCloakChange: (settings: TabCloakSettings) => void;
   onOpenChangelog: () => void;
+  sideChatEnabled: boolean;
+  onSideChatChange: (enabled: boolean) => void;
 }
 
 const PANIC_PRESETS = [
@@ -59,7 +61,9 @@ export function SettingsModal({
   onConfigChange,
   tabCloakSettings,
   onTabCloakChange,
-  onOpenChangelog
+  onOpenChangelog,
+  sideChatEnabled,
+  onSideChatChange
 }: SettingsModalProps) {
   // Site Lock states
   const [siteLockEnabled, setSiteLockEnabled] = React.useState(() => {
@@ -355,6 +359,22 @@ export function SettingsModal({
             <X aria-hidden="true" className="w-4 h-4" />
           </button>
         </div>
+
+        <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="layout-controls-title">
+          <div>
+            <h3 id="layout-controls-title" className="text-sm font-semibold text-zinc-100">Layout</h3>
+            <p className="mt-0.5 text-xs text-zinc-400">Show or hide the side chat and visitor counter. Hiding them gives games the full width.</p>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+            <div>
+              <div className="text-sm font-medium text-zinc-200">Side chat and visitor counter</div>
+              <div className="text-xs text-zinc-500">Keep the chat panel visible beside the game catalog</div>
+            </div>
+            <button type="button" onClick={() => onSideChatChange(!sideChatEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${sideChatEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={sideChatEnabled} aria-label="Side chat and visitor counter">
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${sideChatEnabled ? "translate-x-5" : "translate-x-0"}`} />
+            </button>
+          </div>
+        </section>
 
         {/* Section 1: Site Lock */}
         <div className="flex flex-col gap-3">

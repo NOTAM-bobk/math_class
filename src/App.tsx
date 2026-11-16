@@ -23,6 +23,7 @@ import {
 import { formatLastUpdated, LAST_UPDATED_ISO } from "./lib/lastUpdated";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
+import { finalizePlaySession } from "./lib/playStats";
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -113,6 +114,21 @@ export function App() {
   // Re-send the offline schedule after a reload, when this device has an offline copy.
   React.useEffect(() => {
     initOfflineMode();
+  }, []);
+
+  // Games open in a new tab, so finish timing the last one when the hub is
+  // visible again (return, back navigation or a restored page).
+  React.useEffect(() => {
+    finalizePlaySession();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") finalizePlaySession();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pageshow", finalizePlaySession);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pageshow", finalizePlaySession);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -406,14 +422,14 @@ export function App() {
         {/* Bottom Footer with Bug Report and Admin Panel */}
         <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
-            <span className={`font-medium ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>Built by SS</span>
+            <span className={`hidden font-medium sm:inline ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>Built by SS</span>
             <span
-              className={footerIsLight ? "text-black/60" : "text-zinc-500"}
+              className={`hidden sm:inline ${footerIsLight ? "text-black/60" : "text-zinc-500"}`}
               title={`Build ${LAST_UPDATED_ISO}`}
             >
               Updated {lastUpdatedLabel}
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="hidden items-center gap-1.5 sm:flex">
               <button
                 type="button"
                 data-hint-target="bug-report"
@@ -463,6 +479,8 @@ export function App() {
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onLockNow={() => setIsUnlocked(false)}
+        onReportBug={() => setBugModalOpen(true)}
+        onOpenAdmin={() => setAdminModalOpen(true)}
         onConfigChange={handleConfigChange}
         tabCloakSettings={tabCloakSettings}
         onTabCloakChange={handleTabCloakChange}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy } from "lucide-react";
 import {
   BACKGROUND_PRESETS,
   loadBackgroundConfig,
@@ -34,11 +34,14 @@ import {
   type OfflineSchedule,
   type OfflineStatus,
 } from "@/lib/offlineCache";
+import { formatPlayTime, loadPlayStats, type PlayStats } from "@/lib/playStats";
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLockNow: () => void;
+  onReportBug: () => void;
+  onOpenAdmin: () => void;
   onConfigChange?: (enabled: boolean, password: string) => void;
   tabCloakSettings: TabCloakSettings;
   onTabCloakChange: (settings: TabCloakSettings) => void;
@@ -81,6 +84,8 @@ export function SettingsModal({
   isOpen,
   onClose,
   onLockNow,
+  onReportBug,
+  onOpenAdmin,
   onConfigChange,
   tabCloakSettings,
   onTabCloakChange,
@@ -112,6 +117,9 @@ export function SettingsModal({
 
   // Notification ads
   const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
+
+  // Local play statistics
+  const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
 
   // Offline copy and its scheduled cache-first window
   const [offlineSchedule, setOfflineSchedule] = React.useState<OfflineSchedule>(loadOfflineSchedule);
@@ -151,6 +159,11 @@ export function SettingsModal({
   }, [tabCloakSettings]);
 
   const panelRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setPlayStats(loadPlayStats());
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (!isOpen || !offlineSupported()) return;
@@ -340,6 +353,14 @@ export function SettingsModal({
     );
   };
 
+  const mostPlayed = [...playStats.games]
+    .sort((a, b) => b.playMs - a.playMs || b.clicks - a.clicks || b.lastPlayedAt - a.lastPlayedAt)
+    .slice(0, 5);
+  const maxPlayedWeight = mostPlayed.reduce(
+    (max, game) => Math.max(max, game.playMs > 0 ? game.playMs : game.clicks),
+    0
+  );
+
   const offlinePercent = offlineProgress
     ? offlineProgress.total > 0
       ? Math.min(100, Math.round((offlineProgress.done / offlineProgress.total) * 100))
@@ -460,7 +481,7 @@ export function SettingsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain bg-black/80 p-3 backdrop-blur-sm sm:p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-2 pt-[4.5rem] backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -471,7 +492,7 @@ export function SettingsModal({
         aria-modal="true"
         aria-labelledby="settings-title"
         tabIndex={-1}
-        className="relative my-auto flex w-full max-w-lg flex-col gap-5 p-5 text-zinc-100 focus:outline-none sm:max-w-2xl sm:p-6 md:max-h-[88vh] md:overflow-y-auto"
+        className="relative flex max-h-[calc(100dvh-5.25rem)] w-full max-w-lg flex-col gap-5 overflow-y-auto p-5 pt-6 text-zinc-100 focus:outline-none sm:my-auto sm:max-w-2xl sm:p-6 md:max-h-[88vh]"
         style={{
           background: "#1d1d1d",
           borderRadius: 20,
@@ -481,6 +502,11 @@ export function SettingsModal({
           fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
+        <div
+          aria-hidden="true"
+          className="absolute left-1/2 top-2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/20 sm:hidden"
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
           <div className="flex items-center gap-2">
@@ -525,6 +551,140 @@ export function SettingsModal({
             </div>
             <button type="button" onClick={() => onAdSpotChange(!adSpotEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${adSpotEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={adSpotEnabled} aria-label="Ad space">
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${adSpotEnabled ? "translate-x-5" : "translate-x-0"}`} />
+            </button>
+          </div>
+        </section>
+
+        {/* Local play statistics */}
+        <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="stats-title">
+          <div className="flex items-start gap-2">
+            <div
+              style={{
+                borderRadius: 36,
+                background: "rgba(56, 189, 248, 0.12)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              }}
+              className="p-1.5 text-sky-400"
+            >
+              <BarChart3 aria-hidden="true" className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+                <span id="stats-title">Your statistics</span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                  On this device
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400">Play time, clicks and your most played games</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { label: "Time played", value: formatPlayTime(playStats.totalPlayMs), icon: Timer, tone: "text-sky-400" },
+              { label: "Game clicks", value: playStats.totalClicks.toLocaleString(), icon: MousePointerClick, tone: "text-emerald-400" },
+              { label: "Games played", value: playStats.games.length.toLocaleString(), icon: Gamepad2, tone: "text-amber-400" },
+              { label: "Sessions", value: playStats.totalSessions.toLocaleString(), icon: Trophy, tone: "text-purple-400" },
+            ].map((tile) => {
+              const Icon = tile.icon;
+              return (
+                <div
+                  key={tile.label}
+                  style={{
+                    borderRadius: 12,
+                    background: "rgba(0, 0, 0, 0.3)",
+                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  }}
+                  className="p-2.5"
+                >
+                  <div className="flex items-center gap-1 text-[10.5px] font-medium text-zinc-500">
+                    <Icon aria-hidden="true" className={`h-3 w-3 ${tile.tone}`} />
+                    {tile.label}
+                  </div>
+                  <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
+                    {tile.value}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                <Trophy aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+                Most played
+              </div>
+              {playStats.lastPlayedAt ? (
+                <span className="text-[10.5px] text-zinc-500">
+                  Last played {new Date(playStats.lastPlayedAt).toLocaleDateString()}
+                </span>
+              ) : null}
+            </div>
+
+            {mostPlayed.length > 0 ? (
+              <ul className="flex flex-col gap-2">
+                {mostPlayed.map((game, index) => {
+                  const weight = game.playMs > 0 ? game.playMs : game.clicks;
+                  const percent = maxPlayedWeight > 0 ? Math.max(8, Math.round((weight / maxPlayedWeight) * 100)) : 0;
+                  return (
+                    <li key={game.id} className="min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="truncate text-xs text-zinc-200">
+                          <span className="mr-1 font-mono text-[10px] text-zinc-500">{index + 1}.</span>
+                          {game.name}
+                        </span>
+                        <span className="shrink-0 text-[10.5px] text-zinc-500">
+                          {game.playMs > 0 ? `${formatPlayTime(game.playMs)} · ` : ""}
+                          {game.clicks} click{game.clicks === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className="h-full rounded-full bg-sky-500/80" style={{ width: `${percent}%` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-[11px] text-zinc-500">Play a game and your top games will show up here.</p>
+            )}
+
+            <p className="text-[10px] leading-relaxed text-zinc-500">
+              Play time is counted from opening a game until you come back to the hub. Statistics stay on this device.
+            </p>
+          </div>
+        </section>
+
+        {/* Mobile-only shortcuts, moved out of the footer on phones */}
+        <section className="flex flex-col gap-2 border-t border-white/[0.08] pt-3 sm:hidden" aria-labelledby="classroom-tools-title">
+          <h3 id="classroom-tools-title" className="text-sm font-semibold text-zinc-100">
+            Classroom tools
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onReportBug();
+              }}
+              style={CHIP_STYLE}
+              className="inline-flex cursor-pointer items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+            >
+              <Bug aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+              <span>Report Bug</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenAdmin();
+              }}
+              style={CHIP_STYLE}
+              className="inline-flex cursor-pointer items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+            >
+              <Shield aria-hidden="true" className="h-3.5 w-3.5 text-blue-400" />
+              <span>Admin</span>
             </button>
           </div>
         </section>

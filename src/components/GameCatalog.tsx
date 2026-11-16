@@ -5,6 +5,7 @@ import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from 
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
 import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandomBlockedEmoji } from "@/lib/blockedGames";
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
+import { noteGamePlayed } from "@/lib/playStats";
 
 const RECENT_GAMES_KEY = "polytrack_recent_games";
 const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -1209,6 +1210,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   }, []);
 
   const handleGameClick = (game: GameItem) => {
+    noteGamePlayed(game.id, game.name);
     markGamePlayed(game.id);
     setGames((current) =>
       current.map((item) =>

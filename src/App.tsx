@@ -11,7 +11,7 @@ import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
-import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield } from "lucide-react";
+import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
   loadBackgroundConfig,
@@ -63,6 +63,7 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
+  const [navCollapsed, setNavCollapsed] = React.useState(false);
   const [adminModalOpen, setAdminModalOpen] = React.useState(false);
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
@@ -111,6 +112,29 @@ export function App() {
 
   const isLocked = siteLockEnabled && siteLockPassword.trim().length > 0 && !isUnlocked;
 
+  // Same toggle button in three spots: beside the logo once collapsed, and in line with
+  // the chips otherwise (inside the scrolling nav on desktop, pinned right on mobile).
+  const renderNavToggle = (placement: string) => (
+    <button
+      type="button"
+      onClick={() => setNavCollapsed((collapsed) => !collapsed)}
+      aria-expanded={!navCollapsed}
+      aria-label={navCollapsed ? "Expand navigation" : "Collapse navigation"}
+      title={
+        navCollapsed ? "Show Unblocked AIs, Outside games and Share" : "Hide Unblocked AIs, Outside games and Share"
+      }
+      style={CHIP_STYLE}
+      className={`inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1 ${placement}`}
+    >
+      {navCollapsed ? (
+        <ChevronRight aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
+      ) : (
+        <ChevronLeft aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
+      )}
+      <span className="sr-only">{navCollapsed ? "Expand navigation" : "Collapse navigation"}</span>
+    </button>
+  );
+
   return (
     <BackgroundWrapper config={bgConfig}>
       {isLocked && <SiteLock onUnlock={() => setIsUnlocked(true)} />}
@@ -148,6 +172,8 @@ export function App() {
               </span>
             </a>
 
+            {navCollapsed && renderNavToggle("order-1 sm:order-2")}
+
             <nav
               aria-label="Site"
               className="no-scrollbar order-1 flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto py-0.5 sm:order-2 sm:justify-start sm:gap-1.5"
@@ -163,32 +189,39 @@ export function App() {
                 <Send aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
                 <span className="hidden sm:inline">Submit a game</span>
               </a>
-              <a
-                href="/ai/"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Open Unblocked AIs in a new tab"
-                aria-label="Unblocked AIs (opens in a new tab)"
-                style={CHIP_STYLE}
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1"
-              >
-                <Sparkles aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden sm:inline">Unblocked AIs</span>
-              </a>
-              <a
-                href="/outside/"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Open outside games in a new tab"
-                aria-label="Outside games (opens in a new tab)"
-                style={CHIP_STYLE}
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1"
-              >
-                <Compass aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden sm:inline">Outside games</span>
-              </a>
-              <ShareButton compact />
+              {!navCollapsed && (
+                <div id="site-nav-links" className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+                  <a
+                    href="/ai/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open Unblocked AIs in a new tab"
+                    aria-label="Unblocked AIs (opens in a new tab)"
+                    style={CHIP_STYLE}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1"
+                  >
+                    <Sparkles aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
+                    <span className="hidden sm:inline">Unblocked AIs</span>
+                  </a>
+                  <a
+                    href="/outside/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open outside games in a new tab"
+                    aria-label="Outside games (opens in a new tab)"
+                    style={CHIP_STYLE}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1"
+                  >
+                    <Compass aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
+                    <span className="hidden sm:inline">Outside games</span>
+                  </a>
+                  <ShareButton compact />
+                  {renderNavToggle("hidden sm:inline-flex")}
+                </div>
+              )}
             </nav>
+
+            {!navCollapsed && renderNavToggle("order-2 sm:hidden")}
 
             <div className="order-2 ml-0 flex shrink-0 items-center gap-1 sm:ml-auto sm:gap-2">
               <button

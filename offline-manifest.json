@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T23:18:46.604Z",
-  "totalBytes": 346457583,
+  "generatedAt": "2026-11-16T23:44:04.207Z",
+  "totalBytes": 346633395,
   "files": [
     {
       "url": "/index.html",
@@ -13,15 +13,15 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 529938
+      "bytes": 532449
     },
     {
       "url": "/home.bundle.js",
-      "bytes": 529938
+      "bytes": 532449
     },
     {
       "url": "/games/config.json",
-      "bytes": 14386
+      "bytes": 14938
     },
     {
       "url": "/images/app-icon-192.png",
@@ -90,6 +90,10 @@
     {
       "url": "/games/cookie-clicker.html",
       "bytes": 7649666
+    },
+    {
+      "url": "/games/coreball.html",
+      "bytes": 62683
     },
     {
       "url": "/games/crossy-road.html",
@@ -210,6 +214,10 @@
     {
       "url": "/games/ruffle/ruffle.js",
       "bytes": 465885
+    },
+    {
+      "url": "/games/solo-agario.html",
+      "bytes": 107555
     },
     {
       "url": "/games/stick-rpg.html",

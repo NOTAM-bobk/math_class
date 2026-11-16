@@ -646,6 +646,20 @@ export const DEFAULT_GAMES: GameItem[] = [
     description: "Browser-based Minecraft with survival and multiplayer.",
     tags: ["Casual", "Sandbox", "Minecraft", "Multiplayer"],
     disabled: true
+  },
+  {
+    id: "game-coreball",
+    name: "CoreBall",
+    url: "/games/coreball.html",
+    description: "Time your shots to attach pins to the spinning core without hitting the other pins.",
+    tags: ["Arcade", "Skill", "Timing"]
+  },
+  {
+    id: "game-solo-agario",
+    name: "Solo Agario",
+    url: "/games/solo-agario.html",
+    description: "Grow your cell by absorbing smaller circles and avoid larger ones in this single-player Agar.io-style game.",
+    tags: ["Arcade", "Survival", "Single Player"]
   }
 ];
 

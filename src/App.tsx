@@ -120,6 +120,25 @@ export function App() {
 
   const isLocked = siteLockEnabled && siteLockPassword.trim().length > 0 && !isUnlocked;
 
+  // Animate the collapse over the links' real width: transitioning a fixed max-width
+  // leaves dead time before the links start to shrink, which reads as a snap.
+  const navLinksRef = React.useRef<HTMLDivElement>(null);
+  const [navLinksWidth, setNavLinksWidth] = React.useState(0);
+
+  React.useEffect(() => {
+    const element = navLinksRef.current;
+    if (!element) return;
+    const measure = () => setNavLinksWidth(Math.ceil(element.scrollWidth) + 1);
+    measure();
+    window.addEventListener("resize", measure);
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    observer?.observe(element);
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer?.disconnect();
+    };
+  }, []);
+
   // Same toggle button in three spots: beside the logo once collapsed, and in line with
   // the chips otherwise (inside the scrolling nav on desktop, pinned right on mobile).
   const renderNavToggle = (placement: string) => (
@@ -186,10 +205,11 @@ export function App() {
             >
               <div
                 id="site-nav-links"
+                ref={navLinksRef}
                 aria-hidden={navCollapsed}
                 className="flex min-w-0 items-center gap-1 overflow-hidden transition-[max-width,opacity,transform] duration-300 ease-in-out sm:gap-1.5"
                 style={{
-                  maxWidth: navCollapsed ? 0 : "1000px",
+                  maxWidth: navCollapsed ? 0 : navLinksWidth > 0 ? `${navLinksWidth}px` : "1000px",
                   opacity: navCollapsed ? 0 : 1,
                   transform: navCollapsed ? "translateX(-8px)" : "translateX(0)",
                 }}

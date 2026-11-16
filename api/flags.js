@@ -35,7 +35,7 @@ async function readFlagsFromD1() {
     const flagRecords = items.filter((x) => x.title === FLAGS_TITLE);
 
     if (flagRecords.length === 0) {
-      return { verified: [], buggy: [], notMobile: [], oldIds: [] };
+      return { verified: [], buggy: [], notMobile: [], blocked: [], oldIds: [] };
     }
 
     // Most recent record is first or highest id
@@ -48,10 +48,11 @@ async function readFlagsFromD1() {
         verified: Array.isArray(parsed.verified) ? parsed.verified : [],
         buggy: Array.isArray(parsed.buggy) ? parsed.buggy : [],
         notMobile: Array.isArray(parsed.notMobile) ? parsed.notMobile : [],
+        blocked: Array.isArray(parsed.blocked) ? parsed.blocked : [],
         oldIds,
       };
     } catch {
-      return { verified: [], buggy: [], notMobile: [], oldIds };
+      return { verified: [], buggy: [], notMobile: [], blocked: [], oldIds };
     }
   } catch {
     return null;
@@ -59,7 +60,7 @@ async function readFlagsFromD1() {
 }
 
 // Write flags to fallback D1 bug_reports store
-async function writeFlagsToD1(verified, buggy, notMobile, oldIds = []) {
+async function writeFlagsToD1(verified, buggy, notMobile, blocked = [], oldIds = []) {
   try {
     // 1. Post new flags record
     const postRes = await cfFetch("/api/bugs", {
@@ -67,7 +68,7 @@ async function writeFlagsToD1(verified, buggy, notMobile, oldIds = []) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: FLAGS_TITLE,
-        description: JSON.stringify({ verified, buggy, notMobile }),
+        description: JSON.stringify({ verified, buggy, notMobile, blocked }),
         gameUrl: "https://polytrack.internal/flags",
         pageUrl: "/flags",
         browserInfo: "Vercel Proxy Sync",
@@ -135,6 +136,7 @@ module.exports = async function handler(req, res) {
           verified: Array.isArray(data.verified) ? data.verified : [],
           buggy: Array.isArray(data.buggy) ? data.buggy : [],
           notMobile: Array.isArray(data.notMobile) ? data.notMobile : [],
+          blocked: Array.isArray(data.blocked) ? data.blocked : [],
         });
       }
     } catch {}
@@ -152,6 +154,7 @@ module.exports = async function handler(req, res) {
       verified: d1Data.verified,
       buggy: d1Data.buggy,
       notMobile: d1Data.notMobile,
+      blocked: d1Data.blocked,
     });
   }
 
@@ -206,6 +209,7 @@ module.exports = async function handler(req, res) {
     let verifiedSet = new Set(current.verified);
     let buggySet = new Set(current.buggy);
     let notMobileSet = new Set(current.notMobile);
+    let blockedSet = new Set(current.blocked);
 
     const action = String(body.action || "get");
     const gameId = String(body.gameId || body.id || "").trim();
@@ -234,6 +238,14 @@ module.exports = async function handler(req, res) {
       else notMobileSet.delete(gameId);
     } else if (action === "clear_not_mobile") {
       notMobileSet.clear();
+    } else if (action === "toggle_blocked" && gameId) {
+      if (blockedSet.has(gameId)) blockedSet.delete(gameId);
+      else blockedSet.add(gameId);
+    } else if (action === "set_blocked" && gameId) {
+      if (body.blocked) blockedSet.add(gameId);
+      else blockedSet.delete(gameId);
+    } else if (action === "clear_blocked") {
+      blockedSet.clear();
     } else if (action === "sync_all") {
       if (Array.isArray(body.verified)) {
         verifiedSet = new Set(body.verified.filter(Boolean));
@@ -244,14 +256,18 @@ module.exports = async function handler(req, res) {
       if (Array.isArray(body.notMobile)) {
         notMobileSet = new Set(body.notMobile.filter(Boolean));
       }
+      if (Array.isArray(body.blocked)) {
+        blockedSet = new Set(body.blocked.filter(Boolean));
+      }
     }
 
     const nextVerified = Array.from(verifiedSet);
     const nextBuggy = Array.from(buggySet);
     const nextNotMobile = Array.from(notMobileSet);
+    const nextBlocked = Array.from(blockedSet);
 
     if (action !== "get") {
-      const saved = await writeFlagsToD1(nextVerified, nextBuggy, nextNotMobile, current.oldIds);
+      const saved = await writeFlagsToD1(nextVerified, nextBuggy, nextNotMobile, nextBlocked, current.oldIds);
       if (!saved) {
         // Report the stored state instead of pretending the change was saved:
         // the admin UI otherwise confirms a sync and then reverts the selection.
@@ -261,6 +277,7 @@ module.exports = async function handler(req, res) {
           verified: current.verified,
           buggy: current.buggy,
           notMobile: current.notMobile,
+          blocked: current.blocked,
         });
       }
     }
@@ -270,6 +287,7 @@ module.exports = async function handler(req, res) {
       verified: nextVerified,
       buggy: nextBuggy,
       notMobile: nextNotMobile,
+      blocked: nextBlocked,
     });
   }
 

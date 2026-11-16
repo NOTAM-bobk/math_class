@@ -1,4 +1,5 @@
 import { loadNotMobileGameIds } from "./notMobileGames";
+import { loadBlockedGameIds } from "./blockedGames";
 
 const HUB_API = "/api/hub";
 const WORKER_ORIGIN = "https://polytrack-hub-api.sawyerbobk563.workers.dev";
@@ -8,6 +9,10 @@ const WORKER_ORIGIN = "https://polytrack-hub-api.sawyerbobk563.workers.dev";
 // wiping them on every read or save.
 function readNotMobileFlags(data: any): string[] {
   return Array.isArray(data?.notMobile) ? data.notMobile : Array.from(loadNotMobileGameIds());
+}
+
+function readBlockedFlags(data: any): string[] {
+  return Array.isArray(data?.blocked) ? data.blocked : Array.from(loadBlockedGameIds());
 }
 
 export interface HubMessage {
@@ -28,6 +33,7 @@ export interface GameFlagsData {
   verified: string[];
   buggy: string[];
   notMobile: string[];
+  blocked: string[];
 }
 
 export async function loadMessages(): Promise<HubMessage[]> {
@@ -90,6 +96,7 @@ export async function loadGameFlags(): Promise<GameFlagsData> {
         verified: Array.isArray(data.verified) ? data.verified : [],
         buggy: Array.isArray(data.buggy) ? data.buggy : [],
         notMobile: readNotMobileFlags(data),
+        blocked: readBlockedFlags(data),
       };
     }
   } catch {}
@@ -106,6 +113,7 @@ export async function loadGameFlags(): Promise<GameFlagsData> {
         verified: Array.isArray(data.verified) ? data.verified : [],
         buggy: Array.isArray(data.buggy) ? data.buggy : [],
         notMobile: readNotMobileFlags(data),
+        blocked: readBlockedFlags(data),
       };
     }
   } catch {}
@@ -132,12 +140,16 @@ export async function updateAdminGameFlags(
       | "toggle_not_mobile"
       | "set_not_mobile"
       | "clear_not_mobile"
+      | "toggle_blocked"
+      | "set_blocked"
+      | "clear_blocked"
       | "sync_all"
       | "get";
     gameId?: string;
     verified?: boolean | string[];
     buggy?: boolean | string[];
     notMobile?: boolean | string[];
+    blocked?: boolean | string[];
   }
 ): Promise<GameFlagsData> {
   const reqBody = { ...payload, target: "flags", password: pwd };
@@ -183,5 +195,6 @@ export async function updateAdminGameFlags(
     verified: Array.isArray(data.verified) ? data.verified : [],
     buggy: Array.isArray(data.buggy) ? data.buggy : [],
     notMobile: readNotMobileFlags(data),
+    blocked: readBlockedFlags(data),
   };
 }

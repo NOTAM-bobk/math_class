@@ -24,6 +24,7 @@ import { DEFAULT_GAMES, type GameItem } from "./GameCatalog";
 import { loadBuggyGameIds, saveBuggyGameIds, onBuggyGamesChange } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, saveVerifiedGameIds, onVerifiedGamesChange } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, saveNotMobileGameIds, onNotMobileGamesChange } from "@/lib/notMobileGames";
+import { loadBlockedGameIds, saveBlockedGameIds, onBlockedGamesChange } from "@/lib/blockedGames";
 import { loadGameFlags, updateAdminGameFlags, type GameFlagsData } from "@/lib/hubApi";
 import { Cloud, UploadCloud } from "lucide-react";
 
@@ -66,7 +67,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [rateLimitSeconds, setRateLimitSeconds] = React.useState<number | null>(null);
 
   // Admin tabs: "verified", "tags" (error:bug), "mobile" (not mobile optimized), or "bugs" (reports)
-  const [adminTab, setAdminTab] = React.useState<"verified" | "tags" | "mobile" | "bugs">("verified");
+  const [adminTab, setAdminTab] = React.useState<"verified" | "tags" | "mobile" | "blocked" | "bugs">("verified");
   const [verifiedIds, setVerifiedIds] = React.useState<Set<string>>(loadVerifiedGameIds);
   const [verifiedSearch, setVerifiedSearch] = React.useState("");
   const [verifiedFilter, setVerifiedFilter] = React.useState<"all" | "verified" | "unverified">("all");
@@ -74,6 +75,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [cloudflareNotice, setCloudflareNotice] = React.useState<string | null>(null);
   const [buggyIds, setBuggyIds] = React.useState<Set<string>>(loadBuggyGameIds);
   const [notMobileIds, setNotMobileIds] = React.useState<Set<string>>(loadNotMobileGameIds);
+  const [blockedIds, setBlockedIds] = React.useState<Set<string>>(loadBlockedGameIds);
   const [gameSearch, setGameSearch] = React.useState("");
   const [gameFilter, setGameFilter] = React.useState<"all" | "flagged" | "clean">("all");
   const [gamesList, setGamesList] = React.useState<GameItem[]>(DEFAULT_GAMES);
@@ -102,6 +104,13 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   React.useEffect(() => {
     return onNotMobileGamesChange((updated) => {
       setNotMobileIds(updated);
+    });
+  }, []);
+
+  // Sync blocked game IDs with storage and other components
+  React.useEffect(() => {
+    return onBlockedGamesChange((updated) => {
+      setBlockedIds(updated);
     });
   }, []);
 
@@ -201,9 +210,11 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
           setVerifiedIds(new Set(flags.verified));
           setBuggyIds(new Set(flags.buggy));
           setNotMobileIds(new Set(flags.notMobile));
+          setBlockedIds(new Set(flags.blocked));
           saveVerifiedGameIds(flags.verified);
           saveBuggyGameIds(flags.buggy);
           saveNotMobileGameIds(flags.notMobile);
+          saveBlockedGameIds(flags.blocked);
         })
         .catch(() => {});
 
@@ -387,6 +398,40 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     );
   };
 
+  const handleToggleBlockedTag = async (gameId: string) => {
+    const willFlag = !blockedIds.has(gameId);
+    const next = new Set(blockedIds);
+    if (willFlag) next.add(gameId);
+    else next.delete(gameId);
+    setBlockedIds(next);
+    saveBlockedGameIds(next);
+
+    if (!password) return;
+    await runFlagSync(
+      () => updateAdminGameFlags(password, { action: "set_blocked", gameId, blocked: willFlag }),
+      (res) => {
+        setBlockedIds(new Set(res.blocked));
+        saveBlockedGameIds(res.blocked);
+      }
+    );
+  };
+
+  const handleClearAllBlocked = async () => {
+    if (!window.confirm("Remove the 'Blocked:😿' tag from all games on all devices?")) return;
+    saveBlockedGameIds([]);
+    setBlockedIds(new Set());
+
+    if (!password) return;
+    await runFlagSync(
+      () => updateAdminGameFlags(password, { action: "clear_blocked" }),
+      (res) => {
+        setBlockedIds(new Set(res.blocked));
+        saveBlockedGameIds(res.blocked);
+      },
+      { successNotice: "Cleared on Cloudflare" }
+    );
+  };
+
   const handleToggleVerified = async (gameId: string) => {
     // Compute the next value before updating state: React applies updater functions
     // later, so reading the value inside one sends a stale request to the backend.
@@ -432,14 +477,17 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
           verified: Array.from(verifiedIds),
           buggy: Array.from(buggyIds),
           notMobile: Array.from(notMobileIds),
+          blocked: Array.from(blockedIds),
         }),
       (res) => {
         setVerifiedIds(new Set(res.verified));
         setBuggyIds(new Set(res.buggy));
         setNotMobileIds(new Set(res.notMobile));
+        setBlockedIds(new Set(res.blocked));
         saveVerifiedGameIds(res.verified);
         saveBuggyGameIds(res.buggy);
         saveNotMobileGameIds(res.notMobile);
+        saveBlockedGameIds(res.blocked);
       },
       { successNotice: "Synced all games to Cloudflare!" }
     );
@@ -543,6 +591,19 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     const isTagged = notMobileIds.has(game.id);
     if (gameFilter === "flagged" && !isTagged) return false;
     if (gameFilter === "clean" && isTagged) return false;
+    if (!gameSearch.trim()) return true;
+    const q = gameSearch.toLowerCase().trim();
+    return (
+      game.name.toLowerCase().includes(q) ||
+      (game.tags && game.tags.some((t) => t.toLowerCase().includes(q))) ||
+      game.url.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredBlockedGames = gamesList.filter((game) => {
+    const isBlocked = blockedIds.has(game.id);
+    if (gameFilter === "flagged" && !isBlocked) return false;
+    if (gameFilter === "clean" && isBlocked) return false;
     if (!gameSearch.trim()) return true;
     const q = gameSearch.toLowerCase().trim();
     return (
@@ -759,6 +820,24 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 {buggyIds.size > 0 && (
                   <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-rose-500/30 text-rose-200">
                     {buggyIds.size}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminTab("blocked")}
+                style={CHIP_STYLE}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  adminTab === "blocked"
+                    ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>😿</span>
+                <span>Blocked:😿</span>
+                {blockedIds.size > 0 && (
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-purple-500/30 text-purple-200">
+                    {blockedIds.size}
                   </span>
                 )}
               </button>
@@ -1294,6 +1373,168 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                             }`}
                           >
                             {isTagged ? "Remove Tag" : "Add no mobile"}
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Blocked Tag Selector */}
+            {adminTab === "blocked" && (
+              <div className="flex flex-col gap-3 min-h-0 flex-1">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-zinc-200">
+                      Select games to tag with “Blocked:😿”
+                    </span>
+                    {blockedIds.size > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleClearAllBlocked}
+                        className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-purple-400 transition-colors cursor-pointer"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Clear all ({blockedIds.size})</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Selected games display a <code className="text-purple-300 font-mono">Blocked:😿</code> tag on their game card. On refresh, game cards load a random emoji every time.
+                  </p>
+                </div>
+
+                {/* Search & Filter Controls */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="relative flex-1 min-w-[180px]">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                    <input
+                      type="text"
+                      value={gameSearch}
+                      onChange={(e) => setGameSearch(e.target.value)}
+                      placeholder="Filter games by name or tag…"
+                      style={{
+                        borderRadius: 10,
+                        background: "rgba(255, 255, 255, 0.04)",
+                        boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                      }}
+                      className="w-full py-1.5 pl-8 pr-3 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setGameFilter("all")}
+                      style={CHIP_STYLE}
+                      className={`px-2.5 py-1 text-[11px] transition-colors cursor-pointer ${
+                        gameFilter === "all" ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      All ({gamesList.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGameFilter("flagged")}
+                      style={CHIP_STYLE}
+                      className={`px-2.5 py-1 text-[11px] transition-colors cursor-pointer ${
+                        gameFilter === "flagged" ? "bg-purple-500/20 text-purple-300 font-semibold" : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Tagged ({blockedIds.size})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGameFilter("clean")}
+                      style={CHIP_STYLE}
+                      className={`px-2.5 py-1 text-[11px] transition-colors cursor-pointer ${
+                        gameFilter === "clean" ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Clean ({gamesList.length - blockedIds.size})
+                    </button>
+                  </div>
+                </div>
+
+                {/* Games List */}
+                <div className="flex flex-col gap-1.5 overflow-y-auto pr-1 flex-1 min-h-[220px]">
+                  {filteredBlockedGames.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-zinc-500">
+                      No games match your search or filter.
+                    </div>
+                  ) : (
+                    filteredBlockedGames.map((game) => {
+                      const isBlocked = blockedIds.has(game.id);
+                      return (
+                        <div
+                          key={game.id}
+                          style={{
+                            borderRadius: 12,
+                            background: isBlocked
+                              ? "rgba(168, 85, 247, 0.08)"
+                              : "rgba(255, 255, 255, 0.025)",
+                            boxShadow: isBlocked
+                              ? "inset 0 0 0 1px rgba(168, 85, 247, 0.3)"
+                              : "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
+                          }}
+                          className="flex items-center justify-between gap-3 p-2.5 transition-all hover:bg-white/[0.04]"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-mono font-bold ${
+                                isBlocked
+                                  ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                                  : "bg-white/[0.04] text-zinc-500 border border-white/[0.06]"
+                              }`}
+                            >
+                              😿
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-semibold text-zinc-100 truncate">
+                                  {game.name}
+                                </span>
+                                {isBlocked && (
+                                  <span
+                                    style={{
+                                      borderRadius: 36,
+                                      background: "linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(126, 34, 206, 0.16))",
+                                      border: "1px solid rgba(168, 85, 247, 0.45)",
+                                      color: "#e9d5ff",
+                                    }}
+                                    className="px-1.5 py-0.2 text-[10px] font-mono font-semibold"
+                                  >
+                                    Blocked:😿
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 text-[10px] text-zinc-500 truncate">
+                                <span>{game.url}</span>
+                                {game.tags && game.tags.length > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{game.tags.slice(0, 2).join(", ")}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleBlockedTag(game.id);
+                            }}
+                            className={`shrink-0 px-2.5 py-1 text-[11px] font-medium rounded-lg transition-colors cursor-pointer ${
+                              isBlocked
+                                ? "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/30"
+                                : "bg-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.1]"
+                            }`}
+                          >
+                            {isBlocked ? "Remove Tag" : "Add Blocked:😿"}
                           </button>
                         </div>
                       );

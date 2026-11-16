@@ -3,6 +3,7 @@ import { Search, Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersH
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
+import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandomBlockedEmoji } from "@/lib/blockedGames";
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
 
 const RECENT_GAMES_KEY = "polytrack_recent_games";
@@ -36,6 +37,7 @@ export const CATEGORY_FILTERS = [
   { id: "editors", label: "✨ Editor’s Pick" },
   { id: "trending", label: "🔥 Trending" },
   { id: "buggy", label: "🐛 Error: bug" },
+  { id: "blocked", label: "😿 Blocked" },
   { id: "flash", label: "⚡ Flash" },
   { id: "action", label: "⚔️ Action" },
   { id: "driving", label: "🏎️ Driving" },
@@ -798,6 +800,8 @@ function GameCard({
   isBuggy,
   isVerified,
   isNotMobile,
+  isBlocked,
+  blockedEmoji,
   searchQuery,
   onPlay,
   onToggleFavorite
@@ -809,6 +813,8 @@ function GameCard({
   isBuggy: boolean;
   isVerified: boolean;
   isNotMobile: boolean;
+  isBlocked: boolean;
+  blockedEmoji: string;
   searchQuery: string;
   onPlay: (game: GameItem) => void;
   onToggleFavorite: (id: string, event?: React.MouseEvent) => void;
@@ -888,6 +894,20 @@ function GameCard({
               >
                 <Smartphone aria-hidden="true" className="h-3 w-3 text-amber-400 shrink-0" />
                 <span>no mobile</span>
+              </span>
+            )}
+            {isBlocked && (
+              <span
+                title="Blocked site or game"
+                style={{
+                  ...CHIP_STYLE,
+                  background: "linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(126, 34, 206, 0.16))",
+                  border: "1px solid rgba(168, 85, 247, 0.45)",
+                  color: "#e9d5ff"
+                }}
+                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[10.5px] font-semibold tracking-wide font-mono"
+              >
+                <span>Blocked:{blockedEmoji}</span>
               </span>
             )}
             {isRecent && (
@@ -1023,6 +1043,13 @@ export function GameCatalog() {
     return onNotMobileGamesChange((updated) => setNotMobileIds(updated));
   }, []);
 
+  const [blockedIds, setBlockedIds] = React.useState<Set<string>>(loadBlockedGameIds);
+  const [blockedEmoji] = React.useState<string>(() => getRandomBlockedEmoji());
+
+  React.useEffect(() => {
+    return onBlockedGamesChange((updated) => setBlockedIds(updated));
+  }, []);
+
   // Fetch flags from Cloudflare backend so verified, bug & mobile tags show up on all devices
   React.useEffect(() => {
     let active = true;
@@ -1032,9 +1059,11 @@ export function GameCatalog() {
         saveVerifiedGameIds(flags.verified);
         saveBuggyGameIds(flags.buggy);
         saveNotMobileGameIds(flags.notMobile);
+        saveBlockedGameIds(flags.blocked);
         setVerifiedIds(new Set(flags.verified));
         setBuggyIds(new Set(flags.buggy));
         setNotMobileIds(new Set(flags.notMobile));
+        setBlockedIds(new Set(flags.blocked));
       })
       .catch(() => {});
     return () => {
@@ -1213,6 +1242,8 @@ export function GameCatalog() {
       list = list.filter((game) => popularGameId === game.id);
     } else if (selectedCategory === "buggy") {
       list = list.filter((game) => buggyIds.has(game.id) || !!game.errorBug);
+    } else if (selectedCategory === "blocked") {
+      list = list.filter((game) => blockedIds.has(game.id));
     } else if (selectedCategory !== "all") {
       list = list.filter((game) => matchesCategory(game, selectedCategory));
     }
@@ -1224,7 +1255,7 @@ export function GameCatalog() {
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, popularGameId, searchQuery]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, popularGameId, searchQuery]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1526,6 +1557,8 @@ export function GameCatalog() {
                   isBuggy={buggyIds.has(game.id) || !!game.errorBug}
                   isVerified={verifiedIds.has(game.id) || !!game.verified}
                   isNotMobile={notMobileIds.has(game.id)}
+                  isBlocked={blockedIds.has(game.id)}
+                  blockedEmoji={blockedEmoji}
                   searchQuery={searchQuery}
                   onPlay={handleGameClick}
                   onToggleFavorite={toggleFavorite}
@@ -1553,6 +1586,8 @@ export function GameCatalog() {
                   isBuggy={buggyIds.has(game.id) || !!game.errorBug}
                   isVerified={verifiedIds.has(game.id) || !!game.verified}
                   isNotMobile={notMobileIds.has(game.id)}
+                  isBlocked={blockedIds.has(game.id)}
+                  blockedEmoji={blockedEmoji}
                   searchQuery={searchQuery}
                   onPlay={handleGameClick}
                   onToggleFavorite={toggleFavorite}

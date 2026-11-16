@@ -111,6 +111,8 @@ module.exports = async function handler(req, res) {
       (typeof body.action === "string" && (
         body.action.includes("verified") ||
         body.action.includes("buggy") ||
+        body.action.includes("not_mobile") ||
+        body.action.includes("blocked") ||
         body.action.includes("flag")
       ));
 

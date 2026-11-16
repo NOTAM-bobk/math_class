@@ -81,7 +81,7 @@ function schema(e) {
         "CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY,count INTEGER NOT NULL DEFAULT 1,first_seen INTEGER NOT NULL,last_seen INTEGER NOT NULL)"
       ),
       e.DB.prepare(
-        "CREATE TABLE IF NOT EXISTS game_flags(game_id TEXT PRIMARY KEY,verified INTEGER NOT NULL DEFAULT 0,buggy INTEGER NOT NULL DEFAULT 0,not_mobile INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL)"
+        "CREATE TABLE IF NOT EXISTS game_flags(game_id TEXT PRIMARY KEY,verified INTEGER NOT NULL DEFAULT 0,buggy INTEGER NOT NULL DEFAULT 0,not_mobile INTEGER NOT NULL DEFAULT 0,blocked INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL)"
       ),
       e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS admin_settings(key TEXT PRIMARY KEY,value TEXT NOT NULL,updated_at TEXT NOT NULL)"
@@ -355,7 +355,7 @@ async function gameFlags(r, e) {
   if (r.method === "GET") {
     try {
       const q = await e.DB.prepare(
-        "SELECT game_id, verified, buggy, not_mobile FROM game_flags WHERE verified = 1 OR buggy = 1 OR not_mobile = 1"
+        "SELECT game_id, verified, buggy, not_mobile, blocked FROM game_flags WHERE verified = 1 OR buggy = 1 OR not_mobile = 1 OR blocked = 1"
       ).all();
       const verified = [];
       const buggy = [];
@@ -367,7 +367,7 @@ async function gameFlags(r, e) {
       }
       return json(r, { ok: true, verified, buggy, notMobile });
     } catch {
-      return json(r, { ok: true, verified: [], buggy: [], notMobile: [] });
+      return json(r, { ok: true, verified: [], buggy: [], notMobile: [], blocked: [] });
     }
   }
   return fail(r, "Use GET for game flags.", 405);
@@ -491,7 +491,7 @@ async function adminFlags(r, e) {
 
   // Fetch all active flags
   const q = await e.DB.prepare(
-    "SELECT game_id, verified, buggy, not_mobile FROM game_flags WHERE verified = 1 OR buggy = 1 OR not_mobile = 1"
+    "SELECT game_id, verified, buggy, not_mobile, blocked FROM game_flags WHERE verified = 1 OR buggy = 1 OR not_mobile = 1 OR blocked = 1"
   ).all();
   const verified = [];
   const buggy = [];

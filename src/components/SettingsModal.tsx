@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, BellOff, Palette, Sparkles, Pipette } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette } from "lucide-react";
 import {
   BACKGROUND_PRESETS,
   loadBackgroundConfig,
@@ -8,6 +8,14 @@ import {
   type BackgroundType,
 } from "@/lib/backgroundTheme";
 import { areNotificationAdsBlocked, setNotificationAdsBlocked } from "@/lib/adNotifications";
+import {
+  isNotificationsEnabled,
+  notificationsSupported,
+  notificationPermission,
+  requestNotificationPermission,
+  setNotificationsEnabled,
+  showNewGameNotification,
+} from "@/lib/gameNotifications";
 import type { TabCloakSettings } from "@/lib/tabCloak";
 
 interface SettingsModalProps {
@@ -17,6 +25,7 @@ interface SettingsModalProps {
   onConfigChange?: (enabled: boolean, password: string) => void;
   tabCloakSettings: TabCloakSettings;
   onTabCloakChange: (settings: TabCloakSettings) => void;
+  onOpenChangelog: () => void;
 }
 
 const PANIC_PRESETS = [
@@ -49,7 +58,8 @@ export function SettingsModal({
   onLockNow,
   onConfigChange,
   tabCloakSettings,
-  onTabCloakChange
+  onTabCloakChange,
+  onOpenChangelog
 }: SettingsModalProps) {
   // Site Lock states
   const [siteLockEnabled, setSiteLockEnabled] = React.useState(() => {
@@ -73,6 +83,12 @@ export function SettingsModal({
 
   // Notification ads
   const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
+
+  // New game notifications
+  const [notificationsOn, setNotificationsOn] = React.useState(isNotificationsEnabled);
+  const [notificationNotice, setNotificationNotice] = React.useState("");
+  const [notificationError, setNotificationError] = React.useState("");
+  const [permission, setPermission] = React.useState(notificationPermission);
 
   // Panic redirect states
   const [panicUrl, setPanicUrl] = React.useState(() => {
@@ -199,6 +215,52 @@ export function SettingsModal({
     setBgNotice("Applied custom background");
     setTimeout(() => setBgNotice(null), 2000);
   };
+
+  const handleToggleNotifications = async () => {
+    if (notificationsOn) {
+      setNotificationsEnabled(false);
+      setNotificationsOn(false);
+      setNotificationError("");
+      setNotificationNotice("New game alerts turned off for this browser.");
+      return;
+    }
+
+    if (!notificationsSupported()) {
+      setNotificationError("This browser does not support notifications.");
+      return;
+    }
+
+    // Called straight from the click so the browser shows its permission prompt.
+    const result = await requestNotificationPermission();
+    setPermission(notificationPermission());
+
+    if (result === "granted") {
+      setNotificationsEnabled(true);
+      setNotificationsOn(true);
+      setNotificationError("");
+      const sent = showNewGameNotification();
+      setNotificationNotice(
+        sent ? "Enabled — check for your new game alert." : "Enabled. Alerts are on for this browser."
+      );
+      return;
+    }
+
+    setNotificationsOn(false);
+    setNotificationNotice("");
+    setNotificationError(
+      result === "denied"
+        ? "Notifications are blocked for this site. Allow them in your browser's site settings, then try again."
+        : "The permission prompt was dismissed. Turn this on again to retry."
+    );
+  };
+
+  const notificationStatusLabel = !notificationsSupported()
+    ? "Unsupported"
+    : permission === "denied"
+      ? "Blocked"
+      : notificationsOn
+        ? "On"
+        : "Off";
 
   const handleToggleAds = () => {
     const next = !adsBlocked;
@@ -675,7 +737,82 @@ export function SettingsModal({
           </div>
         </section>
 
-        {/* Section 3: Notification ads */}
+        {/* Section 3: New game notifications */}
+        <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="notifications-title">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div
+                style={{
+                  borderRadius: 36,
+                  background: notificationsOn ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                }}
+                className="p-1.5 text-zinc-300"
+              >
+                <Bell
+                  aria-hidden="true"
+                  className={`w-4 h-4 ${notificationsOn ? "text-emerald-400" : "text-zinc-400"}`}
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                  <span id="notifications-title">New game notifications</span>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                      notificationsOn
+                        ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
+                        : permission === "denied"
+                          ? "border-red-500/30 bg-red-500/15 text-red-300"
+                          : "border-white/10 bg-white/[0.06] text-zinc-400"
+                    }`}
+                  >
+                    {notificationStatusLabel}
+                  </span>
+                </div>
+                <div className="text-xs text-zinc-400">
+                  Ask your browser for permission, then get an alert when a new game drops
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleNotifications}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                notificationsOn ? "bg-emerald-600" : "bg-zinc-700"
+              }`}
+              role="switch"
+              aria-checked={notificationsOn}
+              aria-label="New game notifications"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
+                  notificationsOn ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {notificationError && (
+            <p role="alert" className="text-xs font-medium text-red-400">
+              {notificationError}
+            </p>
+          )}
+
+          {!notificationError && notificationNotice && (
+            <p role="status" className="text-xs font-medium text-emerald-400">
+              {notificationNotice}
+            </p>
+          )}
+
+          <p className="text-[11px] leading-normal text-zinc-500">
+            {permission === "denied"
+              ? "Your browser is blocking notifications for this site. Re-allow them in the site settings next to the address bar."
+              : "Alerts are sent once per new version of the site. The setting is stored on this device only."}
+          </p>
+        </section>
+
+        {/* Section 4: Notification ads */}
 
         <div className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div className="flex items-center justify-between gap-3">
@@ -940,6 +1077,26 @@ export function SettingsModal({
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Footer: change log */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-3">
+          <p className="text-[10.5px] leading-relaxed text-zinc-500">
+            See what changed in each site update.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onOpenChangelog();
+            }}
+            style={CHIP_STYLE}
+            className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+            aria-haspopup="dialog"
+          >
+            <History aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
+            <span>View change log</span>
+          </button>
         </div>
       </div>
     </div>

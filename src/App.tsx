@@ -8,6 +8,7 @@ import { SettingsModal } from "./components/SettingsModal";
 import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { AdminPanelModal } from "./components/AdminPanelModal";
+import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield } from "lucide-react";
@@ -17,6 +18,7 @@ import {
   onBackgroundConfigChange,
   type BackgroundConfig,
 } from "./lib/backgroundTheme";
+import { maybeNotifyNewGames } from "./lib/gameNotifications";
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -60,6 +62,7 @@ function BackgroundWrapper({
 export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
+  const [changelogOpen, setChangelogOpen] = React.useState(false);
   const [adminModalOpen, setAdminModalOpen] = React.useState(false);
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
@@ -69,6 +72,11 @@ export function App() {
     return onBackgroundConfigChange((newConfig) => {
       setBgConfig(newConfig);
     });
+  }, []);
+
+  // Visitors who allowed notifications hear about new games once per version.
+  React.useEffect(() => {
+    maybeNotifyNewGames();
   }, []);
 
   React.useEffect(() => {
@@ -318,7 +326,10 @@ export function App() {
         onConfigChange={handleConfigChange}
         tabCloakSettings={tabCloakSettings}
         onTabCloakChange={handleTabCloakChange}
+        onOpenChangelog={() => setChangelogOpen(true)}
       />
+
+      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
 
       <BugReportModal
         isOpen={bugModalOpen}

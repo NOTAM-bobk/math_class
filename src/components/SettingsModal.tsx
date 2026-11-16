@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock } from "lucide-react";
 import {
   BACKGROUND_PRESETS,
   loadBackgroundConfig,
@@ -22,6 +22,18 @@ import {
 } from "@/lib/gameNotifications";
 import type { TabCloakSettings } from "@/lib/tabCloak";
 import { formatLastUpdated, LAST_UPDATED_ISO } from "@/lib/lastUpdated";
+import {
+  deleteOfflineCache,
+  downloadOfflineSite,
+  formatBytes,
+  getOfflineStatus,
+  loadOfflineSchedule,
+  offlineSupported,
+  saveOfflineSchedule,
+  type OfflineProgress,
+  type OfflineSchedule,
+  type OfflineStatus,
+} from "@/lib/offlineCache";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -101,6 +113,14 @@ export function SettingsModal({
   // Notification ads
   const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
 
+  // Offline copy and its scheduled cache-first window
+  const [offlineSchedule, setOfflineSchedule] = React.useState<OfflineSchedule>(loadOfflineSchedule);
+  const [offlineStatus, setOfflineStatus] = React.useState<OfflineStatus | null>(null);
+  const [offlineBusy, setOfflineBusy] = React.useState(false);
+  const [offlineProgress, setOfflineProgress] = React.useState<OfflineProgress | null>(null);
+  const [offlineNotice, setOfflineNotice] = React.useState("");
+  const [offlineError, setOfflineError] = React.useState("");
+
   // Chat notifications
   const [chatNotificationsOn, setChatNotificationsOn] = React.useState(isChatNotificationsEnabled);
 
@@ -131,6 +151,19 @@ export function SettingsModal({
   }, [tabCloakSettings]);
 
   const panelRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isOpen || !offlineSupported()) return;
+    let cancelled = false;
+    getOfflineStatus()
+      .then((status) => {
+        if (!cancelled) setOfflineStatus(status);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   // Dialog behaviour: move focus in, keep it inside, close on Escape, hand focus back on close.
   React.useEffect(() => {
@@ -307,6 +340,14 @@ export function SettingsModal({
     );
   };
 
+  const offlinePercent = offlineProgress
+    ? offlineProgress.total > 0
+      ? Math.min(100, Math.round((offlineProgress.done / offlineProgress.total) * 100))
+      : offlineProgress.totalBytes > 0
+        ? Math.min(100, Math.round((offlineProgress.bytes / offlineProgress.totalBytes) * 100))
+        : 0
+    : 0;
+
   const notificationStatusLabel = !notificationsSupported()
     ? "Unsupported"
     : permission === "denied"
@@ -319,6 +360,60 @@ export function SettingsModal({
     const next = !adsBlocked;
     setAdsBlocked(next);
     setNotificationAdsBlocked(next);
+  };
+
+  const handleDownloadOffline = async () => {
+    if (!offlineSupported()) {
+      setOfflineError("This browser cannot store an offline copy.");
+      return;
+    }
+    setOfflineBusy(true);
+    setOfflineError("");
+    setOfflineNotice("");
+    setOfflineProgress({ done: 0, total: 0, bytes: 0, totalBytes: 0, failed: 0 });
+    try {
+      const status = await downloadOfflineSite((progress) => setOfflineProgress(progress));
+      setOfflineStatus(status);
+      setOfflineSchedule(loadOfflineSchedule());
+      setOfflineNotice(
+        status.failed > 0
+          ? `Offline copy saved: ${status.cachedFiles} files (${formatBytes(status.bytes)}). ${status.failed} file${status.failed === 1 ? "" : "s"} could not be saved.`
+          : `Offline copy ready: ${status.cachedFiles} files (${formatBytes(status.bytes)}).`
+      );
+    } catch (error) {
+      setOfflineError(error instanceof Error ? error.message : "The offline download failed.");
+    } finally {
+      setOfflineBusy(false);
+      setOfflineProgress(null);
+    }
+  };
+
+  const handleDeleteOffline = async () => {
+    if (!window.confirm("Delete the downloaded offline copy from this browser?")) return;
+    setOfflineBusy(true);
+    setOfflineError("");
+    setOfflineNotice("");
+    try {
+      await deleteOfflineCache();
+      setOfflineStatus({ cachedFiles: 0, bytes: 0, cachedAt: null, failed: 0 });
+      setOfflineSchedule(saveOfflineSchedule({ requested: false }));
+      setOfflineNotice("Offline copy deleted from this browser.");
+    } catch (error) {
+      setOfflineError("The offline copy could not be deleted.");
+    } finally {
+      setOfflineBusy(false);
+    }
+  };
+
+  const handleToggleOfflineSchedule = () => {
+    const next = saveOfflineSchedule({ scheduleEnabled: !offlineSchedule.scheduleEnabled });
+    setOfflineSchedule(next);
+    setOfflineNotice(next.scheduleEnabled ? "Auto-backup window turned on." : "Auto-backup window turned off.");
+    window.setTimeout(() => setOfflineNotice(""), 2400);
+  };
+
+  const handleOfflineTimeChange = (field: "startTime" | "endTime", value: string) => {
+    setOfflineSchedule(saveOfflineSchedule({ [field]: value }));
   };
 
   const handleSaveTabCloak = (event: React.FormEvent) => {
@@ -1001,6 +1096,181 @@ export function SettingsModal({
             </div>
           )}
         </div>
+
+        {/* Offline copy */}
+        <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="offline-title">
+          <div className="flex items-start gap-2">
+            <div
+              style={{
+                borderRadius: 36,
+                background: offlineStatus?.cachedFiles ? "rgba(34, 197, 94, 0.12)" : "rgba(56, 189, 248, 0.12)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              }}
+              className="p-1.5"
+            >
+              <Download
+                aria-hidden="true"
+                className={`w-4 h-4 ${offlineStatus?.cachedFiles ? "text-emerald-400" : "text-sky-400"}`}
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+                <span id="offline-title">Offline copy</span>
+                {offlineStatus?.cachedFiles ? (
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                    Downloaded
+                  </span>
+                ) : null}
+              </div>
+              <div className="text-xs text-zinc-400">
+                Download the hub and its games so they open without a connection
+              </div>
+            </div>
+          </div>
+
+          {!offlineSupported() ? (
+            <p role="alert" className="text-xs font-medium text-red-400">
+              This browser cannot store an offline copy. Try Chrome, Edge, Firefox or Safari over HTTPS.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-col gap-3 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+                <div className="flex flex-col gap-1">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="text-xs font-medium text-zinc-200">
+                      {offlineBusy && offlineProgress
+                        ? `Caching ${offlineProgress.done} of ${offlineProgress.total || "…"} files…`
+                        : offlineStatus?.cachedFiles
+                          ? `${offlineStatus.cachedFiles} files · ${formatBytes(offlineStatus.bytes)}`
+                          : "No offline copy on this device."}
+                    </span>
+                    {offlineStatus?.cachedAt && !offlineBusy ? (
+                      <span className="text-[10.5px] text-zinc-500">
+                        Downloaded {new Date(offlineStatus.cachedAt).toLocaleString()}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {offlineBusy && offlineProgress && (
+                    <div
+                      role="progressbar"
+                      aria-label="Offline download progress"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={offlinePercent}
+                      className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]"
+                    >
+                      <div
+                        className="h-full rounded-full bg-emerald-500 transition-[width] duration-200"
+                        style={{ width: `${offlinePercent}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadOffline}
+                    disabled={offlineBusy}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Download aria-hidden="true" className="h-3.5 w-3.5" />
+                    <span>
+                      {offlineBusy
+                        ? "Downloading…"
+                        : offlineStatus?.cachedFiles
+                          ? "Update offline copy"
+                          : "Download for offline"}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteOffline}
+                    disabled={offlineBusy || (!offlineStatus?.cachedFiles && !offlineSchedule.requested)}
+                    style={CHIP_STYLE}
+                    className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-white/[0.08] hover:text-red-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                    <span>Delete cache</span>
+                  </button>
+                </div>
+
+                <p className="text-[10.5px] leading-relaxed text-zinc-500">
+                  Keep this page open while the download runs. The site has to be reachable once to download it; after
+                  that, cached pages open without a connection.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-zinc-200">
+                      <Clock aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
+                      <span>Auto-use cached backup</span>
+                      <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300">
+                        Advanced
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+                      Use the downloaded copy first between these times, even when the current network blocks a page.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-label="Auto-use cached backup"
+                    aria-checked={offlineSchedule.scheduleEnabled}
+                    onClick={handleToggleOfflineSchedule}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${offlineSchedule.scheduleEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${offlineSchedule.scheduleEnabled ? "translate-x-5" : "translate-x-0"}`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex items-end gap-2">
+                  <label className="flex min-w-0 flex-1 flex-col gap-1.5 text-[11px] font-medium text-zinc-400">
+                    From
+                    <input
+                      type="time"
+                      value={offlineSchedule.startTime}
+                      onChange={(event) => handleOfflineTimeChange("startTime", event.target.value)}
+                      className="w-full rounded-lg bg-white/[0.04] px-2.5 py-1.5 font-mono text-xs text-zinc-100 ring-1 ring-inset ring-white/[0.08] focus:outline-none"
+                    />
+                  </label>
+                  <span className="pb-2 text-xs text-zinc-500">to</span>
+                  <label className="flex min-w-0 flex-1 flex-col gap-1.5 text-[11px] font-medium text-zinc-400">
+                    To
+                    <input
+                      type="time"
+                      value={offlineSchedule.endTime}
+                      onChange={(event) => handleOfflineTimeChange("endTime", event.target.value)}
+                      className="w-full rounded-lg bg-white/[0.04] px-2.5 py-1.5 font-mono text-xs text-zinc-100 ring-1 ring-inset ring-white/[0.08] focus:outline-none"
+                    />
+                  </label>
+                </div>
+
+                <p className="text-[10.5px] leading-relaxed text-zinc-500">
+                  Overnight windows work too, for example 22:00 to 07:00. The schedule only applies after the offline
+                  copy has been downloaded.
+                </p>
+              </div>
+            </>
+          )}
+
+          {offlineError && (
+            <p role="alert" className="text-xs font-medium text-red-400">
+              {offlineError}
+            </p>
+          )}
+          {!offlineError && offlineNotice && (
+            <p role="status" className="text-xs font-medium text-emerald-400">
+              {offlineNotice}
+            </p>
+          )}
+        </section>
 
         {/* Section 3: Custom tab cloaking */}
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="tab-cloak-title">

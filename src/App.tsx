@@ -22,6 +22,7 @@ import {
 } from "./lib/backgroundTheme";
 import { formatLastUpdated, LAST_UPDATED_ISO } from "./lib/lastUpdated";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
+import { initOfflineMode } from "./lib/offlineCache";
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -107,6 +108,11 @@ export function App() {
   // Visitors who allowed notifications hear about games that were actually added.
   React.useEffect(() => {
     void maybeNotifyNewGames(DEFAULT_GAMES);
+  }, []);
+
+  // Re-send the offline schedule after a reload, when this device has an offline copy.
+  React.useEffect(() => {
+    initOfflineMode();
   }, []);
 
   React.useEffect(() => {

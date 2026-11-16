@@ -2,8 +2,9 @@
   "name": "polytrack-hub",
   "version": "1.0.0",
   "scripts": {
-    "build": "node scripts/export-catalog.mjs && esbuild src/index.tsx --bundle --minify --alias:@=./src --outfile=dist/home.bundle.js",
+    "build": "node scripts/export-catalog.mjs && node scripts/export-offline-manifest.mjs && esbuild src/index.tsx --bundle --minify --alias:@=./src --outfile=dist/home.bundle.js",
     "build:catalog": "node scripts/export-catalog.mjs",
+    "build:offline-manifest": "node scripts/export-offline-manifest.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

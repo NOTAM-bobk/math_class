@@ -244,6 +244,34 @@ export const DEFAULT_BACKGROUND: BackgroundConfig = {
   value: "shader",
 };
 
+function hexLuminance(hex: string): number {
+  const value = hex.replace("#", "");
+  const full = value.length === 3 ? value.split("").map((part) => part + part).join("") : value;
+  if (full.length !== 6) return 0;
+  const [red, green, blue] = [0, 2, 4].map((offset) => {
+    const channel = parseInt(full.slice(offset, offset + 2), 16) / 255;
+    if (Number.isNaN(channel)) return 0;
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+/**
+ * Whether the page background behind the footer is bright enough to need black
+ * text. Gradient presets are weighted towards their last stop, because that is
+ * the colour that shows at the bottom of the screen where the footer sits.
+ */
+export function backgroundIsLight(config: BackgroundConfig): boolean {
+  if (config.type === "shader") return true;
+  const colors = config.value.match(/#[0-9a-f]{3}(?:[0-9a-f]{3})?\b/gi) ?? [];
+  if (colors.length === 0) return false;
+  const luminances = colors.map(hexLuminance);
+  const average = luminances.reduce((sum, value) => sum + value, 0) / luminances.length;
+  const behindFooter =
+    luminances.length > 1 ? luminances[luminances.length - 1] * 0.65 + average * 0.35 : luminances[0];
+  return behindFooter > 0.5;
+}
+
 export function loadBackgroundConfig(): BackgroundConfig {
   if (typeof window === "undefined") return DEFAULT_BACKGROUND;
   try {

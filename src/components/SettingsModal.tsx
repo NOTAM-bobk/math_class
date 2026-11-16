@@ -21,6 +21,7 @@ import {
   showNewGameNotification,
 } from "@/lib/gameNotifications";
 import type { TabCloakSettings } from "@/lib/tabCloak";
+import { formatLastUpdated, LAST_UPDATED_ISO } from "@/lib/lastUpdated";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -41,6 +42,10 @@ const PANIC_PRESETS = [
   { name: "Google Classroom", url: "https://classroom.google.com/" },
   { name: "Google Docs", url: "https://docs.google.com/" },
   { name: "Canvas", url: "https://canvas.instructure.com/" }
+];
+
+const SITE_MIRRORS = [
+  { name: "polytrack.sawyerbobk563.deno.net", url: "https://polytrack.sawyerbobk563.deno.net/" },
 ];
 
 const FOCUSABLE =
@@ -1245,15 +1250,29 @@ export function SettingsModal({
               <span>More proxies of this site</span>
             </div>
             <p className="text-[11px] leading-relaxed text-zinc-400">
-              Mirror and backup locations for this site will be listed here.
+              Mirror and backup locations for this site.
             </p>
-            <span
-              style={CHIP_STYLE}
-              className="mt-1 inline-flex w-fit items-center px-2.5 py-1 text-[10.5px] font-medium text-zinc-500"
-            >
-              Links coming soon
-            </span>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {SITE_MIRRORS.map((mirror) => (
+                <a
+                  key={mirror.url}
+                  href={mirror.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={mirror.url}
+                  style={CHIP_STYLE}
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                >
+                  <Globe aria-hidden="true" className="h-3 w-3 text-sky-400" />
+                  <span>{mirror.name}</span>
+                </a>
+              ))}
+            </div>
           </div>
+
+          <p className="text-[10.5px] text-zinc-500" title={`Build ${LAST_UPDATED_ISO}`}>
+            Last updated {formatLastUpdated()}
+          </p>
         </div>
       </div>
     </div>

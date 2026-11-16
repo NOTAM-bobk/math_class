@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.1.0";
+export const SITE_VERSION = "1.2.0";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,19 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.2.0",
+    date: "November 2026",
+    title: "Server-side search, mirrors and crawler blocking",
+    changes: [
+      "Search now runs on the server and the catalog and bundle are cached at the edge, so the hub loads and filters faster.",
+      "Notifications are delivered by the browser itself, and the new-game alert only fires when the catalog actually gains a game.",
+      "The top navigation starts closed, chat dropped its avatar icons, and the verified check explains itself on hover or tap.",
+      "Search engines, automated crawlers and AI training agents are blocked from this site.",
+      "A backup mirror of the hub is linked at the bottom of Settings.",
+      "The footer and the bottom of Settings show when the site was last updated.",
+    ],
+  },
   {
     version: "1.1.0",
     date: "November 2026",

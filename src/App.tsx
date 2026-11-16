@@ -15,10 +15,12 @@ import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
+  backgroundIsLight,
   loadBackgroundConfig,
   onBackgroundConfigChange,
   type BackgroundConfig,
 } from "./lib/backgroundTheme";
+import { formatLastUpdated, LAST_UPDATED_ISO } from "./lib/lastUpdated";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 
 const CHIP_STYLE: React.CSSProperties = {
@@ -114,6 +116,19 @@ export function App() {
       document.body.style.background = "#09090b";
     }
   }, [bgConfig]);
+
+  // The footer sits on the theme background, so its ink flips to whichever of
+  // black or white stays readable against that particular backdrop.
+  const footerIsLight = React.useMemo(() => backgroundIsLight(bgConfig), [bgConfig]);
+  const lastUpdatedLabel = React.useMemo(() => formatLastUpdated(), []);
+  const footerChipStyle: React.CSSProperties = footerIsLight
+    ? {
+        borderRadius: 36,
+        background: "rgba(0, 0, 0, 0.06)",
+        boxShadow: "inset 0 0 0 1px rgba(0, 0, 0, 0.08)",
+      }
+    : CHIP_STYLE;
+
   const [tabCloakSettings, setTabCloakSettings] = React.useState<TabCloakSettings>(loadTabCloakSettings);
 
   React.useEffect(() => {
@@ -383,16 +398,24 @@ export function App() {
         </nav>
 
         {/* Bottom Footer with Bug Report and Admin Panel */}
-        <footer className="shrink-0 px-2.5 pt-1 text-[10.5px] text-zinc-500 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5">
+        <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
-            <span className="font-medium text-zinc-400">Built by SS</span>
+            <span className={`font-medium ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>Built by SS</span>
+            <span
+              className={footerIsLight ? "text-black/60" : "text-zinc-500"}
+              title={`Build ${LAST_UPDATED_ISO}`}
+            >
+              Updated {lastUpdatedLabel}
+            </span>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 data-hint-target="bug-report"
                 onClick={() => setBugModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-zinc-300 hover:text-white transition-colors hover:bg-white/[0.08] cursor-pointer"
-                style={CHIP_STYLE}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer ${
+                  footerIsLight ? "text-black/80 hover:text-black hover:bg-black/[0.07]" : "text-zinc-300 hover:text-white hover:bg-white/[0.08]"
+                }`}
+                style={footerChipStyle}
                 title="Report a broken game or bug"
               >
                 <Bug aria-hidden="true" className="w-3.5 h-3.5 text-amber-400" />
@@ -401,8 +424,10 @@ export function App() {
               <button
                 type="button"
                 onClick={() => setAdminModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-zinc-300 hover:text-white transition-colors hover:bg-white/[0.08] cursor-pointer"
-                style={CHIP_STYLE}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer ${
+                  footerIsLight ? "text-black/80 hover:text-black hover:bg-black/[0.07]" : "text-zinc-300 hover:text-white hover:bg-white/[0.08]"
+                }`}
+                style={footerChipStyle}
                 title="Admin panel (protected by Vercel ADMIN_PASSWORD)"
               >
                 <Shield aria-hidden="true" className="w-3.5 h-3.5 text-blue-400" />
@@ -411,16 +436,16 @@ export function App() {
             </div>
           </div>
           <nav aria-label="Footer" className="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-1">
-            <a href="mailto:hello@base31.org" className="transition-colors hover:text-zinc-200">
+            <a href="mailto:hello@base31.org" className={`transition-colors ${footerIsLight ? "text-black/70 hover:text-black" : "hover:text-zinc-200"}`}>
               hello@base31.org
             </a>
-            <a href="/terms" className="transition-colors hover:text-zinc-200">
+            <a href="/terms" className={`transition-colors ${footerIsLight ? "text-black/70 hover:text-black" : "hover:text-zinc-200"}`}>
               Terms of Service
             </a>
             <button
               type="button"
               onClick={() => setSubmitModalOpen(true)}
-              className="transition-colors hover:text-zinc-200 cursor-pointer"
+              className={`transition-colors cursor-pointer ${footerIsLight ? "text-black/70 hover:text-black" : "hover:text-zinc-200"}`}
             >
               Submit a game
             </button>

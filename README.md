@@ -1,8 +1,8 @@
 # Working: Site Proxies:
 
--https://poly2.benlaunches.icu
-- //few days late
-- https://polytrack.sawyerbobk563.workers.dev/
+- https://poly2.benlaunches.icu
+- https://polytrack.sawyerbobk563.deno.net //few days late
+- https://polytrack.sawyerbobk563.workers.dev 
 - https://basket-random-1df0d.containers.snapdeploy.app // takes a minute to start 
 
 # v0.3.1

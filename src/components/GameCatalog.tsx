@@ -33,6 +33,9 @@ function loadFavorites(): string[] {
 export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
   { id: "favorites", label: "⭐ Favorites" },
+  { id: "editors", label: "✨ Editor’s Pick" },
+  { id: "trending", label: "🔥 Trending" },
+  { id: "buggy", label: "🐛 Error: bug" },
   { id: "flash", label: "⚡ Flash" },
   { id: "action", label: "⚔️ Action" },
   { id: "driving", label: "🏎️ Driving" },
@@ -1204,6 +1207,12 @@ export function GameCatalog() {
     let list = games;
     if (selectedCategory === "favorites") {
       list = list.filter((game) => favoriteIds.has(game.id));
+    } else if (selectedCategory === "editors") {
+      list = list.filter((game) => !!game.editorsPick);
+    } else if (selectedCategory === "trending") {
+      list = list.filter((game) => popularGameId === game.id);
+    } else if (selectedCategory === "buggy") {
+      list = list.filter((game) => buggyIds.has(game.id) || !!game.errorBug);
     } else if (selectedCategory !== "all") {
       list = list.filter((game) => matchesCategory(game, selectedCategory));
     }
@@ -1215,7 +1224,7 @@ export function GameCatalog() {
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, searchQuery]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, popularGameId, searchQuery]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1267,6 +1276,13 @@ export function GameCatalog() {
     setSortOption(DEFAULT_SORT);
     searchRef.current?.focus();
   }, []);
+
+  const recentGameItems = React.useMemo(() => {
+    const byId = new Map(games.map((game) => [game.id, game]));
+    return loadRecentGames()
+      .map((entry) => byId.get(entry.id))
+      .filter((game): game is GameItem => !!game && !game.disabled);
+  }, [games, recentIds]);
 
   const searching = searchQuery.trim().length > 0;
   const isFiltered = searching || selectedCategory !== "all";
@@ -1471,6 +1487,25 @@ export function GameCatalog() {
               Advertise
             </a>
           </div>
+
+          {!isFiltered && recentGameItems.length > 0 && (
+            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-2">
+                <h3 id="catalog-recent-heading" className="text-[11px] font-medium text-zinc-400">Recently played</h3>
+                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+                <span className="text-[11px] tabular-nums text-zinc-500">Scroll to revisit</span>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
+                {recentGameItems.map((game) => (
+                  <a key={game.id} href={game.url} target="_blank" rel="noopener noreferrer" onClick={() => handleGameClick(game)} className="group flex w-44 shrink-0 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 text-left transition hover:border-white/[0.16] hover:bg-white/[0.07]">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-zinc-200"><Gamepad2 className="h-4 w-4" /></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span><span className="mt-0.5 block text-[10px] text-zinc-500">Play again</span></span>
+                    <Play className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition group-hover:text-zinc-200" />
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
 
           {playableGames.length > 0 && (
             <section aria-labelledby="catalog-play-heading" className="flex flex-col gap-3">

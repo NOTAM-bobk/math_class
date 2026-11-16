@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe } from "lucide-react";
 import {
   BACKGROUND_PRESETS,
   loadBackgroundConfig,
@@ -1208,6 +1208,52 @@ export function SettingsModal({
             <History aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
             <span>View change log</span>
           </button>
+        </div>
+
+        {/* Footer: source code and other proxies */}
+        <div className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-zinc-100">Source code</div>
+              <p className="mt-0.5 text-[10.5px] leading-relaxed text-zinc-500">
+                Read the code that runs this site.
+              </p>
+            </div>
+            <a
+              href="https://github.com/NOTAM-bobk/polytrack"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={CHIP_STYLE}
+              className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+            >
+              <Github aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+              <span>View source code</span>
+            </a>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 14,
+              background: "rgba(0, 0, 0, 0.3)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              padding: "12px",
+            }}
+            className="flex flex-col gap-1.5"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+              <Globe aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
+              <span>More proxies of this site</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-zinc-400">
+              Mirror and backup locations for this site will be listed here.
+            </p>
+            <span
+              style={CHIP_STYLE}
+              className="mt-1 inline-flex w-fit items-center px-2.5 py-1 text-[10.5px] font-medium text-zinc-500"
+            >
+              Links coming soon
+            </span>
+          </div>
         </div>
       </div>
     </div>

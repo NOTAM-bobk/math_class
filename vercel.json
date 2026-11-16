@@ -67,6 +67,14 @@
       "destination": "/api/flags"
     },
     {
+      "source": "/api/hub/submit-game",
+      "destination": "/api/submissions"
+    },
+    {
+      "source": "/api/hub/submit-game/",
+      "destination": "/api/submissions"
+    },
+    {
       "source": "/api/hub/:path*",
       "destination": "https://polytrack-hub-api.sawyerbobk563.workers.dev/api/:path*"
     },

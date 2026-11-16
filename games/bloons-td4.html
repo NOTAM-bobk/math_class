@@ -16,6 +16,63 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Bloons Tower Defense 4 - Education Games</title>
+  <script>
+  /* Ruffle keeps this game's SharedObject saves in localStorage under
+     <host>/games/swf/bloons-td4.swf/<save-name>. Mirror them into a site-owned
+     key and restore them on load if the game's own saves are missing. */
+  (function () {
+    var GAME_PATH = "/games/swf/bloons-td4.swf/";
+    var BACKUP_KEY = "polytrack_bloons_td4_progress_backup";
+
+    function readSaves() {
+      var saves = {};
+      try {
+        for (var i = 0; i < localStorage.length; i += 1) {
+          var key = localStorage.key(i);
+          if (!key) continue;
+          var at = key.indexOf(GAME_PATH);
+          if (at === -1) continue;
+          var name = key.slice(at + GAME_PATH.length);
+          if (!name) continue;
+          saves[name] = localStorage.getItem(key);
+        }
+      } catch (e) {}
+      return saves;
+    }
+
+    function backupProgress() {
+      var saves = readSaves();
+      if (!Object.keys(saves).length) return;
+      try {
+        localStorage.setItem(BACKUP_KEY, JSON.stringify(saves));
+      } catch (e) {}
+    }
+
+    function restoreProgress() {
+      if (Object.keys(readSaves()).length) return;
+      var saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(BACKUP_KEY) || "null");
+      } catch (e) {
+        return;
+      }
+      if (!saved || typeof saved !== "object") return;
+      Object.keys(saved).forEach(function (name) {
+        if (!name || typeof saved[name] !== "string") return;
+        try {
+          localStorage.setItem(location.hostname + GAME_PATH + name, saved[name]);
+        } catch (e) {}
+      });
+    }
+
+    restoreProgress();
+    window.setInterval(backupProgress, 3000);
+    window.addEventListener("pagehide", backupProgress);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") backupProgress();
+    });
+  })();
+  </script>
   <style>
     * { box-sizing: border-box; }
     html, body {

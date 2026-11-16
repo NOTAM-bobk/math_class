@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Sparkles,
   Smartphone,
+  Send,
 } from "lucide-react";
 import { DEFAULT_GAMES, type GameItem } from "./GameCatalog";
 import { loadBuggyGameIds, saveBuggyGameIds, onBuggyGamesChange } from "@/lib/buggyGames";
@@ -44,6 +45,43 @@ interface BugReport {
   status: string;
 }
 
+interface GameSubmission {
+  id: number;
+  created_at: string;
+  name: string;
+  url: string;
+  category: string;
+  description: string;
+  submittedBy: string;
+}
+
+// Game requests are stored with the bug reports under this title prefix so the
+// existing backend and admin proxy can carry them without a new database.
+const SUBMISSION_PREFIX = "__POLYTRACK_GAME_SUBMISSION__";
+
+function isSubmissionRecord(record: any): boolean {
+  return String(record?.title || "").startsWith(SUBMISSION_PREFIX);
+}
+
+function parseSubmission(record: any): GameSubmission {
+  let details: any = {};
+  try {
+    details = JSON.parse(record.description || "{}");
+  } catch {
+    details = {};
+  }
+  const fallbackName = String(record.title || "").slice(SUBMISSION_PREFIX.length).trim();
+  return {
+    id: Number(record.id),
+    created_at: record.created_at || new Date().toISOString(),
+    name: String(details.name || fallbackName || "Untitled game"),
+    url: String(details.url || record.game_url || ""),
+    category: String(details.category || ""),
+    description: String(details.description || ""),
+    submittedBy: String(details.submittedBy || ""),
+  };
+}
+
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
   background: "rgba(255, 255, 255, 0.04)",
@@ -62,12 +100,13 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [bugs, setBugs] = React.useState<BugReport[]>([]);
+  const [submissions, setSubmissions] = React.useState<GameSubmission[]>([]);
   const [filter, setFilter] = React.useState<"all" | "open" | "resolved">("open");
   const [actionLoadingId, setActionLoadingId] = React.useState<number | null>(null);
   const [rateLimitSeconds, setRateLimitSeconds] = React.useState<number | null>(null);
 
   // Admin tabs: "verified", "tags" (error:bug), "mobile" (not mobile optimized), or "bugs" (reports)
-  const [adminTab, setAdminTab] = React.useState<"verified" | "tags" | "mobile" | "blocked" | "bugs">("verified");
+  const [adminTab, setAdminTab] = React.useState<"verified" | "tags" | "mobile" | "blocked" | "bugs" | "submissions">("verified");
   const [verifiedIds, setVerifiedIds] = React.useState<Set<string>>(loadVerifiedGameIds);
   const [verifiedSearch, setVerifiedSearch] = React.useState("");
   const [verifiedFilter, setVerifiedFilter] = React.useState<"all" | "verified" | "unverified">("all");
@@ -199,8 +238,11 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
       }
 
       const rawBugs = Array.isArray(data.bugs) ? data.bugs : (Array.isArray(data.items) ? data.items : []);
-      const userBugs = rawBugs.filter((b: any) => b.title !== "__POLYTRACK_GAME_FLAGS__");
+      const userBugs = rawBugs.filter(
+        (b: any) => b.title !== "__POLYTRACK_GAME_FLAGS__" && !isSubmissionRecord(b)
+      );
       setBugs(userBugs);
+      setSubmissions(rawBugs.filter(isSubmissionRecord).map(parseSubmission));
       setIsAuthenticated(true);
       sessionStorage.setItem("polytrack_admin_session_pwd", pwd);
 
@@ -287,6 +329,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     setPassword("");
     sessionStorage.removeItem("polytrack_admin_session_pwd");
     setBugs([]);
+    setSubmissions([]);
     setErrorMessage("");
   };
 
@@ -531,7 +574,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm(`Permanently delete bug report #${id}?`)) return;
+    if (!window.confirm(`Permanently delete item #${id}?`)) return;
     setActionLoadingId(id);
     try {
       const endpoint = "/api/admin";
@@ -556,6 +599,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
         setBugs((prev) => prev.filter((b) => b.id !== id));
+        setSubmissions((prev) => prev.filter((submission) => submission.id !== id));
       } else {
         alert(data.error || "Failed to delete report");
       }
@@ -874,6 +918,24 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 {bugs.length > 0 && (
                   <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-blue-500/30 text-blue-200">
                     {bugs.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminTab("submissions")}
+                style={CHIP_STYLE}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  adminTab === "submissions"
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <Send className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Game Requests</span>
+                {submissions.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-cyan-500/30 text-cyan-200">
+                    {submissions.length}
                   </span>
                 )}
               </button>
@@ -1687,6 +1749,96 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                               <span className="truncate max-w-[220px]" title={bug.browser_info}>
                                 {bug.browser_info}
                               </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Game requests submitted from the top nav */}
+            {adminTab === "submissions" && (
+              <div className="flex flex-col gap-3 min-h-0 flex-1">
+                <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] pb-1">
+                  <span className="text-xs font-semibold text-zinc-200">Game requests</span>
+                  <span className="font-mono text-[11px] text-zinc-500">{submissions.length} total</span>
+                </div>
+
+                <div className="max-h-[48vh] space-y-2.5 overflow-y-auto pr-1">
+                  {submissions.length === 0 ? (
+                    <div className="py-12 text-center text-xs text-zinc-500">
+                      No game requests yet. Requests sent from the “Submit a game” button appear here.
+                    </div>
+                  ) : (
+                    submissions.map((submission) => {
+                      const isBusy = actionLoadingId === submission.id;
+                      return (
+                        <div
+                          key={submission.id}
+                          style={{
+                            borderRadius: 14,
+                            background: "rgba(255, 255, 255, 0.03)",
+                            boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
+                          }}
+                          className="flex flex-col gap-2 p-3.5 transition-all hover:bg-white/[0.04]"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <span className="font-mono text-[11px] font-semibold text-zinc-400">
+                                #{submission.id}
+                              </span>
+                              {submission.category && (
+                                <span className="rounded border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-300">
+                                  {submission.category}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              disabled={isBusy}
+                              onClick={() => handleDelete(submission.id)}
+                              className="shrink-0 cursor-pointer rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                              title="Delete request"
+                            >
+                              {isBusy ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+
+                          <h4 className="text-xs font-semibold leading-snug text-zinc-100">
+                            {submission.name}
+                          </h4>
+
+                          {submission.url && (
+                            <a
+                              href={submission.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="break-all font-mono text-[11px] text-cyan-300 underline decoration-cyan-400/30 underline-offset-2 transition-colors hover:text-cyan-200"
+                            >
+                              {submission.url}
+                            </a>
+                          )}
+
+                          {submission.description && (
+                            <p className="whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">
+                              {submission.description}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between border-t border-white/[0.04] pt-1 text-[10px] text-zinc-500">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-zinc-600" />
+                              {new Date(submission.created_at).toLocaleString()}
+                            </span>
+                            {submission.submittedBy && (
+                              <span className="truncate max-w-[220px]">from {submission.submittedBy}</span>
                             )}
                           </div>
                         </div>

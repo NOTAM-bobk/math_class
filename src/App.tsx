@@ -7,6 +7,7 @@ import { ShareButton } from "./components/ShareButton";
 import { SettingsModal } from "./components/SettingsModal";
 import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
+import { GameSubmitModal } from "./components/GameSubmitModal";
 import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
@@ -64,6 +65,7 @@ const INSTALL_NOTICE_SEEN_KEY = "polytrack_install_notice_seen";
 export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(false);
+  const [submitModalOpen, setSubmitModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
   const [navCollapsed, setNavCollapsed] = React.useState(
     () => localStorage.getItem("polytrack_nav_collapsed") === "true"
@@ -248,18 +250,21 @@ export function App() {
                   transform: navCollapsed ? "translateX(-8px)" : "translateX(0)",
                 }}
               >
-                <a
-                  href="/submit/"
+                <button
+                  type="button"
                   data-hint-target="submit-game"
                   aria-label="Submit a game"
+                  aria-haspopup="dialog"
+                  aria-expanded={submitModalOpen}
                   tabIndex={navCollapsed ? -1 : 0}
+                  onClick={() => setSubmitModalOpen(true)}
                   style={CHIP_STYLE}
                   title="Submit a game"
-                  className="inline-flex h-8 shrink-0 items-center justify-center rounded-full px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:gap-1.5 sm:px-3 sm:py-1"
+                  className="inline-flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:gap-1.5 sm:px-3 sm:py-1"
                 >
                   <Send aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
                   <span className="hidden sm:inline">Submit a game</span>
-                </a>
+                </button>
                 <a href="/ai/" target="_blank" rel="noopener noreferrer" title="Open Unblocked AIs in a new tab" aria-label="Unblocked AIs (opens in a new tab)" style={CHIP_STYLE} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1">
                   <Sparkles aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" /><span className="hidden sm:inline">Unblocked AIs</span>
                 </a>
@@ -411,9 +416,13 @@ export function App() {
             <a href="/terms" className="transition-colors hover:text-zinc-200">
               Terms of Service
             </a>
-            <a href="/submit/" className="transition-colors hover:text-zinc-200">
+            <button
+              type="button"
+              onClick={() => setSubmitModalOpen(true)}
+              className="transition-colors hover:text-zinc-200 cursor-pointer"
+            >
               Submit a game
-            </a>
+            </button>
           </nav>
         </footer>
       </div>
@@ -441,6 +450,11 @@ export function App() {
       <BugReportModal
         isOpen={bugModalOpen}
         onClose={() => setBugModalOpen(false)}
+      />
+
+      <GameSubmitModal
+        isOpen={submitModalOpen}
+        onClose={() => setSubmitModalOpen(false)}
       />
 
       <AdminPanelModal

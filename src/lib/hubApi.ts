@@ -79,6 +79,51 @@ export async function recordGameClick(game: { id: string; name: string; url: str
   return data.game || null;
 }
 
+export interface GameSubmissionInput {
+  name: string;
+  url: string;
+  category?: string;
+  description?: string;
+  submittedBy?: string;
+  website?: string;
+  pageUrl?: string;
+}
+
+/**
+ * Sends a game request through the Vercel proxy, which stores it with the
+ * bug reports so the admin panel can review it.
+ */
+export async function submitGameRequest(input: GameSubmissionInput): Promise<void> {
+  const endpoints = ["/api/hub/submit-game", "/api/submissions"];
+  let lastError: Error | null = null;
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(input),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.ok !== false) return;
+
+      // A missing proxy route is worth retrying through the direct function;
+      // a validation or rate-limit error is final.
+      if (response.status === 404 || response.status === 405) {
+        lastError = new Error(data.error || "Submission endpoint unavailable");
+        continue;
+      }
+
+      throw new Error(data.error || "Could not send the game request");
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("Could not send the game request");
+    }
+  }
+
+  throw lastError || new Error("Could not send the game request");
+}
+
 /**
  * Loads game flags (verified and bug-tagged) via the Vercel serverless proxy.
  * Works reliably on school networks because requests stay on the site's own domain.

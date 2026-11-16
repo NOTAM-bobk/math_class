@@ -180,8 +180,6 @@ export function App() {
               </span>
             </a>
 
-            {navCollapsed && renderNavToggle("order-1 sm:order-2")}
-
             <nav
               aria-label="Site"
               className="order-1 flex min-w-0 flex-1 items-center justify-end gap-1 py-0.5 sm:order-2 sm:justify-start sm:gap-1.5"

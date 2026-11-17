@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T14:55:36.010Z",
-  "totalBytes": 346473123,
+  "generatedAt": "2026-11-17T15:02:56.278Z",
+  "totalBytes": 346472966,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 10412
+      "bytes": 10255
     },
     {
       "url": "/manifest.json",

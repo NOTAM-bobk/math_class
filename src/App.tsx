@@ -71,10 +71,22 @@ const SITE_VISITS_KEY = "polytrack_site_visits";
 const ADS_NUDGE_SEEN_KEY = "polytrack_ads_nudge_seen";
 
 export function App() {
-  // Skip the intro on fast loads; if the page has actually been waiting, let it play through.
-  const [showLoadReveal, setShowLoadReveal] = React.useState(
-    () => typeof performance !== "undefined" && performance.now() > 250
-  );
+  const [loadingRevealEnabled, setLoadingRevealEnabled] = React.useState(() => {
+    try {
+      return localStorage.getItem("polytrack_loading_reveal_enabled") !== "false";
+    } catch {
+      return true;
+    }
+  });
+  // Skip the intro on fast loads or if disabled in Settings; if the page has actually been waiting, let it play through.
+  const [showLoadReveal, setShowLoadReveal] = React.useState(() => {
+    try {
+      if (localStorage.getItem("polytrack_loading_reveal_enabled") === "false") {
+        return false;
+      }
+    } catch {}
+    return typeof performance !== "undefined" && performance.now() > 250;
+  });
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [adsNudgeOpen, setAdsNudgeOpen] = React.useState(false);
   const visitCountedRef = React.useRef(false);
@@ -280,7 +292,7 @@ export function App() {
 
   return (
     <BackgroundWrapper config={bgConfig}>
-      {showLoadReveal && <GlassReveal21st onComplete={() => setShowLoadReveal(false)} />}
+      {loadingRevealEnabled && showLoadReveal && <GlassReveal21st onComplete={() => setShowLoadReveal(false)} />}
       {isLocked && <SiteLock onUnlock={() => setIsUnlocked(true)} />}
 
       <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
@@ -520,6 +532,14 @@ export function App() {
 
       <SettingsModal
         isOpen={settingsOpen}
+        loadingRevealEnabled={loadingRevealEnabled}
+        onLoadingRevealChange={(enabled) => {
+          try {
+            localStorage.setItem("polytrack_loading_reveal_enabled", enabled ? "true" : "false");
+          } catch {}
+          setLoadingRevealEnabled(enabled);
+          if (!enabled) setShowLoadReveal(false);
+        }}
         onClose={() => setSettingsOpen(false)}
         onLockNow={() => setIsUnlocked(false)}
         onReportBug={() => setBugModalOpen(true)}

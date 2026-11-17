@@ -50,6 +50,8 @@ interface SettingsModalProps {
   onSideChatChange: (enabled: boolean) => void;
   adSpotEnabled: boolean;
   onAdSpotChange: (enabled: boolean) => void;
+  loadingRevealEnabled?: boolean;
+  onLoadingRevealChange?: (enabled: boolean) => void;
 }
 
 const PANIC_PRESETS = [
@@ -143,7 +145,9 @@ export function SettingsModal({
   sideChatEnabled,
   onSideChatChange,
   adSpotEnabled,
-  onAdSpotChange
+  onAdSpotChange,
+  loadingRevealEnabled = true,
+  onLoadingRevealChange
 }: SettingsModalProps) {
   // Site Lock states
   const [siteLockEnabled, setSiteLockEnabled] = React.useState(() => {
@@ -636,8 +640,24 @@ export function SettingsModal({
 
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="layout-controls-title">
           <div>
-            <h3 id="layout-controls-title" className="text-sm font-semibold text-zinc-100">Layout</h3>
-            <p className="mt-0.5 text-xs text-zinc-400">Show or hide the side chat, visitor counter and ad space. Hiding the side chat gives games the full width.</p>
+            <h3 id="layout-controls-title" className="text-sm font-semibold text-zinc-100">Layout & Startup</h3>
+            <p className="mt-0.5 text-xs text-zinc-400">Configure the startup loading animation, side chat, visitor counter and ad space.</p>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+            <div>
+              <div className="text-sm font-medium text-zinc-200">Startup loading animation</div>
+              <div className="text-xs text-zinc-500">Play the 3D glass logo reveal when loading the site</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onLoadingRevealChange?.(!loadingRevealEnabled)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${loadingRevealEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
+              role="switch"
+              aria-checked={loadingRevealEnabled}
+              aria-label="Startup loading animation"
+            >
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${loadingRevealEnabled ? "translate-x-5" : "translate-x-0"}`} />
+            </button>
           </div>
           <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
             <div>

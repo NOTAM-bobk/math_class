@@ -239,9 +239,9 @@
     "errorBug": false,
     "url": "/games/clrun3.html"
   },
-  "awsome-tanks": {
-    "name": "Awsome Tanks",
-    "hubName": "Awsome Tanks",
+  "awesome-tanks": {
+    "name": "Awesome Tanks",
+    "hubName": "Awesome Tanks",
     "hubId": "game-awsome-tanks",
     "cfgId": "cfg-awsome-tanks",
     "tags": [

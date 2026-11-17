@@ -362,7 +362,7 @@ export const DEFAULT_GAMES: GameItem[] = [
   },
   {
     id: "game-awsome-tanks",
-    name: "Awsome Tanks",
+    name: "Awesome Tanks",
     url: "/games/awsome-tanks.html",
     description: "Command a tank, blast enemy strongholds, and buy heavy cannon and armor upgrades.",
     tags: ["Action", "Tanks", "Shooter", "Upgrades"]

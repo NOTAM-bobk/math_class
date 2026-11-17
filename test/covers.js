@@ -142,7 +142,7 @@ const SCENES = {
     ${box(266, 62, 72, 10, "#2a3f8f", 5, 'transform="rotate(18 302 67)"')}
   `,
 
-  "awsome-tanks": () => `
+  "awesome-tanks": () => `
     ${box(0, 0, 400, 300, "#25130f")}
     ${circle(300, 70, 90, "#3c1d15")}
     ${ground(232, "#341a12", "#3f2015")}

@@ -424,6 +424,16 @@ a {
   transition: box-shadow 220ms ease;
 }
 
+/* The tile is one large link, with the favorite star layered on top of it. */
+.tile-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+
 .tile[data-size="std"] {
   grid-column: span 1;
   grid-row: span 3;
@@ -465,11 +475,15 @@ a {
   position: absolute;
   inset: 0;
   display: block;
+  /* A deep, even band across the title strip: names, tags and badges stay
+     readable on pale covers (2048, Drive Mad) without hiding the art. */
   background: linear-gradient(
     to top,
-    rgba(3, 3, 6, 0.86) 0%,
-    rgba(3, 3, 6, 0.42) 32%,
-    rgba(3, 3, 6, 0.04) 58%,
+    rgba(3, 3, 6, 0.96) 0%,
+    rgba(3, 3, 6, 0.9) 30%,
+    rgba(3, 3, 6, 0.66) 48%,
+    rgba(3, 3, 6, 0.3) 66%,
+    rgba(3, 3, 6, 0.06) 84%,
     rgba(3, 3, 6, 0) 100%
   );
   pointer-events: none;
@@ -483,13 +497,14 @@ a {
   z-index: 4;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  max-width: calc(100% - 16px);
+  gap: 6px;
+  max-width: calc(100% - 52px);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 4px;
   height: 18px;
   padding: 0 6px;
@@ -518,22 +533,70 @@ a {
   color: #fde68a;
 }
 
-.badge--bug {
-  border: 1px solid rgba(239, 68, 68, 0.45);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(185, 28, 28, 0.22));
-  color: #fca5a5;
-}
-
 .badge--mobile {
   border: 1px solid rgba(245, 158, 11, 0.4);
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(180, 83, 9, 0.22));
   color: #fcd34d;
 }
 
-.badge--blocked {
-  border: 1px solid rgba(168, 85, 247, 0.45);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(126, 34, 206, 0.22));
-  color: #e9d5ff;
+/* Favorite star, always visible so the control is discoverable on touch. */
+.tile-fav {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(12, 12, 16, 0.5);
+  color: #d4d4d8;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: color 140ms ease, background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.tile-fav svg {
+  width: 13px;
+  height: 13px;
+}
+
+.tile-fav svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+.tile-fav:hover {
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(12, 12, 16, 0.72);
+}
+
+.tile-fav.is-on {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(120, 53, 15, 0.55);
+}
+
+.tile-fav.is-on svg path {
+  fill: currentColor;
+  stroke: none;
+}
+
+.tile-fav:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.65);
+  outline-offset: 2px;
+}
+
+.tile-fav:active {
+  transform: scale(0.92);
 }
 
 .tile-foot {
@@ -622,7 +685,8 @@ a {
   flex-direction: column;
   justify-content: flex-start;
   gap: 8px;
-  padding: 38px 13px 96px;
+  /* Clears two rows of status chips so the description never lands on them. */
+  padding: 56px 13px 96px;
   background: linear-gradient(
     to bottom,
     rgba(6, 6, 9, 0.9) 0%,
@@ -671,25 +735,24 @@ a {
 }
 
 .tile:hover,
-.tile:focus-visible {
+.tile:focus-within {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.16),
     0 22px 40px -22px #000;
 }
 
 .tile:hover .tile-art,
-.tile:focus-visible .tile-art {
+.tile:focus-within .tile-art {
   filter: brightness(0.92) saturate(1.05);
   transform: scale(1.04);
 }
 
-
 .tile:hover .tile-overlay,
-.tile:focus-visible .tile-overlay {
+.tile:focus-within .tile-overlay {
   opacity: 1;
 }
 
-.tile:focus-visible {
+.tile:has(.tile-link:focus-visible) {
   outline: 2px solid #fafafa;
   outline-offset: 2px;
 }
@@ -711,7 +774,7 @@ a {
   }
 
   .tile-overlay {
-    padding: 34px 10px 86px;
+    padding: 52px 10px 86px;
   }
 
   .tile-desc {
@@ -816,7 +879,7 @@ a {
   }
 
   .tile:hover .tile-art,
-  .tile:focus-visible .tile-art {
+  .tile:focus-within .tile-art {
     transform: none;
   }
 }

@@ -59,7 +59,7 @@
     </main>
 
     <nav class="dock" aria-label="Primary">
-        <button class="dock-btn is-active" type="button" aria-current="page">
+        <button class="dock-btn is-active" id="dock-games" type="button" aria-current="page" aria-controls="grid">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="3.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
                 <rect x="13.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
@@ -68,11 +68,12 @@
             </svg>
             <span>Games</span>
         </button>
-        <button class="dock-btn" type="button">
+        <button class="dock-btn" id="dock-search" type="button" aria-controls="search" aria-label="Search games">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20 12.4c0 3.6-3.6 6.5-8 6.5-1 0-2-.15-2.9-.42L5 20.5l1.2-3.2A6.2 6.2 0 0 1 4 12.4C4 8.8 7.6 6 12 6s8 2.8 8 6.4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                <circle cx="11" cy="11" r="6.4" fill="none" stroke="currentColor" stroke-width="1.9"/>
+                <path d="M15.8 15.8 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
             </svg>
-            <span>Chat</span>
+            <span>Search</span>
         </button>
     </nav>
 

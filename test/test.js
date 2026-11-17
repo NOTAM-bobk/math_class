@@ -15,10 +15,13 @@ const FLAG_ORIGINS = ["", "https://poly2.benlaunches.icu"];
 
 const EMPTY_FLAGS = {
   verified: new Set(),
-  buggy: new Set(),
-  notMobile: new Set(),
-  blocked: new Set()
+  notMobile: new Set()
 };
+
+// Favorites and recently played tiles are remembered on this device only.
+const FAVORITES_KEY = "polytrack_test_favorites";
+const RECENT_KEY = "polytrack_test_recent";
+const MAX_RECENT = 12;
 
 const PLAY_ICON =
   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>';
@@ -27,17 +30,22 @@ const PLAY_ICON =
 const FLAGS = {
   verified: { key: "verified", className: "verified", label: "✅ Verified", title: "Verified working" },
   editorsPick: { key: "editorsPick", className: "editor", label: "Editor's Pick", title: "Editor's Pick" },
-  buggy: { key: "buggy", className: "bug", label: "error:bug", title: "Known bug or issue reported for this game" },
-  notMobile: { key: "notMobile", className: "mobile", label: "no mobile", title: "Not optimized for mobile — best played on desktop" },
-  blocked: { key: "blocked", className: "blocked", label: "Blocked:😿", title: "Blocked site or game" }
+  notMobile: { key: "notMobile", className: "mobile", label: "no mobile", title: "Not optimized for mobile — best played on desktop" }
 };
 
 const STATUS_FILTERS = [
   { id: "verified", label: "Verified" },
-  { id: "buggy", label: "Error: bug" },
-  { id: "notMobile", label: "No mobile" },
-  { id: "blocked", label: "Blocked" }
+  { id: "notMobile", label: "No mobile" }
 ];
+
+// Filters backed by this device's saved history rather than the catalog flags.
+const SAVED_FILTERS = [
+  { id: "favorites", label: "★ Favorites" },
+  { id: "recent", label: "Recently played" }
+];
+
+const STAR_ICON =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.8z"/></svg>';
 
 // Seven hero tiles spread across the catalog break up the grid without
 // cropping art: both sizes keep the cover's 4:3 frame, and both span a
@@ -48,10 +56,34 @@ const state = {
   games: [],
   meta: new Map(),
   flags: EMPTY_FLAGS,
+  favorites: new Set(readList(FAVORITES_KEY)),
+  recent: readList(RECENT_KEY),
   query: "",
   status: null,
   genre: null
 };
+
+function readList(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((value) => typeof value === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeList(key, values) {
+  try {
+    localStorage.setItem(key, JSON.stringify(values));
+  } catch {
+    // Private mode can block storage; the page still works without the memory.
+  }
+}
+
+function tileKey(game, entry = entryFor(game)) {
+  return (entry && entry.hubId) || game.subdomain || game.url || game.name;
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -76,9 +108,7 @@ function statusFlagsFor(game, entry, index) {
   const active = [];
   if (hit(state.flags.verified) || (entry && entry.verified)) active.push(FLAGS.verified);
   if (entry && entry.editorsPick) active.push(FLAGS.editorsPick);
-  if (hit(state.flags.buggy) || (entry && entry.errorBug)) active.push(FLAGS.buggy);
   if (hit(state.flags.notMobile)) active.push(FLAGS.notMobile);
-  if (hit(state.flags.blocked)) active.push(FLAGS.blocked);
   return active;
 }
 
@@ -108,25 +138,69 @@ function tileMarkup(game, entry, index, total) {
   // instead of a wide notch under the last large tile.
   const size = index >= total - 3 || !HERO_INDICES.has(index) ? "std" : "hero";
   const label = description ? `${name} — ${description}` : name;
+  const key = tileKey(game, entry);
+  const isFavorite = state.favorites.has(key);
 
-  return `<a class="tile" data-size="${size}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)}">
-      <span class="tile-art" aria-hidden="true">${coverSvg(game)}</span>
-      <span class="tile-shade" aria-hidden="true"></span>
-      <span class="tile-overlay" aria-hidden="true">
-        ${description ? `<span class="tile-desc">${escapeHtml(description)}</span>` : ""}
-        <span class="tile-cta">${PLAY_ICON}Play</span>
-      </span>
+  return `<div class="tile" data-size="${size}" data-key="${escapeHtml(key)}">
+      <a class="tile-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)}">
+        <span class="tile-art" aria-hidden="true">${coverSvg(game)}</span>
+        <span class="tile-shade" aria-hidden="true"></span>
+        <span class="tile-overlay" aria-hidden="true">
+          ${description ? `<span class="tile-desc">${escapeHtml(description)}</span>` : ""}
+          <span class="tile-cta">${PLAY_ICON}Play</span>
+        </span>
+        <span class="tile-foot">
+          <span class="tile-title">${escapeHtml(name)}</span>
+          ${tagMarkup(tagsFor(game, entry))}
+        </span>
+      </a>
       ${flagMarkup(statusFlagsFor(game, entry, index))}
-      <span class="tile-foot">
-        <span class="tile-title">${escapeHtml(name)}</span>
-        ${tagMarkup(tagsFor(game, entry))}
-      </span>
-    </a>`;
+      <button class="tile-fav${isFavorite ? " is-on" : ""}" type="button" data-key="${escapeHtml(key)}" data-name="${escapeHtml(
+        name
+      )}" aria-pressed="${isFavorite}" aria-label="${isFavorite ? "Remove" : "Add"} ${escapeHtml(name)} ${
+        isFavorite ? "from" : "to"
+      } favorites" title="${isFavorite ? "Remove from favorites" : "Add to favorites"}">${STAR_ICON}</button>
+    </div>`;
+}
+
+function syncFavoriteButton(button, on) {
+  const name = button.dataset.name || "this game";
+  button.classList.toggle("is-on", on);
+  button.setAttribute("aria-pressed", String(on));
+  button.setAttribute("aria-label", `${on ? "Remove" : "Add"} ${name} ${on ? "from" : "to"} favorites`);
+  button.title = on ? "Remove from favorites" : "Add to favorites";
+}
+
+function toggleFavorite(button) {
+  const key = button.dataset.key;
+  if (!key) return;
+  if (state.favorites.has(key)) state.favorites.delete(key);
+  else state.favorites.add(key);
+  writeList(FAVORITES_KEY, [...state.favorites]);
+  syncFavoriteButton(button, state.favorites.has(key));
+  if (state.status === "favorites") render();
+  else if (!filterMenu.hidden) buildFilterMenu();
+}
+
+function rememberPlayed(key) {
+  if (!key) return;
+  const next = [key, ...state.recent.filter((entry) => entry !== key)].slice(0, MAX_RECENT);
+  state.recent = next;
+  writeList(RECENT_KEY, next);
 }
 
 function matchesFilters(item) {
   const { game, entry, index } = item;
-  if (state.status && !statusFlagsFor(game, entry, index).some((flag) => flag.key === state.status)) return false;
+  if (state.status === "favorites" && !state.favorites.has(tileKey(game, entry))) return false;
+  if (state.status === "recent" && !state.recent.includes(tileKey(game, entry))) return false;
+  if (
+    state.status &&
+    state.status !== "favorites" &&
+    state.status !== "recent" &&
+    !statusFlagsFor(game, entry, index).some((flag) => flag.key === state.status)
+  ) {
+    return false;
+  }
   if (state.genre && !tagsFor(game, entry).includes(state.genre)) return false;
   const query = state.query.trim().toLowerCase();
   if (!query) return true;
@@ -142,9 +216,23 @@ function render() {
   const matches = items.filter(matchesFilters);
   const filtering = Boolean(state.query.trim() || state.status || state.genre);
 
+  // The recently played filter follows play order, newest first.
+  if (state.status === "recent") {
+    matches.sort(
+      (a, b) =>
+        state.recent.indexOf(tileKey(a.game, a.entry)) - state.recent.indexOf(tileKey(b.game, b.entry))
+    );
+  }
+
   if (!matches.length) {
     const what = state.query.trim() ? `“${escapeHtml(state.query.trim())}”` : "this filter";
-    grid.innerHTML = `<p class="grid-message">No games match ${what}. <button class="grid-reset" type="button" id="grid-reset">Clear filters</button></p>`;
+    const emptyLead =
+      !state.query.trim() && state.status === "favorites"
+        ? "No favorites yet — tap the star on a tile."
+        : !state.query.trim() && state.status === "recent"
+          ? "Nothing played yet — open a game and it will show up here."
+          : `No games match ${what}.`;
+    grid.innerHTML = `<p class="grid-message">${emptyLead} <button class="grid-reset" type="button" id="grid-reset">Clear filters</button></p>`;
     const reset = document.getElementById("grid-reset");
     if (reset) reset.addEventListener("click", clearFilters);
   } else {
@@ -164,6 +252,8 @@ function countFor(kind, id) {
   return state.games.reduce((total, game, index) => {
     const entry = entryFor(game);
     if (kind === "status") {
+      if (id === "favorites") return total + (state.favorites.has(tileKey(game, entry)) ? 1 : 0);
+      if (id === "recent") return total + (state.recent.includes(tileKey(game, entry)) ? 1 : 0);
       return total + (statusFlagsFor(game, entry, index).some((flag) => flag.key === id) ? 1 : 0);
     }
     return total + (tagsFor(game, entry).includes(id) ? 1 : 0);
@@ -192,15 +282,17 @@ function optionMarkup({ label, checked, count, action, value }) {
 }
 
 function buildFilterMenu() {
-  const statusOptions = STATUS_FILTERS.map((filter) =>
-    optionMarkup({
-      label: filter.label,
-      checked: state.status === filter.id,
-      count: countFor("status", filter.id),
-      action: "status",
-      value: filter.id
-    })
-  ).join("");
+  const statusOptions = [...SAVED_FILTERS, ...STATUS_FILTERS]
+    .map((filter) =>
+      optionMarkup({
+        label: filter.label,
+        checked: state.status === filter.id,
+        count: countFor("status", filter.id),
+        action: "status",
+        value: filter.id
+      })
+    )
+    .join("");
 
   const genreOptions = topGenres()
     .map((genre) =>
@@ -263,6 +355,37 @@ filterMenu.addEventListener("click", (event) => {
   buildFilterMenu();
 });
 
+// One delegated handler covers both the star on a tile and the play itself.
+grid.addEventListener("click", (event) => {
+  const favoriteButton = event.target.closest(".tile-fav");
+  if (favoriteButton) {
+    event.preventDefault();
+    toggleFavorite(favoriteButton);
+    return;
+  }
+  const tile = event.target.closest(".tile");
+  if (tile) rememberPlayed(tile.dataset.key);
+});
+
+const dockGames = document.getElementById("dock-games");
+const dockSearch = document.getElementById("dock-search");
+
+if (dockGames) {
+  dockGames.addEventListener("click", () => {
+    closeMenu();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+if (dockSearch) {
+  dockSearch.addEventListener("click", () => {
+    closeMenu();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    searchInput.focus({ preventScroll: true });
+    searchInput.select();
+  });
+}
+
 searchInput.addEventListener("input", () => {
   state.query = searchInput.value;
   render();
@@ -300,9 +423,7 @@ async function loadFlags() {
         source: origin || "this site",
         flags: {
           verified: new Set(data.verified || []),
-          buggy: new Set(data.buggy || []),
-          notMobile: new Set(data.notMobile || []),
-          blocked: new Set(data.blocked || [])
+          notMobile: new Set(data.notMobile || [])
         }
       };
     } catch {

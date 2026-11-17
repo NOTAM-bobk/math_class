@@ -139,21 +139,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
 
 const DESKTOP_LIGHT_CSS = `
 @media (min-width: 768px) {
-.sm-desk{background:#fbfbfa!important;color:#1f1f1f!important;box-shadow:0 24px 60px -12px rgba(0,0,0,.35)!important}
-.sm-desk .text-zinc-100,.sm-desk .text-zinc-200,.sm-desk .text-white,.sm-desk .hover\\:text-white:hover{color:#1f1f1f!important}
-.sm-desk .text-zinc-300{color:#3a3a3a!important}
-.sm-desk .text-zinc-400,.sm-desk .text-zinc-500,.sm-desk .text-zinc-600,.sm-desk .text-\\[\\#caccd2\\]{color:#6b6b6b!important}
-.sm-desk [class*="border-white"],.sm-desk .border-zinc-700{border-color:#e8e8e5!important}
-.sm-desk [class*="ring-white"]{--tw-ring-color:#e8e8e5!important}
-.sm-desk .bg-white\\/\\[0\\.025\\],.sm-desk .bg-white\\/\\[0\\.02\\],.sm-desk .bg-white\\/\\[0\\.03\\],.sm-desk .bg-black\\/25,.sm-desk .bg-black\\/40,.sm-desk .bg-black\\/60,.sm-desk [style*="rgba(0, 0, 0, 0.3)"]{background:#fff!important}
-.sm-desk .bg-white\\/\\[0\\.04\\],.sm-desk .bg-white\\/\\[0\\.06\\],.sm-desk .bg-white\\/\\[0\\.08\\],.sm-desk .hover\\:bg-white\\/\\[0\\.08\\]:hover,.sm-desk [style*="rgba(255, 255, 255, 0.04)"]{background:#efefec!important}
-.sm-desk .bg-zinc-700,.sm-desk .bg-zinc-800,.sm-desk .bg-zinc-600{background:#d6d6d2!important}
-.sm-desk .bg-white:not(.rounded-full),.sm-desk .bg-zinc-100{background:#1f1f1f!important}
-.sm-desk .bg-white:not(.rounded-full).text-zinc-950,.sm-desk .bg-white:not(.rounded-full) *{color:#fff!important}
-.sm-desk .hover\\:bg-zinc-100:hover{background:#333!important}
-.sm-desk section input,.sm-desk section select,.sm-desk section textarea{background:#fff!important;color:#1f1f1f!important;border:1px solid #e3e3df!important}
 .sm-desk section{border-top:none!important;padding-top:0!important}
-.sm-desk section > *:not(:first-child){}
 }
 `;
 
@@ -671,15 +657,15 @@ export function SettingsModal({
 
         <style>{DESKTOP_LIGHT_CSS}</style>
         {isDesktop && (
-          <aside className="flex w-72 shrink-0 flex-col gap-1 overflow-y-auto border-r p-4" style={{ borderColor: "#ececea", background: "#f7f7f5" }} aria-label="Settings sections">
-            <label className="mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: "#fff", border: "1px solid #e3e3df" }}>
-              <Search aria-hidden="true" className="h-4 w-4" style={{ color: "#8a8a86" }} />
+          <aside className="flex w-72 shrink-0 flex-col gap-1 overflow-y-auto border-r p-4" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.18)", boxShadow: "inset -1px 0 0 rgba(255,255,255,0.02)" }} aria-label="Settings sections">
+            <label className="mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: "rgba(0, 0, 0, 0.3)", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.06)" }}>
+              <Search aria-hidden="true" className="h-4 w-4 text-zinc-500" />
               <input
                 value={settingsSearch}
                 onChange={(e) => setSettingsSearch(e.target.value)}
                 placeholder="Search settings"
                 aria-label="Search settings"
-                className="w-full bg-transparent text-sm focus:outline-none"
+                className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
                 style={{ border: "none", padding: 0, background: "transparent" }}
               />
             </label>
@@ -689,7 +675,7 @@ export function SettingsModal({
               if (!items.length) return null;
               return (
                 <div key={group.heading} className="mb-3 flex flex-col gap-0.5">
-                  <div className="px-3 pb-1.5 text-xs" style={{ color: "#8a8a86" }}>{group.heading}</div>
+                  <div className="px-3 pb-1.5 text-xs text-zinc-500">{group.heading}</div>
                   {items.map((item) => {
                     const active = desktopTab === item.id;
                     const Icon = item.icon;
@@ -700,7 +686,7 @@ export function SettingsModal({
                         onClick={() => setDesktopTab(item.id)}
                         aria-current={active ? "page" : undefined}
                         className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors"
-                        style={{ background: active ? "#e9e9e6" : "transparent", color: "#1f1f1f", fontWeight: active ? 500 : 400 }}
+                        style={active ? { ...CHIP_STYLE, borderRadius: 10, background: "rgba(255, 255, 255, 0.07)", color: "#f4f4f5", fontWeight: 500, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.35)" } : { color: "#a1a1aa" }}
                       >
                         <Icon className="h-4 w-4" />
                         {item.label}
@@ -715,10 +701,10 @@ export function SettingsModal({
         <div className={isDesktop ? "relative flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto px-12 py-10" : "contents"}>
         {isDesktop && (
           <>
-            <button type="button" onClick={onClose} aria-label="Close settings" className="absolute right-5 top-5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full" style={{ border: "1px solid #e3e3df", background: "#fff", color: "#1f1f1f" }}>
+            <button type="button" onClick={onClose} aria-label="Close settings" className="absolute right-5 top-5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:text-white" style={CHIP_STYLE}>
               <X aria-hidden="true" className="h-4 w-4" />
             </button>
-            <h2 className="text-2xl font-medium tracking-tight" style={{ color: "#1f1f1f" }}>
+            <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
               {DESKTOP_NAV.flatMap((g) => g.items).find((i) => i.id === desktopTab)?.label}
             </h2>
           </>

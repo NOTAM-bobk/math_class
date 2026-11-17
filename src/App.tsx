@@ -12,6 +12,7 @@ import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
+import { BidvertiserAd } from "./components/BidvertiserAd";
 import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X, BellOff } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
@@ -405,7 +406,7 @@ export function App() {
               className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-80 lg:w-96 flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full animate-in fade-in slide-in-from-right-2 duration-300`}
             >
               <div className="flex-1 min-h-0 flex flex-col">
-                <LiveMessageBoard />
+                <LiveMessageBoard showAds={adSpotEnabled} />
               </div>
               <div className="shrink-0">
                 <VisitorCounter />
@@ -451,6 +452,23 @@ export function App() {
             )}
           </div>
         </nav>
+
+        {/* Site-wide sponsor slot, above the footer */}
+        {adSpotEnabled && (
+          <div className="hidden shrink-0 justify-center px-3 sm:flex" aria-label="Advertisement">
+            <div
+              className="flex max-h-48 w-full max-w-md items-center justify-center overflow-hidden px-3 py-1.5"
+              style={{
+                borderRadius: 16,
+                background: "rgba(255, 255, 255, 0.02)",
+                boxShadow:
+                  "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03)",
+              }}
+            >
+              <BidvertiserAd slot="site" className="flex items-center justify-center" />
+            </div>
+          </div>
+        )}
 
         {/* Bottom Footer with Bug Report and Admin Panel */}
         <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>

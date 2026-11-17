@@ -4,6 +4,7 @@ import { HubMessage, loadMessages, sendMessage } from "@/lib/hubApi";
 import { notifyNewChatMessage } from "@/lib/chatNotifications";
 import { isChatVerified } from "@/lib/turnstile";
 import { TurnstileGate } from "./TurnstileGate";
+import { BidvertiserAd } from "./BidvertiserAd";
 
 export interface ChatMessage extends HubMessage {
   from: "user" | "assistant" | "system" | "racer";
@@ -89,6 +90,12 @@ const OLDER_PAGE_SIZE = 25;
 const FETCH_LIMIT = 50;
 const POLL_LIMIT = 25;
 
+// The chat ad cycles instead of sitting there: it loads once, then shows for a
+// short window every so often.
+const AD_FIRST_DELAY_MS = 15_000;
+const AD_VISIBLE_MS = 25_000;
+const AD_HIDDEN_MS = 70_000;
+
 // Client-side send throttle: one message every few seconds, capped per minute.
 const SEND_COOLDOWN_MS = 4000;
 const SEND_WINDOW_MS = 60_000;
@@ -111,7 +118,7 @@ function pickQuickReactions(count = 8): string[] {
   return pool.slice(0, count);
 }
 
-export function LiveMessageBoard() {
+export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
   const [messages, setMessages] = React.useState<ChatMessage[]>(fallbackMessages);
   const [nickname, setNickname] = React.useState(() => localStorage.getItem("polytrack_nickname") || `Racer_${Math.floor(100 + Math.random() * 900)}`);
   const [inputText, setInputText] = React.useState("");
@@ -125,11 +132,30 @@ export function LiveMessageBoard() {
   const [quickReactions] = React.useState(pickQuickReactions);
   const [visibleCount, setVisibleCount] = React.useState(INITIAL_VISIBLE_MESSAGES);
   const [chatVerified, setChatVerified] = React.useState(isChatVerified);
+  // Mounted on the first showing and kept mounted: the tag loads exactly once.
+  const [adMounted, setAdMounted] = React.useState(false);
+  const [adVisible, setAdVisible] = React.useState(false);
   const pendingScrollAdjustRef = React.useRef(0);
   const lastSendAtRef = React.useRef(0);
   const sendTimesRef = React.useRef<number[]>([]);
 
   const handleChatVerified = React.useCallback(() => setChatVerified(true), []);
+
+  React.useEffect(() => {
+    if (!showAds) return;
+    let timer = 0;
+    function hideAd() {
+      setAdVisible(false);
+      timer = window.setTimeout(showAd, AD_HIDDEN_MS);
+    }
+    function showAd() {
+      setAdMounted(true);
+      setAdVisible(true);
+      timer = window.setTimeout(hideAd, AD_VISIBLE_MS);
+    }
+    timer = window.setTimeout(showAd, AD_FIRST_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [showAds]);
 
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -472,6 +498,20 @@ export function LiveMessageBoard() {
       )}
 
       {!chatVerified && <TurnstileGate onVerified={handleChatVerified} />}
+
+      {showAds && adMounted && (
+        <div
+          aria-label="Sponsored"
+          className={`shrink-0 border-t border-white/[0.06] px-3 py-2 ${adVisible ? "" : "hidden"}`}
+        >
+          <div className="mb-1 text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+            Sponsored
+          </div>
+          <div className="flex justify-center overflow-hidden">
+            <BidvertiserAd slot="chat" className="flex items-center justify-center" />
+          </div>
+        </div>
+      )}
 
       {/* Quick Reactions Bar (Expandable or always subtle) */}
       <div className="px-3 pt-2 pb-1 border-t border-white/[0.06] flex items-center justify-between gap-1 shrink-0 bg-white/[0.01]">

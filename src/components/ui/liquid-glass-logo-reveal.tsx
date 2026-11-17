@@ -1098,23 +1098,27 @@ export type GlassReveal21stProps = Omit<GlassIconRevealProps, "logo"> & {
   onComplete?: () => void
 }
 
-const REVEAL_MS = (LIGHT.present + TAIL) * 1000 + 300
-const FADE_MS = 400
+const SPEED = 1.35
+const REVEAL_MS = ((LIGHT.present + TAIL) * 1000) / SPEED + 150
+const DIM_MS = 550 // light backdrop eases into the site's dark background
+const FADE_MS = 350 // then the dark screen dissolves into the site
 
-/** Full-screen loading screen: plays the glass reveal once, fades out, then calls `onComplete` */
-export function GlassReveal21st({ tuning, onComplete, className, style, ...props }: GlassReveal21stProps) {
+/** Full-screen loading screen: plays the glass reveal once, dims to the site's dark tone, fades out, then calls `onComplete` */
+export function GlassReveal21st({ tuning, onComplete, className, style, speed = SPEED, ...props }: GlassReveal21stProps) {
   const onCompleteRef = React.useRef(onComplete)
   onCompleteRef.current = onComplete
-  const [leaving, setLeaving] = React.useState(false)
+  const [phase, setPhase] = React.useState<"show" | "dim" | "out">("show")
 
   React.useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     const showFor = reduced ? 300 : REVEAL_MS
-    const t1 = window.setTimeout(() => setLeaving(true), showFor)
-    const t2 = window.setTimeout(() => onCompleteRef.current?.(), showFor + FADE_MS)
+    const t1 = window.setTimeout(() => setPhase("dim"), showFor)
+    const t2 = window.setTimeout(() => setPhase("out"), showFor + DIM_MS)
+    const t3 = window.setTimeout(() => onCompleteRef.current?.(), showFor + DIM_MS + FADE_MS)
     return () => {
       window.clearTimeout(t1)
       window.clearTimeout(t2)
+      window.clearTimeout(t3)
     }
   }, [])
 
@@ -1126,9 +1130,9 @@ export function GlassReveal21st({ tuning, onComplete, className, style, ...props
         position: "fixed",
         inset: 0,
         zIndex: 1000,
-        opacity: leaving ? 0 : 1,
-        transition: `opacity ${FADE_MS}ms ease`,
-        pointerEvents: leaving ? "none" : "auto",
+        opacity: phase === "out" ? 0 : 1,
+        transition: `opacity ${FADE_MS}ms ease-out`,
+        pointerEvents: phase === "out" ? "none" : "auto",
       }}
     >
       <GlassIconReveal
@@ -1139,12 +1143,24 @@ export function GlassReveal21st({ tuning, onComplete, className, style, ...props
         logoScale={0.6}
         finalScale={0.8}
         loop={false}
+        speed={speed}
         {...props}
         className={cn("h-full w-full", className)}
         style={style}
         tuning={{
           startZoom: 2.3,
           ...tuning,
+        }}
+      />
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "#09090b",
+          opacity: phase === "show" ? 0 : 1,
+          transition: `opacity ${DIM_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+          pointerEvents: "none",
         }}
       />
     </div>

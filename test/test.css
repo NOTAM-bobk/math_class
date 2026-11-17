@@ -138,6 +138,17 @@ a {
   font-size: 11px;
 }
 
+.flag-note {
+  color: #71717a;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.01em;
+}
+
+.flag-note:empty {
+  display: none;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -222,72 +233,92 @@ a {
   display: block;
   background: linear-gradient(
     to top,
-    rgba(3, 3, 6, 0.82) 0%,
-    rgba(3, 3, 6, 0.34) 34%,
-    rgba(3, 3, 6, 0.02) 60%,
+    rgba(3, 3, 6, 0.86) 0%,
+    rgba(3, 3, 6, 0.42) 32%,
+    rgba(3, 3, 6, 0.04) 58%,
     rgba(3, 3, 6, 0) 100%
   );
   pointer-events: none;
 }
 
-/* Real screenshots can be bright, so the title scrim is stronger behind them. */
-.tile[data-real="true"] .tile-shade {
-  background: linear-gradient(
-    to top,
-    rgba(3, 3, 6, 0.94) 0%,
-    rgba(3, 3, 6, 0.55) 38%,
-    rgba(3, 3, 6, 0.12) 66%,
-    rgba(3, 3, 6, 0) 100%
-  );
-}
-
-.badge {
+/* Status chips mirror the hub's card chips exactly. */
+.tile-flags {
   position: absolute;
   top: 8px;
   left: 8px;
-  z-index: 2;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: calc(100% - 16px);
+}
+
+.badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 19px;
-  padding: 0 7px;
+  height: 18px;
+  padding: 0 6px;
   border-radius: 999px;
   color: #fff;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.045em;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1;
-  text-transform: uppercase;
   white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.badge svg {
-  width: 9px;
-  height: 9px;
-  flex-shrink: 0;
+.badge--verified {
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.32), rgba(4, 120, 87, 0.24));
+  color: #bbf7d0;
 }
 
-.badge--featured {
-  background: linear-gradient(180deg, #d946ef, #7e22ce);
+.badge--editor {
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.26), rgba(180, 83, 9, 0.2));
+  color: #fde68a;
 }
 
-.badge--trending {
-  background: linear-gradient(180deg, #fb5c73, #dc2626);
+.badge--bug {
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(185, 28, 28, 0.22));
+  color: #fca5a5;
 }
 
-.badge--fresh {
-  background: linear-gradient(180deg, #34d399, #15803d);
+.badge--mobile {
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(180, 83, 9, 0.22));
+  color: #fcd34d;
 }
 
-.tile-title {
+.badge--blocked {
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(126, 34, 206, 0.22));
+  color: #e9d5ff;
+}
+
+.tile-foot {
   position: absolute;
   left: 11px;
   right: 11px;
   bottom: 9px;
-  z-index: 1;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.tile-title {
   display: -webkit-box;
   overflow: hidden;
+  max-width: 100%;
   margin: 0;
   color: #fff;
   font-family: "Anton", "Arial Black", "Helvetica Neue", sans-serif;
@@ -302,7 +333,6 @@ a {
     0 0 14px rgba(0, 0, 0, 0.6);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-  transition: opacity 140ms ease;
 }
 
 .tile[data-size="wide"] .tile-title {
@@ -315,9 +345,39 @@ a {
 
 .tile[data-size="hero"] .tile-title {
   font-size: clamp(24px, 2.4vw, 34px);
+}
+
+.tile[data-size="hero"] .tile-foot {
   left: 14px;
   right: 14px;
   bottom: 12px;
+  gap: 7px;
+}
+
+/* Genre tags are the exact chips the hub card prints. */
+.tile-tags {
+  display: flex;
+  gap: 3px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.tile-tag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 17px;
+  padding: 0 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(12, 12, 16, 0.5);
+  color: #d6d6dc;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .tile-overlay {
@@ -326,40 +386,34 @@ a {
   z-index: 3;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 13px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 38px 13px 96px;
   background: linear-gradient(
-    to top,
-    rgba(6, 6, 9, 0.88) 0%,
-    rgba(6, 6, 9, 0.5) 55%,
-    rgba(6, 6, 9, 0.08) 100%
+    to bottom,
+    rgba(6, 6, 9, 0.9) 0%,
+    rgba(6, 6, 9, 0.55) 46%,
+    rgba(6, 6, 9, 0.06) 78%,
+    rgba(6, 6, 9, 0.12) 100%
   );
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
 }
 
-.tile-name {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-}
-
 .tile-desc {
   display: -webkit-box;
   overflow: hidden;
-  color: #b7b7bf;
+  color: #c5c5cd;
   font-size: 11px;
-  line-height: 1.36;
+  line-height: 1.4;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
 }
 
 .tile[data-size="std"] .tile-desc,
 .tile[data-size="tall"] .tile-desc {
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .tile-cta {
@@ -369,7 +423,6 @@ a {
   gap: 4px;
   height: 25px;
   padding: 0 10px 0 8px;
-  margin-top: 2px;
   border-radius: 999px;
   background: #fff;
   color: #0a0a0c;
@@ -396,10 +449,6 @@ a {
   transform: scale(1.04);
 }
 
-.tile:hover .tile-title,
-.tile:focus-visible .tile-title {
-  opacity: 0;
-}
 
 .tile:hover .tile-overlay,
 .tile:focus-visible .tile-overlay {
@@ -425,6 +474,14 @@ a {
   :root {
     --row: clamp(34px, 6.6vw, 48px);
     --title-sm: 17px;
+  }
+
+  .tile-overlay {
+    padding: 34px 10px 86px;
+  }
+
+  .tile-desc {
+    -webkit-line-clamp: 3;
   }
 
   .grid {
@@ -453,6 +510,22 @@ a {
   .tile[data-size="std"] .tile-title,
   .tile[data-size="tall"] .tile-title {
     font-size: 16px;
+  }
+
+  .tile-foot {
+    left: 9px;
+    right: 9px;
+    bottom: 7px;
+    gap: 4px;
+  }
+
+  .tile-tag:nth-child(n + 3) {
+    display: none;
+  }
+
+  .badge {
+    height: 17px;
+    font-size: 8.5px;
   }
 
   .tile[data-size="hero"] .tile-title {

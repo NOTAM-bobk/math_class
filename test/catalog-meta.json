@@ -1,0 +1,767 @@
+{
+  "2048": {
+    "name": "2048",
+    "hubName": "2048 Puzzle",
+    "hubId": "game-2048",
+    "cfgId": "cfg-2048",
+    "tags": [
+      "Puzzle",
+      "Logic",
+      "Math"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/2048.html"
+  },
+  "retro-bowl": {
+    "name": "Retro Bowl",
+    "hubName": "Retro Bowl",
+    "hubId": "game-retro-bowl",
+    "cfgId": "cfg-retro-bowl",
+    "tags": [
+      "Sports",
+      "Football",
+      "Retro"
+    ],
+    "editorsPick": true,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/retro-bowl.html"
+  },
+  "drive-mad": {
+    "name": "Drive Mad",
+    "hubName": "Drive Mad",
+    "hubId": "game-drive-mad",
+    "cfgId": "cfg-drive-mad",
+    "tags": [
+      "Driving",
+      "3D Physics",
+      "Stunts"
+    ],
+    "editorsPick": true,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/drive-mad.html"
+  },
+  "moto-x3m": {
+    "name": "Moto X3M",
+    "hubName": "Moto X3M",
+    "hubId": "game-moto-x3m",
+    "cfgId": "cfg-moto-x3m",
+    "tags": [
+      "Driving",
+      "Stunts",
+      "Racing"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/moto-x3m.html"
+  },
+  "drift-boss": {
+    "name": "Drift Boss",
+    "hubName": "Drift Boss",
+    "hubId": "game-drift-boss",
+    "cfgId": "cfg-drift-boss",
+    "tags": [
+      "Driving",
+      "Drift",
+      "Racing"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/drift-boss.html"
+  },
+  "tunnel-rush": {
+    "name": "Tunnel Rush",
+    "hubName": "Tunnel Rush",
+    "hubId": "game-tunnel-rush",
+    "cfgId": "cfg-tunnel-rush",
+    "tags": [
+      "Action",
+      "3D",
+      "Reflex"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/tunnel-rush.html"
+  },
+  "ovo": {
+    "name": "OvO",
+    "hubName": "OvO",
+    "hubId": "game-ovo",
+    "cfgId": "cfg-ovo",
+    "tags": [
+      "Arcade",
+      "Parkour",
+      "Platformer"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/ovo.html"
+  },
+  "stickman-hook": {
+    "name": "Stickman Hook",
+    "hubName": "Stickman Hook",
+    "hubId": "game-stickman-hook",
+    "cfgId": "cfg-stickman-hook",
+    "tags": [
+      "Arcade",
+      "Physics",
+      "Skill"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/stickman-hook.html"
+  },
+  "doodle-jump": {
+    "name": "Doodle Jump",
+    "hubName": "Doodle Jump",
+    "hubId": "game-doodle-jump",
+    "cfgId": "cfg-doodle-jump",
+    "tags": [
+      "Arcade",
+      "Classic",
+      "Retro"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/doodle-jump.html"
+  },
+  "flappy-bird": {
+    "name": "Flappy Bird",
+    "hubName": "Flappy Bird",
+    "hubId": "game-flappy-bird",
+    "cfgId": "cfg-flappy-bird",
+    "tags": [
+      "Arcade",
+      "Retro",
+      "Skill"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/flappy-bird.html"
+  },
+  "crossy-road": {
+    "name": "Crossy Road",
+    "hubName": "Crossy Road",
+    "hubId": "game-crossy-road",
+    "cfgId": "cfg-crossy-road",
+    "tags": [
+      "Arcade",
+      "Casual",
+      "Endless"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/crossy-road.html"
+  },
+  "tiny-fishing": {
+    "name": "Tiny Fishing",
+    "hubName": "Tiny Fishing",
+    "hubId": "game-tiny-fishing",
+    "cfgId": "cfg-tiny-fishing",
+    "tags": [
+      "Casual",
+      "Fishing",
+      "Upgrade"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/tiny-fishing.html"
+  },
+  "cookie-clicker": {
+    "name": "Cookie Clicker",
+    "hubName": "Cookie Clicker",
+    "hubId": "game-cookie-clicker",
+    "cfgId": "cfg-cookie",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ],
+    "editorsPick": true,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/cookie-clicker.html"
+  },
+  "bitlife": {
+    "name": "BitLife",
+    "hubName": "BitLife Simulator",
+    "hubId": "game-bitlife",
+    "cfgId": "cfg-bitlife",
+    "tags": [
+      "Casual",
+      "Simulation",
+      "RPG"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/bitlife.html"
+  },
+  "impossible-quiz": {
+    "name": "Impossible Quiz",
+    "hubName": "Impossible Quiz",
+    "hubId": "game-impossible-quiz",
+    "cfgId": "cfg-impossible-quiz",
+    "tags": [
+      "Puzzle",
+      "Quiz",
+      "Trivia"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/the-impossible-quiz.html"
+  },
+  "run-3": {
+    "name": "Run 3",
+    "hubName": "Run 3",
+    "hubId": "game-run3",
+    "cfgId": "cfg-run3",
+    "tags": [
+      "Arcade",
+      "Runner",
+      "Platformer"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/clrun3.html"
+  },
+  "awsome-tanks": {
+    "name": "Awsome Tanks",
+    "hubName": "Awsome Tanks",
+    "hubId": "game-awsome-tanks",
+    "cfgId": "cfg-awsome-tanks",
+    "tags": [
+      "Action",
+      "Tanks",
+      "Shooter"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/awsome-tanks.html"
+  },
+  "brawl-simulator-3d": {
+    "name": "Brawl Simulator 3D",
+    "hubName": "Brawl Simulator 3D",
+    "hubId": "game-brawl-sim-3d",
+    "cfgId": "cfg-brawl-sim-3d",
+    "tags": [
+      "Action",
+      "3D Combat",
+      "Arena"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/clbrawlsimulator3d.html"
+  },
+  "super-smash-flash": {
+    "name": "Super Smash Flash",
+    "hubName": "Super Smash Flash",
+    "hubId": "game-super-smash-flash",
+    "cfgId": "cfg-super-smash-flash",
+    "tags": [
+      "Flash",
+      "Action",
+      "Fighting"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/super-smash-flash.html"
+  },
+  "super-mario-63": {
+    "name": "Super Mario 63",
+    "hubName": "Super Mario 63",
+    "hubId": "game-super-mario-63",
+    "cfgId": "cfg-super-mario-63",
+    "tags": [
+      "Flash",
+      "Adventure",
+      "Mario"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/super-mario-63.html"
+  },
+  "fancy-pants-adventures": {
+    "name": "Fancy Pants Adventures",
+    "hubName": "Fancy Pants Adventures",
+    "hubId": "game-fancy-pants-adventures",
+    "cfgId": "cfg-fancy-pants-adventures",
+    "tags": [
+      "Flash",
+      "Adventure",
+      "Parkour"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/fancy-pants-adventures.html"
+  },
+  "dad-n-me": {
+    "name": "Dad 'n Me",
+    "hubName": "Dad 'n Me",
+    "hubId": "game-dad-n-me",
+    "cfgId": "cfg-dad-n-me",
+    "tags": [
+      "Flash",
+      "Action",
+      "Brawler"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/dad-n-me.html"
+  },
+  "portal-the-flash-version": {
+    "name": "Portal: The Flash Version",
+    "hubName": "Portal: The Flash Version",
+    "hubId": "game-portal-flash",
+    "cfgId": "cfg-portal-flash",
+    "tags": [
+      "Flash",
+      "Puzzle",
+      "Logic"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/portal-flash.html"
+  },
+  "henry-stickmin-escaping-the-prison": {
+    "name": "Henry Stickmin: Escaping the Prison",
+    "hubName": "Henry Stickmin: Escaping the Prison",
+    "hubId": "game-henry-stickmin-prison",
+    "cfgId": "cfg-henry-stickmin-prison",
+    "tags": [
+      "Flash",
+      "Adventure",
+      "Stickman"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/henry-stickmin-escaping-the-prison.html"
+  },
+  "henry-stickmin-breaking-the-bank": {
+    "name": "Henry Stickmin: Breaking the Bank",
+    "hubName": "Henry Stickmin: Breaking the Bank",
+    "hubId": "game-henry-stickmin",
+    "cfgId": "cfg-henry-stickmin",
+    "tags": [
+      "Flash",
+      "Adventure",
+      "Stickman"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/henry-stickmin-breaking-the-bank.html"
+  },
+  "stick-rpg": {
+    "name": "Stick RPG",
+    "hubName": "Stick RPG",
+    "hubId": "game-stick-rpg",
+    "cfgId": "cfg-stick-rpg",
+    "tags": [
+      "Flash",
+      "Casual",
+      "Life Sim"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/stick-rpg.html"
+  },
+  "bloons-tower-defense-4": {
+    "name": "Bloons Tower Defense 4",
+    "hubName": "Bloons Tower Defense 4",
+    "hubId": "game-bloons-td4",
+    "cfgId": "cfg-bloons-td4",
+    "tags": [
+      "Flash",
+      "Puzzle",
+      "Tower Defense"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/bloons-td4.html"
+  },
+  "bloons-super-monkey": {
+    "name": "Bloons Super Monkey",
+    "hubName": "Bloons Super Monkey",
+    "hubId": "game-bloons-super-monkey",
+    "cfgId": "cfg-bloons-super-monkey",
+    "tags": [
+      "Flash",
+      "Action",
+      "Shooter"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/bloons-super-monkey.html"
+  },
+  "the-worlds-hardest-game": {
+    "name": "The World's Hardest Game",
+    "hubName": "The World's Hardest Game",
+    "hubId": "game-worlds-hardest-game",
+    "cfgId": "cfg-worlds-hardest-game",
+    "tags": [
+      "Flash",
+      "Arcade",
+      "Skill"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/the-worlds-hardest-game.html"
+  },
+  "learn-to-fly": {
+    "name": "Learn to Fly",
+    "hubName": "Learn to Fly",
+    "hubId": "game-learn-to-fly",
+    "cfgId": "cfg-learn-to-fly",
+    "tags": [
+      "Flash",
+      "Casual",
+      "Upgrade"
+    ],
+    "editorsPick": true,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/learn-to-fly.html"
+  },
+  "papas-pizzeria": {
+    "name": "Papa's Pizzeria",
+    "hubName": "Papa's Pizzeria",
+    "hubId": "game-papas-pizzeria",
+    "cfgId": "cfg-papas-pizzeria",
+    "tags": [
+      "Flash",
+      "Casual",
+      "Cooking"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/papas-pizzeria.html"
+  },
+  "bloxorz": {
+    "name": "Bloxorz",
+    "hubName": "Bloxorz",
+    "hubId": "game-bloxorz",
+    "cfgId": "cfg-bloxorz",
+    "tags": [
+      "Flash",
+      "Puzzle",
+      "3D Puzzle"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/bloxorz.html"
+  },
+  "age-of-war": {
+    "name": "Age of War",
+    "hubName": "Age of War",
+    "hubId": "game-age-of-war",
+    "cfgId": "cfg-age-of-war",
+    "tags": [
+      "Flash",
+      "Puzzle",
+      "Strategy"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/age-of-war.html"
+  },
+  "duck-life": {
+    "name": "Duck Life",
+    "hubName": "Duck Life",
+    "hubId": "game-duck-life",
+    "cfgId": "cfg-duck-life",
+    "tags": [
+      "Flash",
+      "Casual",
+      "Training"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/duck-life.html"
+  },
+  "duck-life-2-world-champion": {
+    "name": "Duck Life 2: World Champion",
+    "hubName": "Duck Life 2: World Champion",
+    "hubId": "game-duck-life-2",
+    "cfgId": "cfg-duck-life-2",
+    "tags": [
+      "Flash",
+      "Casual",
+      "Training"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/duck-life-2.html"
+  },
+  "riddle-school": {
+    "name": "Riddle School",
+    "hubName": "Riddle School",
+    "hubId": "game-riddle-school",
+    "cfgId": "cfg-riddle-school",
+    "tags": [
+      "Flash",
+      "Puzzle",
+      "Escape"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/riddle-school.html"
+  },
+  "riddle-school-3": {
+    "name": "Riddle School 3",
+    "hubName": "Riddle School 3",
+    "hubId": "game-riddle-school-3",
+    "cfgId": "cfg-riddle-school-3",
+    "tags": [
+      "Flash",
+      "Puzzle",
+      "Escape"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/riddle-school-3.html"
+  },
+  "monster-track": {
+    "name": "Monster Track",
+    "hubName": "Monster Track",
+    "hubId": "game-monster-track",
+    "cfgId": "cfg-monster-track",
+    "tags": [
+      "Driving",
+      "4x4",
+      "Offroad"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "https://monster.benlaunches.icu/"
+  },
+  "monster-tracks-2": {
+    "name": "Monster Tracks 2",
+    "hubName": "Monster Tracks 2",
+    "hubId": "game-monster-tracks-2",
+    "cfgId": "cfg-monster-tracks-2",
+    "tags": [
+      "Driving",
+      "Monster Truck",
+      "Offroad"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "https://awesometank2.benlaunches.icu/"
+  },
+  "hexgl": {
+    "name": "HexGL",
+    "hubName": "HexGL",
+    "hubId": "game-hexgl",
+    "cfgId": "cfg-39",
+    "tags": [
+      "Driving",
+      "Racing",
+      "Sci-Fi"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "https://hexgl.poly2.benlaunches.icu"
+  },
+  "cut-the-rope": {
+    "name": "Cut the Rope",
+    "hubName": "Cut the Rope",
+    "hubId": "game-cut-the-rope",
+    "cfgId": "cfg-40",
+    "tags": [
+      "Puzzle",
+      "Physics",
+      "Classic"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "https://cutthe.benlaunches.icu"
+  },
+  "geometry-dash": {
+    "name": "Geometry Dash",
+    "hubName": "Geometry Dash",
+    "hubId": "game-geometry-dash",
+    "cfgId": "cfg-41",
+    "tags": [
+      "Arcade",
+      "Rhythm",
+      "Platformer"
+    ],
+    "editorsPick": true,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/geometry-dash.html"
+  },
+  "basket-random": {
+    "name": "Basket Random",
+    "hubName": "Basket Random",
+    "hubId": "game-basket-random",
+    "cfgId": "cfg-42",
+    "tags": [
+      "Sports",
+      "Basketball",
+      "Physics"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/basket-random.html"
+  },
+  "basketball-stars": {
+    "name": "Basketball Stars",
+    "hubName": "Basketball Stars",
+    "hubId": "game-basketball-stars",
+    "cfgId": "cfg-43",
+    "tags": [
+      "Sports",
+      "Basketball",
+      "2 Player"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/basketball-stars.html"
+  },
+  "getaway-shootout": {
+    "name": "Getaway Shootout",
+    "hubName": "Getaway Shootout",
+    "hubId": "game-getaway-shootout",
+    "cfgId": "cfg-44",
+    "tags": [
+      "Action",
+      "Physics",
+      "2 Player"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/getaway-shootout.html"
+  },
+  "bad-ice-cream": {
+    "name": "Bad Ice-Cream",
+    "hubName": "Bad Ice-Cream",
+    "hubId": "game-bad-ice-cream",
+    "cfgId": "cfg-45",
+    "tags": [
+      "Arcade",
+      "Retro",
+      "Puzzle"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/bad-ice-cream.html"
+  },
+  "iron-snout": {
+    "name": "Iron Snout",
+    "hubName": "Iron Snout",
+    "hubId": "game-iron-snout",
+    "cfgId": "cfg-46",
+    "tags": [
+      "Action",
+      "Combat",
+      "Fighting"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/iron-snout.html"
+  },
+  "we-become-what-we-behold": {
+    "name": "We Become What We Behold",
+    "hubName": "We Become What We Behold",
+    "hubId": "game-we-become-what-we-behold",
+    "cfgId": "cfg-47",
+    "tags": [
+      "Casual",
+      "Indie",
+      "Story"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/we-become-what-we-behold.html"
+  },
+  "happy-wheels": {
+    "name": "Happy Wheels",
+    "hubName": "Happy Wheels",
+    "hubId": "game-happy-wheels",
+    "cfgId": "cfg-48",
+    "tags": [
+      "Action",
+      "Physics",
+      "Obstacles"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/happy-wheels.html"
+  },
+  "duck-life-3-evolution": {
+    "name": "Duck Life 3: Evolution",
+    "hubName": "Duck Life 3: Evolution",
+    "hubId": "game-duck-life-3",
+    "cfgId": "cfg-49",
+    "tags": [
+      "Casual",
+      "Training",
+      "Racing"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/duck-life-3.html"
+  },
+  "vex-4": {
+    "name": "Vex 4",
+    "hubName": "Vex 4",
+    "hubId": "game-vex-4",
+    "cfgId": "cfg-50",
+    "tags": [
+      "Arcade",
+      "Parkour",
+      "Platformer"
+    ],
+    "editorsPick": false,
+    "verified": false,
+    "errorBug": false,
+    "url": "/games/vex-4.html"
+  }
+}

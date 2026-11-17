@@ -1,51 +1,37 @@
-import { coverSvg } from "./covers.js";
+import { coverSvg, slugKey } from "./covers.js";
 
 const grid = document.getElementById("grid");
 const countLabel = document.getElementById("count");
+const flagNote = document.getElementById("flag-note");
 
-// Real captures live in test/covers and are listed in manifest.json; anything
-// missing from it falls back to the generated cover art.
-let realCovers = new Map();
+// /test runs both from the deployed site (where /api/flags is same-origin) and
+// from a plain static preview, so the Cloudflare flag list is fetched from the
+// first origin that answers.
+const FLAG_ORIGINS = ["", "https://poly2.benlaunches.icu"];
 
-const BADGE_ICONS = {
-  featured:
-    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.4l2.8 6.1 6.7.8-5 4.5 1.4 6.6-5.9-3.3-5.9 3.3 1.4-6.6-5-4.5 6.7-.8z"/></svg>',
-  trending:
-    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.4 2c.4 3.1-.9 4.7-2.3 6.2-1.3 1.4-2.7 2.8-2.7 5.3a5.6 5.6 0 0011.2.3c0-2.3-1-4.4-2.6-6.2-.3 1.6-1 2.4-1.9 2.8.6-3.4-.3-6.4-1.7-8.4z"/><path d="M9 15.4c0 2.9 1.9 4.9 4.4 4.9 2.6 0 4.4-1.9 4.4-4.6 0-1.1-.3-2-1-3.1-.4 1.4-1.2 2.1-2.2 2.3.2-1.8-.3-3.3-1.3-4.6-.2 2.6-1.4 3.4-2.6 4.4-.9.8-1.7 1.6-1.7 3.1z" opacity=".55"/></svg>',
-  fresh:
-    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2 7.4L21 12l-7 2.6L12 22l-2-7.4L3 12l7-2.6z"/></svg>'
+const EMPTY_FLAGS = {
+  verified: new Set(),
+  buggy: new Set(),
+  notMobile: new Set(),
+  blocked: new Set()
 };
-
-const BADGES = {
-  featured: { className: "featured", label: "Featured", icon: BADGE_ICONS.featured },
-  trending: { className: "trending", label: "Trending", icon: BADGE_ICONS.trending },
-  fresh: { className: "fresh", label: "Fresh", icon: BADGE_ICONS.fresh }
-};
-
-// A repeating size rhythm keeps the mosaic dense without random gaps.
-// Every size spans a multiple of three grid rows, so a tall tile beside a
-// normal one leaves a gap the next tile can still fill instead of a dead hole.
-const SIZE_CYCLE = [
-  "std",
-  "hero",
-  "std",
-  "tall",
-  "std",
-  "std",
-  "hero",
-  "std",
-  "std",
-  "std",
-  "tall",
-  "std",
-  "std",
-  "hero",
-  "std",
-  "std"
-];
 
 const PLAY_ICON =
   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>';
+
+// The hub's own status chips, in the order the hub shows them.
+const FLAGS = {
+  verified: { className: "verified", label: "✅ Verified", title: "Verified working" },
+  editorsPick: { className: "editor", label: "Editor's Pick", title: "Editor's Pick" },
+  buggy: { className: "bug", label: "error:bug", title: "Known bug or issue reported for this game" },
+  notMobile: { className: "mobile", label: "no mobile", title: "Not optimized for mobile — best played on desktop" },
+  blocked: { className: "blocked", label: "Blocked:😿", title: "Blocked site or game" }
+};
+
+// Seven hero tiles spread across the catalog break up the grid without
+// cropping art: both sizes keep the cover's 4:3 frame, and both span a
+// multiple of three grid rows, so the dense packing never leaves a hole.
+const HERO_INDICES = new Set([1, 8, 15, 22, 29, 36, 43]);
 
 function escapeHtml(value) {
   return String(value)
@@ -56,74 +42,114 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function hashString(value) {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
+function flagsFor(entry, ids) {
+  const active = [];
+  const hit = (set) => ids.some((id) => set.has(id));
+  if (hit(flags.verified) || (entry && entry.verified)) active.push(FLAGS.verified);
+  if (entry && entry.editorsPick) active.push(FLAGS.editorsPick);
+  if (hit(flags.buggy) || (entry && entry.errorBug)) active.push(FLAGS.buggy);
+  if (hit(flags.notMobile)) active.push(FLAGS.notMobile);
+  if (hit(flags.blocked)) active.push(FLAGS.blocked);
+  return active;
 }
 
-function badgeFor(game, seed) {
-  if (game.disabled) return null;
-  if (game.editorsPick) return BADGES.featured;
-  if (/polytrack/i.test(game.name)) return BADGES.trending;
-  const pick = seed % 7;
-  if (pick === 0 || pick === 1) return BADGES.fresh;
-  if (pick === 3) return BADGES.trending;
-  return null;
+function flagMarkup(list) {
+  if (!list.length) return "";
+  return `<span class="tile-flags">${list
+    .map((flag) => `<span class="badge badge--${flag.className}" title="${escapeHtml(flag.title)}">${escapeHtml(flag.label)}</span>`)
+    .join("")}</span>`;
 }
 
-function tileMarkup(game, index, total) {
+function tagMarkup(tags) {
+  if (!tags || !tags.length) return "";
+  return `<span class="tile-tags">${tags
+    .map((tag) => `<span class="tile-tag">${escapeHtml(tag)}</span>`)
+    .join("")}</span>`;
+}
+
+function tileMarkup(game, entry, index, total) {
   const name = game.name || "Game";
   const url = game.url && game.url !== "#" ? game.url : "/";
   const description = game.description || "";
   // The tail of the catalog stays single-column so the mosaic ends in even rows
   // instead of a wide notch under the last large tile.
-  const size = index >= total - 3 ? "std" : SIZE_CYCLE[index % SIZE_CYCLE.length];
-  const badge = badgeFor(game, hashString(name));
+  const size = index >= total - 3 || !HERO_INDICES.has(index) ? "std" : "hero";
+  const ids = [entry && entry.hubId, entry && entry.cfgId, game.id, `cfg-${game.subdomain ?? index}`].filter(Boolean);
+  const activeFlags = flagsFor(entry, ids);
+  const tags = (entry && entry.tags && entry.tags.length ? entry.tags : [game.category || "Catalog"]).slice(0, 3);
   const label = description ? `${name} — ${description}` : name;
-  const realCover = realCovers.get(url);
-  const art = realCover
-    ? `<img src="/test/covers/${realCover}" alt="" loading="lazy" decoding="async">`
-    : coverSvg(game, index);
 
-  return `<a class="tile" data-size="${size}"${realCover ? ' data-real="true"' : ''} href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)}">
-      <span class="tile-art" aria-hidden="true">${art}</span>
+  return `<a class="tile" data-size="${size}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)}">
+      <span class="tile-art" aria-hidden="true">${coverSvg(game)}</span>
       <span class="tile-shade" aria-hidden="true"></span>
-      ${badge ? `<span class="badge badge--${badge.className}">${badge.icon}${badge.label}</span>` : ""}
-      <span class="tile-title">${escapeHtml(name)}</span>
-      <span class="tile-overlay">
-        <span class="tile-name">${escapeHtml(name)}</span>
+      <span class="tile-overlay" aria-hidden="true">
         ${description ? `<span class="tile-desc">${escapeHtml(description)}</span>` : ""}
         <span class="tile-cta">${PLAY_ICON}Play</span>
+      </span>
+      ${flagMarkup(activeFlags)}
+      <span class="tile-foot">
+        <span class="tile-title">${escapeHtml(name)}</span>
+        ${tagMarkup(tags)}
       </span>
     </a>`;
 }
 
-function render(games) {
-  grid.innerHTML = games.map((game, index) => tileMarkup(game, index, games.length)).join("");
+function render(games, meta) {
+  grid.innerHTML = games
+    .map((game, index) => tileMarkup(game, meta.get(slugKey(game.name)), index, games.length))
+    .join("");
   countLabel.textContent = `${games.length} game${games.length === 1 ? "" : "s"}`;
+}
+
+async function loadFlags() {
+  for (const origin of FLAG_ORIGINS) {
+    try {
+      const response = await fetch(`${origin}/api/flags`, { cache: "no-store" });
+      if (!response.ok) continue;
+      const data = await response.json();
+      if (!data || typeof data !== "object") continue;
+      return {
+        source: origin || "this site",
+        flags: {
+          verified: new Set(data.verified || []),
+          buggy: new Set(data.buggy || []),
+          notMobile: new Set(data.notMobile || []),
+          blocked: new Set(data.blocked || [])
+        }
+      };
+    } catch {
+      // Try the next origin.
+    }
+  }
+  return { source: null, flags: EMPTY_FLAGS };
+}
+
+async function loadMeta() {
+  const response = await fetch("/test/catalog-meta.json", { cache: "no-store" });
+  if (!response.ok) throw new Error(`Tag data responded ${response.status}`);
+  const data = await response.json();
+  return new Map(Object.entries(data && data.games ? data.games : data || {}));
 }
 
 async function start() {
   try {
-    const [response, coversResponse] = await Promise.all([
+    const [response, match] = await Promise.all([
       fetch("/games/config.json", { cache: "no-store" }),
-      fetch("/test/covers/manifest.json", { cache: "no-store" }).catch(() => null)
+      Promise.all([loadMeta(), loadFlags()])
     ]);
     if (!response.ok) throw new Error(`Catalog responded ${response.status}`);
     const data = await response.json();
     const games = Array.isArray(data) ? data : data && Array.isArray(data.games) ? data.games : [];
     if (!games.length) throw new Error("Catalog is empty");
-    if (coversResponse && coversResponse.ok) {
-      const covers = await coversResponse.json().catch(() => []);
-      if (Array.isArray(covers)) {
-        realCovers = new Map(covers.filter((entry) => entry && entry.url && entry.file).map((entry) => [entry.url, entry.file]));
-      }
+
+    const [meta, flagState] = match;
+    flags = flagState.flags;
+    if (flagNote) {
+      flagNote.textContent = flagState.source
+        ? `tags + flags from Cloudflare · ${flagState.source}`
+        : "tags from the hub · flags unavailable";
     }
-    render(games);
+    render(games, meta);
   } catch (error) {
     countLabel.textContent = "unavailable";
     grid.innerHTML = `<p class="grid-message">Could not load the game catalog. <a href="/">Back to the hub</a> — ${escapeHtml(
@@ -131,5 +157,7 @@ async function start() {
     )}</p>`;
   }
 }
+
+let flags = EMPTY_FLAGS;
 
 start();

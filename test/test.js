@@ -1,5 +1,3 @@
-import { coverSvg, slugKey } from "./covers.js";
-
 const grid = document.getElementById("grid");
 const countLabel = document.getElementById("count");
 const continueRow = document.getElementById("continue");
@@ -59,6 +57,7 @@ const HERO_INDICES = new Set([1, 8, 15, 22, 29, 36, 43]);
 
 const state = {
   games: [],
+  art: new Map(),
   meta: new Map(),
   flags: EMPTY_FLAGS,
   favorites: new Set(readList(FAVORITES_KEY)),
@@ -89,6 +88,31 @@ function writeList(key, values) {
 
 function tileKey(game, entry = entryFor(game)) {
   return (entry && entry.hubId) || game.subdomain || game.url || game.name;
+}
+
+function slugKey(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Real art only: each tile loads a screenshot or logo captured from the game's
+// own page. A game with no capture gets a plain placeholder rather than
+// invented artwork.
+function artFor(game) {
+  return state.art.get(game.url) || state.art.get(slugKey(game.name)) || null;
+}
+
+function artMarkup(game) {
+  const art = artFor(game);
+  if (art) {
+    const src = art.src || `/test/covers/${art.file}`;
+    return `<img src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async">`;
+  }
+  const initial = (game.name || "?").trim().charAt(0).toUpperCase() || "?";
+  return `<span class="tile-art-empty">${escapeHtml(initial)}</span>`;
 }
 
 function escapeHtml(value) {
@@ -154,7 +178,7 @@ function tileMarkup(game, entry, index, total) {
 
   return `<div class="tile" data-size="${size}" data-key="${escapeHtml(key)}">
       <a class="tile-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)}">
-        <span class="tile-art" aria-hidden="true">${coverSvg(game)}</span>
+        <span class="tile-art" aria-hidden="true">${artMarkup(game)}</span>
         <span class="tile-shade" aria-hidden="true"></span>
         <span class="tile-overlay" aria-hidden="true">
           ${description ? `<span class="tile-desc">${escapeHtml(description)}</span>` : ""}
@@ -225,7 +249,7 @@ function renderContinue() {
         ({ game, entry }) => `<a class="continue-card" href="${escapeHtml(game.url)}" target="_blank" rel="noopener noreferrer" data-key="${escapeHtml(
           tileKey(game, entry)
         )}">
-          <span class="continue-art" aria-hidden="true">${coverSvg(game)}</span>
+          <span class="continue-art" aria-hidden="true">${artMarkup(game)}</span>
           <span class="continue-name">${escapeHtml(game.name || "Game")}</span>
           ${PLAY_ICON}
         </a>`
@@ -510,6 +534,24 @@ async function loadFlags() {
   return EMPTY_FLAGS;
 }
 
+async function loadArt() {
+  try {
+    const response = await fetch("/test/covers/manifest.json", { cache: "no-store" });
+    if (!response.ok) return new Map();
+    const data = await response.json();
+    const list = Array.isArray(data) ? data : data && Array.isArray(data.covers) ? data.covers : [];
+    const map = new Map();
+    for (const item of list) {
+      if (!item || !(item.file || item.src)) continue;
+      if (item.url) map.set(item.url, item);
+      if (item.name) map.set(slugKey(item.name), item);
+    }
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
 async function loadMeta() {
   const response = await fetch("/test/catalog-meta.json", { cache: "no-store" });
   if (!response.ok) throw new Error(`Tag data responded ${response.status}`);
@@ -521,15 +563,16 @@ async function start() {
   try {
     const [response, match] = await Promise.all([
       fetch("/games/config.json", { cache: "no-store" }),
-      Promise.all([loadMeta(), loadFlags()])
+      Promise.all([loadMeta(), loadFlags(), loadArt()])
     ]);
     if (!response.ok) throw new Error(`Catalog responded ${response.status}`);
     const data = await response.json();
     const games = Array.isArray(data) ? data : data && Array.isArray(data.games) ? data.games : [];
     if (!games.length) throw new Error("Catalog is empty");
 
-    const [meta, flags] = match;
+    const [meta, flags, art] = match;
     state.games = games;
+    state.art = art;
     state.meta = meta;
     state.flags = flags;
     render();

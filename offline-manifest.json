@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T20:28:05.443Z",
-  "totalBytes": 346466938,
+  "generatedAt": "2026-11-17T20:30:08.389Z",
+  "totalBytes": 346543284,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 10633
+      "bytes": 10255
     },
     {
       "url": "/manifest.json",
@@ -13,11 +13,11 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 534615
+      "bytes": 572977
     },
     {
       "url": "/home.bundle.js",
-      "bytes": 534615
+      "bytes": 572977
     },
     {
       "url": "/games/config.json",

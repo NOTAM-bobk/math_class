@@ -13,6 +13,7 @@ import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { BidvertiserAd } from "./components/BidvertiserAd";
+import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
 import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X, BellOff } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
@@ -71,6 +72,22 @@ const SITE_VISITS_KEY = "polytrack_site_visits";
 const ADS_NUDGE_SEEN_KEY = "polytrack_ads_nudge_seen";
 
 export function App() {
+  const [loadingRevealEnabled, setLoadingRevealEnabled] = React.useState(() => {
+    try {
+      return localStorage.getItem("polytrack_loading_reveal_enabled") !== "false";
+    } catch {
+      return true;
+    }
+  });
+  // Skip the intro on fast loads or if disabled in Settings; if the page has actually been waiting, let it play through.
+  const [showLoadReveal, setShowLoadReveal] = React.useState(() => {
+    try {
+      if (localStorage.getItem("polytrack_loading_reveal_enabled") === "false") {
+        return false;
+      }
+    } catch {}
+    return typeof performance !== "undefined" && performance.now() > 250;
+  });
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [adsNudgeOpen, setAdsNudgeOpen] = React.useState(false);
   const visitCountedRef = React.useRef(false);
@@ -96,6 +113,10 @@ export function App() {
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [bgConfig, setBgConfig] = React.useState<BackgroundConfig>(loadBackgroundConfig);
+
+  React.useEffect(() => {
+    document.getElementById("boot-loader")?.remove();
+  }, []);
 
   React.useEffect(() => {
     return onBackgroundConfigChange((newConfig) => {
@@ -272,6 +293,7 @@ export function App() {
 
   return (
     <BackgroundWrapper config={bgConfig}>
+      {loadingRevealEnabled && showLoadReveal && <GlassReveal21st onComplete={() => setShowLoadReveal(false)} />}
       {isLocked && <SiteLock onUnlock={() => setIsUnlocked(true)} />}
 
       <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
@@ -528,6 +550,14 @@ export function App() {
 
       <SettingsModal
         isOpen={settingsOpen}
+        loadingRevealEnabled={loadingRevealEnabled}
+        onLoadingRevealChange={(enabled) => {
+          try {
+            localStorage.setItem("polytrack_loading_reveal_enabled", enabled ? "true" : "false");
+          } catch {}
+          setLoadingRevealEnabled(enabled);
+          if (!enabled) setShowLoadReveal(false);
+        }}
         onClose={() => setSettingsOpen(false)}
         onLockNow={() => setIsUnlocked(false)}
         onReportBug={() => setBugModalOpen(true)}

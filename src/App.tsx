@@ -102,6 +102,9 @@ export function App() {
     () => localStorage.getItem("polytrack_ad_spot_enabled") !== "false"
   );
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
+  // "Turn off ads" stops every slot (catalog, chat, site strip), not just the notification ads.
+  const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
+  const adsVisible = adSpotEnabled && !adsBlocked;
   const [installNoticeVisible, setInstallNoticeVisible] = React.useState(() => {
     try {
       return localStorage.getItem(INSTALL_NOTICE_SEEN_KEY) !== "true";
@@ -325,7 +328,7 @@ export function App() {
                 }}
                 className="px-3 py-1 text-xs font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white whitespace-nowrap"
               >
-                "Education" Games
+                math_games
               </span>
             </a>
 
@@ -410,14 +413,14 @@ export function App() {
           tabIndex={-1}
           className="flex-1 flex flex-col md:flex-row min-h-0 p-2 gap-2 overflow-hidden focus:outline-none sm:p-3 sm:gap-3 md:p-4 md:pb-3"
         >
-          <h1 className="sr-only">“Education” Games — browser games for a study break</h1>
+          <h1 className="sr-only">math_games — browser games for a study break</h1>
           <section
             id="games-panel"
             aria-label="Games"
             className={`${mobilePanel === "games" ? "flex" : "hidden"} md:flex flex-1 flex-col min-h-0 min-w-0`}
           >
             <div id="games" className="flex-1 flex flex-col min-h-0">
-              <GameCatalog showAdSpot={adSpotEnabled} />
+              <GameCatalog showAdSpot={adsVisible} />
             </div>
           </section>
 
@@ -428,7 +431,7 @@ export function App() {
               className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-80 lg:w-96 flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full animate-in fade-in slide-in-from-right-2 duration-300`}
             >
               <div className="flex-1 min-h-0 flex flex-col">
-                <LiveMessageBoard showAds={adSpotEnabled} />
+                <LiveMessageBoard showAds={adsVisible} />
               </div>
               <div className="shrink-0">
                 <VisitorCounter />
@@ -476,15 +479,14 @@ export function App() {
         </nav>
 
         {/* Site-wide sponsor slot, above the footer */}
-        {adSpotEnabled && (
+        {adsVisible && (
           <div className="hidden shrink-0 justify-center px-3 sm:flex" aria-label="Advertisement">
             <div
-              className="flex max-h-48 w-full max-w-md items-center justify-center overflow-hidden px-3 py-1.5"
+              className="flex max-h-24 w-full max-w-xs items-center justify-center overflow-hidden px-2 py-1"
               style={{
-                borderRadius: 16,
-                background: "rgba(255, 255, 255, 0.02)",
-                boxShadow:
-                  "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03)",
+                borderRadius: 14,
+                background: "rgba(255, 255, 255, 0.015)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
               }}
             >
               <BidvertiserAd slot="site" className="flex items-center justify-center" />
@@ -568,6 +570,7 @@ export function App() {
         onOpenChangelog={() => setChangelogOpen(true)}
         adSpotEnabled={adSpotEnabled}
         onAdSpotChange={handleAdSpotChange}
+        onAdsBlockedChange={setAdsBlocked}
         sideChatEnabled={sideChatEnabled}
         onSideChatChange={(enabled) => {
           localStorage.setItem("polytrack_side_chat_enabled", enabled ? "true" : "false");
@@ -615,7 +618,7 @@ export function App() {
                   Dont like the ads??? turn them off
                 </h2>
                 <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-                  You can turn off notification ads for this browser anytime in Settings.
+                  You can turn off every ad on the site for this browser anytime in Settings.
                 </p>
               </div>
             </div>
@@ -631,6 +634,7 @@ export function App() {
                 type="button"
                 onClick={() => {
                   setNotificationAdsBlocked(true);
+                  setAdsBlocked(true);
                   setAdsNudgeOpen(false);
                   window.location.reload();
                 }}

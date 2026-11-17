@@ -1731,39 +1731,22 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
             <div
               aria-label="Advertisement"
               style={{
-                borderRadius: 16,
-                background: "rgba(255, 255, 255, 0.02)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03)",
+                borderRadius: 14,
+                background: "rgba(255, 255, 255, 0.015)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
               }}
-              className="flex flex-col gap-2 px-3.5 py-2.5"
+              className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5"
             >
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-zinc-500">Sponsored</div>
-                  <div className="flex flex-wrap items-center gap-x-1 text-xs text-zinc-400">
-                    <span>Reach students and gamers here</span>
-                    <span aria-hidden="true">·</span>
-                    <a
-                      href="https://uplcm.com/4/12241749"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-300 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
-                    >
-                      Support this site
-                    </a>
-                  </div>
-                </div>
-                <a
-                  href="mailto:hello@base31.org?subject=Ad%20space%20on%20Education%20Games"
-                  style={CHIP_STYLE}
-                  className="inline-flex shrink-0 items-center px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:text-white"
-                >
-                  Advertise
-                </a>
-              </div>
-              <div className="flex justify-center overflow-hidden">
-                <BidvertiserAd slot="catalog" className="flex items-center justify-center" />
-              </div>
+              <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-600">
+                Ad
+              </span>
+              <BidvertiserAd slot="catalog" className="flex items-center justify-center" />
+              <a
+                href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
+                className="shrink-0 text-[10px] text-zinc-600 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
+              >
+                Advertise
+              </a>
             </div>
           )}
 

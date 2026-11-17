@@ -50,6 +50,7 @@ interface SettingsModalProps {
   onSideChatChange: (enabled: boolean) => void;
   adSpotEnabled: boolean;
   onAdSpotChange: (enabled: boolean) => void;
+  onAdsBlockedChange?: (blocked: boolean) => void;
   loadingRevealEnabled?: boolean;
   onLoadingRevealChange?: (enabled: boolean) => void;
 }
@@ -174,6 +175,7 @@ export function SettingsModal({
   onSideChatChange,
   adSpotEnabled,
   onAdSpotChange,
+  onAdsBlockedChange,
   loadingRevealEnabled = true,
   onLoadingRevealChange
 }: SettingsModalProps) {
@@ -529,6 +531,8 @@ export function SettingsModal({
     const next = !adsBlocked;
     setAdsBlocked(next);
     setNotificationAdsBlocked(next);
+    // Also hides the catalog, chat and footer sponsor slots right away.
+    onAdsBlockedChange?.(next);
   };
 
   const handleDownloadOffline = async () => {
@@ -766,7 +770,7 @@ export function SettingsModal({
           <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
             <div>
               <div className="text-sm font-medium text-zinc-200">Ad space</div>
-              <div className="text-xs text-zinc-500">Show the ad space banner above the game list</div>
+              <div className="text-xs text-zinc-500">Show the sponsor slots in the catalog, chat and above the footer</div>
             </div>
             <button type="button" onClick={() => onAdSpotChange(!adSpotEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${adSpotEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={adSpotEnabled} aria-label="Ad space">
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${adSpotEnabled ? "translate-x-5" : "translate-x-0"}`} />
@@ -1422,7 +1426,7 @@ export function SettingsModal({
         >
           <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
             <BellOff aria-hidden="true" className="h-4 w-4 text-zinc-400" />
-            <h3 id="ads-title">Notification ads</h3>
+            <h3 id="ads-title">Ads</h3>
           </div>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -1449,7 +1453,7 @@ export function SettingsModal({
                   )}
                 </div>
                 <div className="text-xs text-zinc-400">
-                  Stop the notification ads that load with the page
+                  Stop the notification ads and every sponsor slot on the site
                 </div>
               </div>
             </div>
@@ -1482,7 +1486,7 @@ export function SettingsModal({
               className="flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-zinc-400"
             >
               <span className="min-w-0 leading-snug">
-                Ads that already started on this page need one reload to stop.
+                Notification ads that already started need one reload to stop.
               </span>
               <button
                 type="button"

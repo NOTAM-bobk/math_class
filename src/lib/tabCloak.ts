@@ -1,5 +1,5 @@
 export const TAB_CLOAK_KEY = "polytrack_tab_cloak";
-export const DEFAULT_PAGE_TITLE = '"Education" Games';
+export const DEFAULT_PAGE_TITLE = 'math_games';
 export const CUSTOM_FAVICON_ID = "custom-tab-favicon";
 
 export interface TabCloakSettings {

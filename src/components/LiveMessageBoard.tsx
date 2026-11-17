@@ -91,10 +91,10 @@ const FETCH_LIMIT = 50;
 const POLL_LIMIT = 25;
 
 // The chat ad cycles instead of sitting there: it loads once, then shows for a
-// short window every so often.
-const AD_FIRST_DELAY_MS = 15_000;
-const AD_VISIBLE_MS = 25_000;
-const AD_HIDDEN_MS = 70_000;
+// short window every few minutes so it never crowds the conversation.
+const AD_FIRST_DELAY_MS = 45_000;
+const AD_VISIBLE_MS = 12_000;
+const AD_HIDDEN_MS = 180_000;
 
 // Client-side send throttle: one message every few seconds, capped per minute.
 const SEND_COOLDOWN_MS = 4000;
@@ -142,7 +142,12 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
   const handleChatVerified = React.useCallback(() => setChatVerified(true), []);
 
   React.useEffect(() => {
-    if (!showAds) return;
+    // Turning ads off stops the cycle and unloads whatever widget is on screen.
+    if (!showAds) {
+      setAdVisible(false);
+      setAdMounted(false);
+      return;
+    }
     let timer = 0;
     function hideAd() {
       setAdVisible(false);
@@ -502,12 +507,12 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
       {showAds && adMounted && (
         <div
           aria-label="Sponsored"
-          className={`shrink-0 border-t border-white/[0.06] px-3 py-2 ${adVisible ? "" : "hidden"}`}
+          className={`shrink-0 border-t border-white/[0.04] px-3 py-1 ${adVisible ? "" : "hidden"}`}
         >
-          <div className="mb-1 text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
-            Sponsored
-          </div>
-          <div className="flex justify-center overflow-hidden">
+          <div className="flex items-center justify-center gap-2 overflow-hidden">
+            <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+              Ad
+            </span>
             <BidvertiserAd slot="chat" className="flex items-center justify-center" />
           </div>
         </div>

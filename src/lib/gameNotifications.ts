@@ -10,7 +10,7 @@ export const KNOWN_GAMES_KEY = "polytrack_known_game_ids";
 
 export const NEW_GAME_TITLE = "A new game dropped! 🎮";
 export const NEW_GAME_BODY =
-  "Fresh picks are live on \"Education\" Games. Open the catalog and hit Play.";
+  "Fresh picks are live on math_games. Open the catalog and hit Play.";
 
 export function notificationsSupported(): boolean {
   return typeof window !== "undefined" && "Notification" in window;

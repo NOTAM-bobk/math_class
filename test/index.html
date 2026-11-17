@@ -26,6 +26,13 @@
             <input id="search" type="search" placeholder="Search games" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-label="Search games">
         </label>
 
+        <button class="orb" id="random-btn" type="button" aria-label="Open a random game" title="Random game">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h3.6c1.2 0 2.3.6 3 1.5l5.4 7c.7.9 1.8 1.5 3 1.5H20M4 17h3.6c1.2 0 2.3-.6 3-1.5l5.4-7c.7-.9 1.8-1.5 3-1.5H20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17.6 4.4 20 7l-2.4 2.6M17.6 14.4 20 17l-2.4 2.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
         <div class="filter">
             <button class="orb" id="filter-toggle" type="button" aria-label="Filters" aria-haspopup="true" aria-expanded="false" aria-controls="filter-menu">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -49,9 +56,14 @@
 
     <main class="wrap">
         <div class="intro">
-            <p><span class="count" id="count">Loading…</span> · hover a tile for details</p>
-            <span class="flag-note" id="flag-note"></span>
+            <p>
+                <span class="count" id="count">Loading…</span> ·
+                <span class="hint hint--hover">hover a tile for details</span>
+                <span class="hint hint--touch">tap a tile for details</span>
+            </p>
         </div>
+
+        <section class="continue" id="continue" aria-label="Continue playing" hidden></section>
 
         <div class="grid" id="grid">
             <p class="grid-message">Loading covers…</p>

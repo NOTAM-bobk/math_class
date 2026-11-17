@@ -2,7 +2,8 @@ import { coverSvg, slugKey } from "./covers.js";
 
 const grid = document.getElementById("grid");
 const countLabel = document.getElementById("count");
-const flagNote = document.getElementById("flag-note");
+const continueRow = document.getElementById("continue");
+const randomButton = document.getElementById("random-btn");
 const searchInput = document.getElementById("search");
 const filterToggle = document.getElementById("filter-toggle");
 const filterMenu = document.getElementById("filter-menu");
@@ -22,13 +23,17 @@ const EMPTY_FLAGS = {
 const FAVORITES_KEY = "polytrack_test_favorites";
 const RECENT_KEY = "polytrack_test_recent";
 const MAX_RECENT = 12;
+const CONTINUE_LIMIT = 6;
 
 const PLAY_ICON =
   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>';
 
+const CHECK_ICON =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12.7l4.5 4.5L19.2 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 // The hub's own status chips, in the order the hub shows them.
 const FLAGS = {
-  verified: { key: "verified", className: "verified", label: "✅ Verified", title: "Verified working" },
+  verified: { key: "verified", className: "verified", label: "Verified", icon: CHECK_ICON, title: "Verified working" },
   editorsPick: { key: "editorsPick", className: "editor", label: "Editor's Pick", title: "Editor's Pick" },
   notMobile: { key: "notMobile", className: "mobile", label: "no mobile", title: "Not optimized for mobile — best played on desktop" }
 };
@@ -58,6 +63,7 @@ const state = {
   flags: EMPTY_FLAGS,
   favorites: new Set(readList(FAVORITES_KEY)),
   recent: readList(RECENT_KEY),
+  visible: [],
   query: "",
   status: null,
   genre: null
@@ -119,7 +125,12 @@ function tagsFor(game, entry) {
 function flagMarkup(list) {
   if (!list.length) return "";
   return `<span class="tile-flags">${list
-    .map((flag) => `<span class="badge badge--${flag.className}" title="${escapeHtml(flag.title)}">${escapeHtml(flag.label)}</span>`)
+    .map(
+      (flag) =>
+        `<span class="badge badge--${flag.className}" title="${escapeHtml(flag.title)}">${flag.icon || ""}${escapeHtml(
+          flag.label
+        )}</span>`
+    )
     .join("")}</span>`;
 }
 
@@ -187,6 +198,49 @@ function rememberPlayed(key) {
   const next = [key, ...state.recent.filter((entry) => entry !== key)].slice(0, MAX_RECENT);
   state.recent = next;
   writeList(RECENT_KEY, next);
+  renderContinue();
+}
+
+function recentItems() {
+  const byKey = new Map(state.games.map((game) => [tileKey(game), { game, entry: entryFor(game) }]));
+  return state.recent
+    .map((key) => byKey.get(key))
+    .filter((item) => item && !item.game.disabled && item.game.url && item.game.url !== "#")
+    .slice(0, CONTINUE_LIMIT);
+}
+
+// A shortcut row above the mosaic: the last few games, ready to resume.
+function renderContinue() {
+  if (!continueRow) return;
+  const items = recentItems();
+  if (!items.length) {
+    continueRow.hidden = true;
+    continueRow.innerHTML = "";
+    return;
+  }
+  continueRow.hidden = false;
+  continueRow.innerHTML = `<h2 class="continue-title">Continue playing</h2>
+    <div class="continue-row">${items
+      .map(
+        ({ game, entry }) => `<a class="continue-card" href="${escapeHtml(game.url)}" target="_blank" rel="noopener noreferrer" data-key="${escapeHtml(
+          tileKey(game, entry)
+        )}">
+          <span class="continue-art" aria-hidden="true">${coverSvg(game)}</span>
+          <span class="continue-name">${escapeHtml(game.name || "Game")}</span>
+          ${PLAY_ICON}
+        </a>`
+      )
+      .join("")}</div>`;
+}
+
+function openRandomGame() {
+  const pool = (state.visible.length ? state.visible : state.games.map((game, index) => ({ game, entry: entryFor(game), index }))).filter(
+    (item) => !item.game.disabled && item.game.url && item.game.url !== "#"
+  );
+  if (!pool.length) return;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  rememberPlayed(tileKey(pick.game, pick.entry));
+  window.open(pick.game.url, "_blank", "noopener");
 }
 
 function matchesFilters(item) {
@@ -224,6 +278,8 @@ function render() {
     );
   }
 
+  state.visible = matches;
+
   if (!matches.length) {
     const what = state.query.trim() ? `“${escapeHtml(state.query.trim())}”` : "this filter";
     const emptyLead =
@@ -240,6 +296,8 @@ function render() {
       .map((item) => tileMarkup(item.game, item.entry, item.index, state.games.length))
       .join("");
   }
+
+  renderContinue();
 
   countLabel.textContent = filtering
     ? `${matches.length} of ${state.games.length} games`
@@ -355,6 +413,28 @@ filterMenu.addEventListener("click", (event) => {
   buildFilterMenu();
 });
 
+if (continueRow) {
+  continueRow.addEventListener("click", (event) => {
+    const card = event.target.closest(".continue-card");
+    if (card) rememberPlayed(card.dataset.key);
+  });
+}
+
+if (randomButton) {
+  randomButton.addEventListener("click", openRandomGame);
+}
+
+// "/" jumps to search, the usual shortcut in a game library.
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+  const target = event.target;
+  if (target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+  event.preventDefault();
+  closeMenu();
+  searchInput.focus();
+  searchInput.select();
+});
+
 // One delegated handler covers both the star on a tile and the play itself.
 grid.addEventListener("click", (event) => {
   const favoriteButton = event.target.closest(".tile-fav");
@@ -420,17 +500,14 @@ async function loadFlags() {
       const data = await response.json();
       if (!data || typeof data !== "object") continue;
       return {
-        source: origin || "this site",
-        flags: {
-          verified: new Set(data.verified || []),
-          notMobile: new Set(data.notMobile || [])
-        }
+        verified: new Set(data.verified || []),
+        notMobile: new Set(data.notMobile || [])
       };
     } catch {
       // Try the next origin.
     }
   }
-  return { source: null, flags: EMPTY_FLAGS };
+  return EMPTY_FLAGS;
 }
 
 async function loadMeta() {
@@ -451,16 +528,10 @@ async function start() {
     const games = Array.isArray(data) ? data : data && Array.isArray(data.games) ? data.games : [];
     if (!games.length) throw new Error("Catalog is empty");
 
-    const [meta, flagState] = match;
+    const [meta, flags] = match;
     state.games = games;
     state.meta = meta;
-    state.flags = flagState.flags;
-
-    if (flagNote) {
-      flagNote.textContent = flagState.source
-        ? `tags + flags from Cloudflare · ${flagState.source}`
-        : "tags from the hub · flags unavailable";
-    }
+    state.flags = flags;
     render();
   } catch (error) {
     countLabel.textContent = "unavailable";

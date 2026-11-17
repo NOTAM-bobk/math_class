@@ -356,15 +356,106 @@ a {
   font-size: 11px;
 }
 
-.flag-note {
-  color: #71717a;
-  font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 10px;
-  letter-spacing: 0.01em;
+/* Touch devices get the tap wording instead of the hover hint. */
+.hint--touch {
+  display: none;
 }
 
-.flag-note:empty {
+@media (hover: none), (pointer: coarse) {
+  .hint--hover {
+    display: none;
+  }
+
+  .hint--touch {
+    display: inline;
+  }
+}
+
+/* Continue playing: the last few games, above the mosaic. */
+.continue {
+  margin-bottom: 14px;
+}
+
+.continue[hidden] {
   display: none;
+}
+
+.continue-title {
+  margin: 0 0 7px;
+  color: #8b8b93;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.continue-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.continue-row::-webkit-scrollbar {
+  display: none;
+}
+
+.continue-card {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  max-width: 220px;
+  padding: 5px 11px 5px 5px;
+  border: 1px solid var(--glass-line-soft);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  color: #fafafa;
+  font-size: 11.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.continue-card:hover {
+  border-color: var(--glass-line);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.continue-card:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.65);
+  outline-offset: 2px;
+}
+
+.continue-art {
+  display: block;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #1b1b21;
+}
+
+.continue-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.continue-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.continue-card > svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  opacity: 0.5;
 }
 
 .grid {
@@ -517,8 +608,12 @@ a {
   line-height: 1;
   white-space: nowrap;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+}
+
+.badge svg {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
 }
 
 .badge--verified {

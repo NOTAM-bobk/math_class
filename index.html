@@ -288,16 +288,10 @@
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 antialiased selection:bg-zinc-700 selection:text-white">
-    <div id="root">
-        <div style="display:flex;height:100vh;width:100vw;align-items:center;justify-content:center;background:#09090b;color:#a1a1aa;font-family:sans-serif;">
-            <div style="text-align:center;">
-                <div style="font-size:1.125rem;font-weight:600;color:#fafafa;margin-bottom:0.25rem;">
-                    "Education" Games
-                </div>
-                <div style="font-size:0.8125rem;color:#71717a;">Loading games...</div>
-            </div>
-        </div>
+    <div id="boot-loader" aria-hidden="true" style="position:fixed;inset:0;z-index:999;background:#09090b;display:grid;place-items:center;color:#fafafa;font:500 12px system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;">
+        Loading games…
     </div>
+    <div id="root"></div>
 
     <!-- Pre-compiled application bundle -->
     <script src="./dist/home.bundle.js" onerror="this.onerror=null;this.src='./home.bundle.js';"></script>

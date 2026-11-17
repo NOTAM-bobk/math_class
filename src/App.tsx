@@ -12,6 +12,7 @@ import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
+import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
 import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X, BellOff } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
@@ -70,6 +71,10 @@ const SITE_VISITS_KEY = "polytrack_site_visits";
 const ADS_NUDGE_SEEN_KEY = "polytrack_ads_nudge_seen";
 
 export function App() {
+  // Skip the intro on fast loads; if the page has actually been waiting, let it play through.
+  const [showLoadReveal, setShowLoadReveal] = React.useState(
+    () => typeof performance !== "undefined" && performance.now() > 250
+  );
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [adsNudgeOpen, setAdsNudgeOpen] = React.useState(false);
   const visitCountedRef = React.useRef(false);
@@ -95,6 +100,10 @@ export function App() {
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [bgConfig, setBgConfig] = React.useState<BackgroundConfig>(loadBackgroundConfig);
+
+  React.useEffect(() => {
+    document.getElementById("boot-loader")?.remove();
+  }, []);
 
   React.useEffect(() => {
     return onBackgroundConfigChange((newConfig) => {
@@ -271,6 +280,7 @@ export function App() {
 
   return (
     <BackgroundWrapper config={bgConfig}>
+      {showLoadReveal && <GlassReveal21st onComplete={() => setShowLoadReveal(false)} />}
       {isLocked && <SiteLock onUnlock={() => setIsUnlocked(true)} />}
 
       <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">

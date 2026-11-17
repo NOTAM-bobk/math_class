@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cover test — “Education” Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Games</title>
     <meta name="description" content="An isolated experiment testing image-led game tiles.">
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, noai, noimageai">
     <meta name="color-scheme" content="dark">
@@ -18,16 +18,37 @@
 </head>
 <body>
     <header class="top">
-        <a class="back" href="/" aria-label="Back to the game hub">←</a>
-        <span class="crumb">/test</span>
-        <h1>Cover test</h1>
-        <span class="chip">Experiment</span>
-        <span class="top-note">Isolated from the main hub</span>
+        <label class="search" for="search">
+            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.4" fill="none" stroke="currentColor" stroke-width="1.9"/>
+                <path d="M15.8 15.8 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            </svg>
+            <input id="search" type="search" placeholder="Search games" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-label="Search games">
+        </label>
+
+        <div class="filter">
+            <button class="orb" id="filter-toggle" type="button" aria-label="Filters" aria-haspopup="true" aria-expanded="false" aria-controls="filter-menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7h9M17 7h3M4 12h4M12 12h8M4 17h10M18 17h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="15" cy="7" r="2.1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                    <circle cx="10" cy="12" r="2.1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                    <circle cx="16" cy="17" r="2.1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                </svg>
+                <span class="orb-dot" id="filter-dot" hidden></span>
+            </button>
+            <div class="filter-menu" id="filter-menu" role="menu" aria-label="Filters" hidden></div>
+        </div>
+
+        <button class="orb orb--end" id="settings-btn" type="button" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19.4 13a7.7 7.7 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.4h-4L10.6 6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.7 7.7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+        </button>
     </header>
 
     <main class="wrap">
         <div class="intro">
-            <h2>Games with covers</h2>
             <p><span class="count" id="count">Loading…</span> · hover a tile for details</p>
             <span class="flag-note" id="flag-note"></span>
         </div>
@@ -36,6 +57,24 @@
             <p class="grid-message">Loading covers…</p>
         </div>
     </main>
+
+    <nav class="dock" aria-label="Primary">
+        <button class="dock-btn is-active" type="button" aria-current="page">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+                <rect x="13.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+                <rect x="3.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+                <rect x="13.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+            <span>Games</span>
+        </button>
+        <button class="dock-btn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 12.4c0 3.6-3.6 6.5-8 6.5-1 0-2-.15-2.9-.42L5 20.5l1.2-3.2A6.2 6.2 0 0 1 4 12.4C4 8.8 7.6 6 12 6s8 2.8 8 6.4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            </svg>
+            <span>Chat</span>
+        </button>
+    </nav>
 
     <script type="module" src="/test/test.js"></script>
 </body>

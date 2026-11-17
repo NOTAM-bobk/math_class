@@ -3,6 +3,10 @@ import { coverSvg, slugKey } from "./covers.js";
 const grid = document.getElementById("grid");
 const countLabel = document.getElementById("count");
 const flagNote = document.getElementById("flag-note");
+const searchInput = document.getElementById("search");
+const filterToggle = document.getElementById("filter-toggle");
+const filterMenu = document.getElementById("filter-menu");
+const filterDot = document.getElementById("filter-dot");
 
 // /test runs both from the deployed site (where /api/flags is same-origin) and
 // from a plain static preview, so the Cloudflare flag list is fetched from the
@@ -21,17 +25,33 @@ const PLAY_ICON =
 
 // The hub's own status chips, in the order the hub shows them.
 const FLAGS = {
-  verified: { className: "verified", label: "✅ Verified", title: "Verified working" },
-  editorsPick: { className: "editor", label: "Editor's Pick", title: "Editor's Pick" },
-  buggy: { className: "bug", label: "error:bug", title: "Known bug or issue reported for this game" },
-  notMobile: { className: "mobile", label: "no mobile", title: "Not optimized for mobile — best played on desktop" },
-  blocked: { className: "blocked", label: "Blocked:😿", title: "Blocked site or game" }
+  verified: { key: "verified", className: "verified", label: "✅ Verified", title: "Verified working" },
+  editorsPick: { key: "editorsPick", className: "editor", label: "Editor's Pick", title: "Editor's Pick" },
+  buggy: { key: "buggy", className: "bug", label: "error:bug", title: "Known bug or issue reported for this game" },
+  notMobile: { key: "notMobile", className: "mobile", label: "no mobile", title: "Not optimized for mobile — best played on desktop" },
+  blocked: { key: "blocked", className: "blocked", label: "Blocked:😿", title: "Blocked site or game" }
 };
+
+const STATUS_FILTERS = [
+  { id: "verified", label: "Verified" },
+  { id: "buggy", label: "Error: bug" },
+  { id: "notMobile", label: "No mobile" },
+  { id: "blocked", label: "Blocked" }
+];
 
 // Seven hero tiles spread across the catalog break up the grid without
 // cropping art: both sizes keep the cover's 4:3 frame, and both span a
 // multiple of three grid rows, so the dense packing never leaves a hole.
 const HERO_INDICES = new Set([1, 8, 15, 22, 29, 36, 43]);
+
+const state = {
+  games: [],
+  meta: new Map(),
+  flags: EMPTY_FLAGS,
+  query: "",
+  status: null,
+  genre: null
+};
 
 function escapeHtml(value) {
   return String(value)
@@ -42,15 +62,28 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function flagsFor(entry, ids) {
-  const active = [];
+function entryFor(game) {
+  return state.meta.get(slugKey(game.name));
+}
+
+function idsFor(game, entry, index) {
+  return [entry && entry.hubId, entry && entry.cfgId, game.id, `cfg-${game.subdomain ?? index}`].filter(Boolean);
+}
+
+function statusFlagsFor(game, entry, index) {
+  const ids = idsFor(game, entry, index);
   const hit = (set) => ids.some((id) => set.has(id));
-  if (hit(flags.verified) || (entry && entry.verified)) active.push(FLAGS.verified);
+  const active = [];
+  if (hit(state.flags.verified) || (entry && entry.verified)) active.push(FLAGS.verified);
   if (entry && entry.editorsPick) active.push(FLAGS.editorsPick);
-  if (hit(flags.buggy) || (entry && entry.errorBug)) active.push(FLAGS.buggy);
-  if (hit(flags.notMobile)) active.push(FLAGS.notMobile);
-  if (hit(flags.blocked)) active.push(FLAGS.blocked);
+  if (hit(state.flags.buggy) || (entry && entry.errorBug)) active.push(FLAGS.buggy);
+  if (hit(state.flags.notMobile)) active.push(FLAGS.notMobile);
+  if (hit(state.flags.blocked)) active.push(FLAGS.blocked);
   return active;
+}
+
+function tagsFor(game, entry) {
+  return (entry && entry.tags && entry.tags.length ? entry.tags : [game.category || "Catalog"]).slice(0, 3);
 }
 
 function flagMarkup(list) {
@@ -74,9 +107,6 @@ function tileMarkup(game, entry, index, total) {
   // The tail of the catalog stays single-column so the mosaic ends in even rows
   // instead of a wide notch under the last large tile.
   const size = index >= total - 3 || !HERO_INDICES.has(index) ? "std" : "hero";
-  const ids = [entry && entry.hubId, entry && entry.cfgId, game.id, `cfg-${game.subdomain ?? index}`].filter(Boolean);
-  const activeFlags = flagsFor(entry, ids);
-  const tags = (entry && entry.tags && entry.tags.length ? entry.tags : [game.category || "Catalog"]).slice(0, 3);
   const label = description ? `${name} — ${description}` : name;
 
   return `<a class="tile" data-size="${size}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)}">
@@ -86,20 +116,178 @@ function tileMarkup(game, entry, index, total) {
         ${description ? `<span class="tile-desc">${escapeHtml(description)}</span>` : ""}
         <span class="tile-cta">${PLAY_ICON}Play</span>
       </span>
-      ${flagMarkup(activeFlags)}
+      ${flagMarkup(statusFlagsFor(game, entry, index))}
       <span class="tile-foot">
         <span class="tile-title">${escapeHtml(name)}</span>
-        ${tagMarkup(tags)}
+        ${tagMarkup(tagsFor(game, entry))}
       </span>
     </a>`;
 }
 
-function render(games, meta) {
-  grid.innerHTML = games
-    .map((game, index) => tileMarkup(game, meta.get(slugKey(game.name)), index, games.length))
-    .join("");
-  countLabel.textContent = `${games.length} game${games.length === 1 ? "" : "s"}`;
+function matchesFilters(item) {
+  const { game, entry, index } = item;
+  if (state.status && !statusFlagsFor(game, entry, index).some((flag) => flag.key === state.status)) return false;
+  if (state.genre && !tagsFor(game, entry).includes(state.genre)) return false;
+  const query = state.query.trim().toLowerCase();
+  if (!query) return true;
+  const haystack = [game.name, game.description, game.category, ...tagsFor(game, entry), ...(entry ? [entry.hubName] : [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(query);
 }
+
+function render() {
+  const items = state.games.map((game, index) => ({ game, entry: entryFor(game), index }));
+  const matches = items.filter(matchesFilters);
+  const filtering = Boolean(state.query.trim() || state.status || state.genre);
+
+  if (!matches.length) {
+    const what = state.query.trim() ? `“${escapeHtml(state.query.trim())}”` : "this filter";
+    grid.innerHTML = `<p class="grid-message">No games match ${what}. <button class="grid-reset" type="button" id="grid-reset">Clear filters</button></p>`;
+    const reset = document.getElementById("grid-reset");
+    if (reset) reset.addEventListener("click", clearFilters);
+  } else {
+    grid.innerHTML = matches
+      .map((item) => tileMarkup(item.game, item.entry, item.index, state.games.length))
+      .join("");
+  }
+
+  countLabel.textContent = filtering
+    ? `${matches.length} of ${state.games.length} games`
+    : `${state.games.length} game${state.games.length === 1 ? "" : "s"}`;
+
+  if (filterDot) filterDot.hidden = !(state.status || state.genre);
+}
+
+function countFor(kind, id) {
+  return state.games.reduce((total, game, index) => {
+    const entry = entryFor(game);
+    if (kind === "status") {
+      return total + (statusFlagsFor(game, entry, index).some((flag) => flag.key === id) ? 1 : 0);
+    }
+    return total + (tagsFor(game, entry).includes(id) ? 1 : 0);
+  }, 0);
+}
+
+function topGenres(limit = 7) {
+  const counts = new Map();
+  for (const game of state.games) {
+    for (const tag of tagsFor(game, entryFor(game))) {
+      counts.set(tag, (counts.get(tag) || 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .filter(([, count]) => count >= 3)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([tag]) => tag);
+}
+
+function optionMarkup({ label, checked, count, action, value }) {
+  return `<button class="filter-option" type="button" role="menuitemradio" aria-checked="${checked}" data-action="${action}" data-value="${escapeHtml(value ?? "")}">
+      <span>${escapeHtml(label)}</span>
+      <span class="filter-count">${count}</span>
+    </button>`;
+}
+
+function buildFilterMenu() {
+  const statusOptions = STATUS_FILTERS.map((filter) =>
+    optionMarkup({
+      label: filter.label,
+      checked: state.status === filter.id,
+      count: countFor("status", filter.id),
+      action: "status",
+      value: filter.id
+    })
+  ).join("");
+
+  const genreOptions = topGenres()
+    .map((genre) =>
+      optionMarkup({
+        label: genre,
+        checked: state.genre === genre,
+        count: countFor("genre", genre),
+        action: "genre",
+        value: genre
+      })
+    )
+    .join("");
+
+  filterMenu.innerHTML = `
+    <div class="filter-group" role="group" aria-label="Status">
+      <p class="filter-label">Status</p>
+      ${optionMarkup({ label: "All games", checked: !state.status, count: state.games.length, action: "status", value: "" })}
+      ${statusOptions}
+    </div>
+    <div class="filter-group" role="group" aria-label="Genre">
+      <p class="filter-label">Genre</p>
+      ${optionMarkup({ label: "Any genre", checked: !state.genre, count: state.games.length, action: "genre", value: "" })}
+      ${genreOptions}
+    </div>`;
+}
+
+function openMenu() {
+  buildFilterMenu();
+  filterMenu.hidden = false;
+  filterToggle.setAttribute("aria-expanded", "true");
+}
+
+function closeMenu() {
+  filterMenu.hidden = true;
+  filterToggle.setAttribute("aria-expanded", "false");
+}
+
+function clearFilters() {
+  state.query = "";
+  state.status = null;
+  state.genre = null;
+  searchInput.value = "";
+  render();
+  buildFilterMenu();
+}
+
+filterToggle.addEventListener("click", () => {
+  if (filterMenu.hidden) openMenu();
+  else closeMenu();
+});
+
+filterMenu.addEventListener("click", (event) => {
+  const option = event.target.closest(".filter-option");
+  if (!option) return;
+  const { action, value } = option.dataset;
+  const next = value || null;
+  if (action === "status") state.status = state.status === next ? null : next;
+  else state.genre = state.genre === next ? null : next;
+  render();
+  buildFilterMenu();
+});
+
+searchInput.addEventListener("input", () => {
+  state.query = searchInput.value;
+  render();
+});
+
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    state.query = "";
+    searchInput.value = "";
+    render();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (filterMenu.hidden) return;
+  if (filterToggle.contains(event.target) || filterMenu.contains(event.target)) return;
+  closeMenu();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !filterMenu.hidden) {
+    closeMenu();
+    filterToggle.focus();
+  }
+});
 
 async function loadFlags() {
   for (const origin of FLAG_ORIGINS) {
@@ -143,13 +331,16 @@ async function start() {
     if (!games.length) throw new Error("Catalog is empty");
 
     const [meta, flagState] = match;
-    flags = flagState.flags;
+    state.games = games;
+    state.meta = meta;
+    state.flags = flagState.flags;
+
     if (flagNote) {
       flagNote.textContent = flagState.source
         ? `tags + flags from Cloudflare · ${flagState.source}`
         : "tags from the hub · flags unavailable";
     }
-    render(games, meta);
+    render();
   } catch (error) {
     countLabel.textContent = "unavailable";
     grid.innerHTML = `<p class="grid-message">Could not load the game catalog. <a href="/">Back to the hub</a> — ${escapeHtml(
@@ -157,7 +348,5 @@ async function start() {
     )}</p>`;
   }
 }
-
-let flags = EMPTY_FLAGS;
 
 start();

@@ -439,13 +439,18 @@ a {
   background: #1b1b21;
 }
 
-.continue-art svg {
+.continue-art svg,
+.continue-art img {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-.continue-name {
+.continue-art > .tile-art-empty,
+.continue-art .tile-art-empty {
+  font-size: 0.9rem;
+}
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -549,8 +554,21 @@ a {
   position: absolute;
   inset: 0;
   display: block;
+  background: #12121a;
   transform: scale(1.002);
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 220ms ease;
+}
+
+.tile-art-empty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: rgba(255, 255, 255, 0.18);
+  background: radial-gradient(circle at 50% 35%, #242433, #101017 72%);
 }
 
 .tile-art svg,

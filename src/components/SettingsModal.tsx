@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText } from "lucide-react";
 import {
   BACKGROUND_PRESETS,
   loadBackgroundConfig,
@@ -115,6 +115,48 @@ function testMirrorFrame(
   });
 }
 
+type DesktopTab = "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "offline" | "proxies" | "changelog";
+
+const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
+  { heading: "General", items: [
+    { id: "general", label: "Layout & startup", icon: LayoutGrid, keywords: "loading animation side chat visitor counter ad space layout startup" },
+    { id: "stats", label: "Your stats", icon: BarChart3, keywords: "play time clicks most played games stats" },
+    { id: "security", label: "Site lock", icon: Lock, keywords: "password lock security site" },
+    { id: "notifications", label: "Notifications", icon: Bell, keywords: "notifications new games chat alerts" },
+  ] },
+  { heading: "Appearance", items: [
+    { id: "appearance", label: "Background", icon: Palette, keywords: "background theme color gradient image" },
+    { id: "cloak", label: "Tab cloak", icon: CloakIcon, keywords: "tab cloak title icon disguise" },
+    { id: "panic", label: "Panic button", icon: Siren, keywords: "panic key redirect escape" },
+  ] },
+  { heading: "Other", items: [
+    { id: "ads", label: "Ads", icon: Megaphone, keywords: "ads notification ads block" },
+    { id: "offline", label: "Offline mode", icon: WifiOff, keywords: "offline download cache schedule" },
+    { id: "proxies", label: "Proxies & source", icon: Link2, keywords: "source code github proxies mirrors" },
+    { id: "changelog", label: "Change log", icon: ScrollText, keywords: "change log updates history" },
+  ] },
+];
+
+const DESKTOP_LIGHT_CSS = `
+@media (min-width: 768px) {
+.sm-desk{background:#fbfbfa!important;color:#1f1f1f!important;box-shadow:0 24px 60px -12px rgba(0,0,0,.35)!important}
+.sm-desk .text-zinc-100,.sm-desk .text-zinc-200,.sm-desk .text-white,.sm-desk .hover\\:text-white:hover{color:#1f1f1f!important}
+.sm-desk .text-zinc-300{color:#3a3a3a!important}
+.sm-desk .text-zinc-400,.sm-desk .text-zinc-500,.sm-desk .text-zinc-600,.sm-desk .text-\\[\\#caccd2\\]{color:#6b6b6b!important}
+.sm-desk [class*="border-white"],.sm-desk .border-zinc-700{border-color:#e8e8e5!important}
+.sm-desk [class*="ring-white"]{--tw-ring-color:#e8e8e5!important}
+.sm-desk .bg-white\\/\\[0\\.025\\],.sm-desk .bg-white\\/\\[0\\.02\\],.sm-desk .bg-white\\/\\[0\\.03\\],.sm-desk .bg-black\\/25,.sm-desk .bg-black\\/40,.sm-desk .bg-black\\/60,.sm-desk [style*="rgba(0, 0, 0, 0.3)"]{background:#fff!important}
+.sm-desk .bg-white\\/\\[0\\.04\\],.sm-desk .bg-white\\/\\[0\\.06\\],.sm-desk .bg-white\\/\\[0\\.08\\],.sm-desk .hover\\:bg-white\\/\\[0\\.08\\]:hover,.sm-desk [style*="rgba(255, 255, 255, 0.04)"]{background:#efefec!important}
+.sm-desk .bg-zinc-700,.sm-desk .bg-zinc-800,.sm-desk .bg-zinc-600{background:#d6d6d2!important}
+.sm-desk .bg-white:not(.rounded-full),.sm-desk .bg-zinc-100{background:#1f1f1f!important}
+.sm-desk .bg-white:not(.rounded-full).text-zinc-950,.sm-desk .bg-white:not(.rounded-full) *{color:#fff!important}
+.sm-desk .hover\\:bg-zinc-100:hover{background:#333!important}
+.sm-desk section input,.sm-desk section select,.sm-desk section textarea{background:#fff!important;color:#1f1f1f!important;border:1px solid #e3e3df!important}
+.sm-desk section{border-top:none!important;padding-top:0!important}
+.sm-desk section > *:not(:first-child){}
+}
+`;
+
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
@@ -149,6 +191,18 @@ export function SettingsModal({
   loadingRevealEnabled = true,
   onLoadingRevealChange
 }: SettingsModalProps) {
+  const [isDesktop, setIsDesktop] = React.useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
+  React.useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  const [desktopTab, setDesktopTab] = React.useState<DesktopTab>("general");
+  const [settingsSearch, setSettingsSearch] = React.useState("");
+  const paneStyle = (tab: DesktopTab): React.CSSProperties => ({ display: isDesktop && desktopTab !== tab ? "none" : "contents" });
+
   // Site Lock states
   const [siteLockEnabled, setSiteLockEnabled] = React.useState(() => {
     return localStorage.getItem("polytrack_site_lock_enabled") === "true";
@@ -600,7 +654,7 @@ export function SettingsModal({
         aria-modal="true"
         aria-labelledby="settings-title"
         tabIndex={-1}
-        className="relative flex max-h-[calc(100dvh-5.25rem)] w-full max-w-lg flex-col gap-5 overflow-y-auto p-5 pt-6 text-zinc-100 focus:outline-none sm:my-auto sm:max-w-2xl sm:p-6 md:max-h-[88vh]"
+        className={isDesktop ? "sm-desk relative flex h-[85vh] w-full max-w-5xl flex-row overflow-hidden p-0 focus:outline-none" : "relative flex max-h-[calc(100dvh-5.25rem)] w-full max-w-lg flex-col gap-5 overflow-y-auto p-5 pt-6 text-zinc-100 focus:outline-none sm:my-auto sm:max-w-2xl sm:p-6 md:max-h-[88vh]"}
         style={{
           background: "#1d1d1d",
           borderRadius: 20,
@@ -615,8 +669,62 @@ export function SettingsModal({
           className="absolute left-1/2 top-2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/20 sm:hidden"
         />
 
+        <style>{DESKTOP_LIGHT_CSS}</style>
+        {isDesktop && (
+          <aside className="flex w-72 shrink-0 flex-col gap-1 overflow-y-auto border-r p-4" style={{ borderColor: "#ececea", background: "#f7f7f5" }} aria-label="Settings sections">
+            <label className="mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: "#fff", border: "1px solid #e3e3df" }}>
+              <Search aria-hidden="true" className="h-4 w-4" style={{ color: "#8a8a86" }} />
+              <input
+                value={settingsSearch}
+                onChange={(e) => setSettingsSearch(e.target.value)}
+                placeholder="Search settings"
+                aria-label="Search settings"
+                className="w-full bg-transparent text-sm focus:outline-none"
+                style={{ border: "none", padding: 0, background: "transparent" }}
+              />
+            </label>
+            {DESKTOP_NAV.map((group) => {
+              const q = settingsSearch.trim().toLowerCase();
+              const items = group.items.filter((item) => !q || item.label.toLowerCase().includes(q) || item.keywords.includes(q));
+              if (!items.length) return null;
+              return (
+                <div key={group.heading} className="mb-3 flex flex-col gap-0.5">
+                  <div className="px-3 pb-1.5 text-xs" style={{ color: "#8a8a86" }}>{group.heading}</div>
+                  {items.map((item) => {
+                    const active = desktopTab === item.id;
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setDesktopTab(item.id)}
+                        aria-current={active ? "page" : undefined}
+                        className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors"
+                        style={{ background: active ? "#e9e9e6" : "transparent", color: "#1f1f1f", fontWeight: active ? 500 : 400 }}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </aside>
+        )}
+        <div className={isDesktop ? "relative flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto px-12 py-10" : "contents"}>
+        {isDesktop && (
+          <>
+            <button type="button" onClick={onClose} aria-label="Close settings" className="absolute right-5 top-5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full" style={{ border: "1px solid #e3e3df", background: "#fff", color: "#1f1f1f" }}>
+              <X aria-hidden="true" className="h-4 w-4" />
+            </button>
+            <h2 className="text-2xl font-medium tracking-tight" style={{ color: "#1f1f1f" }}>
+              {DESKTOP_NAV.flatMap((g) => g.items).find((i) => i.id === desktopTab)?.label}
+            </h2>
+          </>
+        )}
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3" style={isDesktop ? { display: "none" } : undefined}>
           <div className="flex items-center gap-2">
             <h2 id="settings-title" className="text-base font-semibold tracking-tight text-zinc-100">
               Settings
@@ -638,6 +746,7 @@ export function SettingsModal({
           </button>
         </div>
 
+        <div style={paneStyle("general")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="layout-controls-title">
           <div>
             <h3 id="layout-controls-title" className="text-sm font-semibold text-zinc-100">Layout & Startup</h3>
@@ -678,8 +787,10 @@ export function SettingsModal({
             </button>
           </div>
         </section>
+        </div>
 
         {/* Local play statistics */}
+        <div style={paneStyle("stats")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="stats-title">
           <div className="flex items-start gap-2">
             <div
@@ -779,6 +890,7 @@ export function SettingsModal({
             </p>
           </div>
         </section>
+        </div>
 
         {/* Mobile-only shortcuts, moved out of the footer on phones */}
         <section className="flex flex-col gap-2 border-t border-white/[0.08] pt-3 sm:hidden" aria-labelledby="classroom-tools-title">
@@ -814,6 +926,7 @@ export function SettingsModal({
         </section>
 
         {/* Security: Site Lock */}
+        <div style={paneStyle("security")}>
         <section
           aria-labelledby="site-lock-title"
           className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
@@ -965,8 +1078,10 @@ export function SettingsModal({
             </form>
           </div>
         </section>
+        </div>
 
         {/* Appearance: Background style */}
+        <div style={paneStyle("appearance")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="background-controls-title">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -1196,8 +1311,10 @@ export function SettingsModal({
             )}
           </div>
         </section>
+        </div>
 
         {/* Notifications: chat messages and new games */}
+        <div style={paneStyle("notifications")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="notifications-title">
           <div className="flex items-center gap-2">
             <div
@@ -1309,8 +1426,10 @@ export function SettingsModal({
               : "Alerts are sent once per new version of the site. Settings are stored on this device only."}
           </p>
         </section>
+        </div>
 
         {/* Notifications: ads */}
+        <div style={paneStyle("ads")}>
         <section
           aria-labelledby="ads-title"
           className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
@@ -1389,8 +1508,10 @@ export function SettingsModal({
             </div>
           )}
         </section>
+        </div>
 
         {/* Offline access: downloaded copy and schedule */}
+        <div style={paneStyle("offline")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="offline-title">
           <div className="flex items-start gap-2">
             <div
@@ -1564,8 +1685,10 @@ export function SettingsModal({
             </p>
           )}
         </section>
+        </div>
 
         {/* Appearance: browser tab */}
+        <div style={paneStyle("cloak")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="tab-cloak-title">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -1659,8 +1782,10 @@ export function SettingsModal({
             </div>
           </form>
         </section>
+        </div>
 
         {/* Safety: emergency redirect */}
+        <div style={paneStyle("panic")}>
         <section
           aria-labelledby="panic-title"
           className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
@@ -1760,8 +1885,10 @@ export function SettingsModal({
             </div>
           </div>
         </section>
+        </div>
 
         {/* About: change log */}
+        <div style={paneStyle("changelog")}>
         <section aria-label="Change log" className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-3">
           <p className="text-[10.5px] leading-relaxed text-zinc-500">
             See what changed in each site update.
@@ -1780,8 +1907,10 @@ export function SettingsModal({
             <span>View change log</span>
           </button>
         </section>
+        </div>
 
         {/* About: source code and proxy links */}
+        <div style={paneStyle("proxies")}>
         <section aria-label="Source code and proxies" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
@@ -1877,7 +2006,9 @@ export function SettingsModal({
           <p className="text-[10.5px] text-zinc-500" title={`Build ${LAST_UPDATED_ISO}`}>
             Last updated {formatLastUpdated()}
           </p>
-        </section>
+                </section>
+        </div>
+        </div>
       </div>
     </div>
   );

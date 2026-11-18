@@ -3,6 +3,7 @@ import { X, Send, AlertCircle, CheckCircle2, Loader2, Gamepad2 } from "lucide-re
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { submitGameRequest } from "@/lib/hubApi";
 import { CATEGORY_FILTERS } from "./GameCatalog";
+import { posthog } from "@/lib/posthog";
 
 interface GameSubmitModalProps {
   isOpen: boolean;
@@ -83,6 +84,9 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
         submittedBy: submittedBy.trim(),
         website,
         pageUrl: window.location.pathname || "/",
+      });
+      posthog.capture("game_submission_sent", {
+        category: category || "uncategorized",
       });
       setSuccess(true);
       resetForm();

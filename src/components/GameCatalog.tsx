@@ -14,6 +14,7 @@ import { PanicButton } from "./PanicButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { ONLINE_GAMES } from "@/data/onlineGames";
 import { HFMANOR_GAMES } from "@/data/hfmanorGames";
+import { posthog } from "@/lib/posthog";
 
 const RECENT_GAMES_KEY = "polytrack_recent_games";
 const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -1403,9 +1404,10 @@ export function GameCatalog({
       event.preventDefault();
       event.stopPropagation();
     }
+    const action = favoriteIds.has(id) ? "removed" : "added";
     setFavoriteIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
+      if (action === "removed") {
         next.delete(id);
       } else {
         next.add(id);
@@ -1415,7 +1417,8 @@ export function GameCatalog({
       } catch {}
       return next;
     });
-  }, []);
+    posthog.capture("game_favorite_toggled", { game_id: id, action });
+  }, [favoriteIds]);
   const searchRef = React.useRef<HTMLInputElement>(null);
 
   const markGamePlayed = React.useCallback((id: string) => {
@@ -1454,6 +1457,9 @@ export function GameCatalog({
           }));
 
           setGames((prev) => mergeCatalog(prev, loaded));
+          posthog.logger.info("catalog configuration loaded", {
+            configured_game_count: loaded.length,
+          });
         }
       })
       .catch(() => {});
@@ -1500,6 +1506,15 @@ export function GameCatalog({
   }, [dismissLauncher]);
 
   const handleGameClick = (game: GameItem) => {
+    const launchMode = isSameOriginGame(game.url) ? "in_hub" : "new_tab";
+    posthog.capture("game_started", {
+      game_id: game.id,
+      launch_mode: launchMode,
+    });
+    posthog.logger.info("game launch initiated", {
+      game_id: game.id,
+      launch_mode: launchMode,
+    });
     noteGamePlayed(game.id, game.name);
     markGamePlayed(game.id);
     setGames((current) =>
@@ -1864,7 +1879,13 @@ export function GameCatalog({
                     key={cat.id}
                     type="button"
                     aria-pressed={active}
-                    onClick={() => setSelectedCategory(cat.id)}
+                    onClick={() => {
+                      setSelectedCategory(cat.id);
+                      posthog.capture("catalog_filter_applied", {
+                        filter_type: "category",
+                        filter_value: cat.id,
+                      });
+                    }}
                     style={{
                       ...CHIP_STYLE,
                       borderRadius: 20,
@@ -1946,6 +1967,10 @@ export function GameCatalog({
                         aria-checked={active}
                         onClick={() => {
                           setSortOption(option.id);
+                          posthog.capture("catalog_filter_applied", {
+                            filter_type: "sort",
+                            filter_value: option.id,
+                          });
                           setFilterOpen(false);
                           filterButtonRef.current?.focus();
                         }}
@@ -1973,6 +1998,10 @@ export function GameCatalog({
                         aria-checked={active}
                         onClick={() => {
                           setSelectedCategory((current) => (current === tag.id ? "all" : tag.id));
+                          posthog.capture("catalog_filter_applied", {
+                            filter_type: "tag",
+                            filter_value: active ? "all" : tag.id,
+                          });
                           setFilterOpen(false);
                           filterButtonRef.current?.focus();
                         }}

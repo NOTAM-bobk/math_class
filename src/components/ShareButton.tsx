@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Check, Copy, Mail, Share2, X } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
+import { posthog } from "@/lib/posthog";
 
 type ShareState = "idle" | "copied" | "error";
 
@@ -56,6 +57,7 @@ export function ShareButton({ compact = false }: { compact?: boolean }) {
   const handleCopy = async () => {
     try {
       await copyText(url);
+      posthog.capture("share_completed", { method: "copy_link" });
       setState("copied");
     } catch {
       setState("error");
@@ -66,6 +68,7 @@ export function ShareButton({ compact = false }: { compact?: boolean }) {
     if (!canUseNativeShare) return;
     try {
       await navigator.share({ title: document.title, text: "Free browser games for study breaks", url });
+      posthog.capture("share_completed", { method: "native_share" });
       setIsOpen(false);
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) setState("error");

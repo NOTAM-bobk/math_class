@@ -6,6 +6,7 @@ import { isChatVerified } from "@/lib/turnstile";
 import { TurnstileGate } from "./TurnstileGate";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { formatChatText } from "@/lib/chatFormat";
+import { posthog } from "@/lib/posthog";
 
 export interface ChatMessage extends HubMessage {
   from: "user" | "assistant" | "system" | "racer";
@@ -303,6 +304,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
       lastSendAtRef.current = Date.now();
       sendTimesRef.current = [...sendTimesRef.current, Date.now()];
       const message = toChatMessage(saved, "user");
+      posthog.capture("chat_message_sent");
       persistSentMessage(message);
       setMessages((current) => mergeMessages(current, [message]));
       setInputText("");

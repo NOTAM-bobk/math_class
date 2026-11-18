@@ -12,6 +12,7 @@ import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { AdsNudgeModal } from "./components/AdsNudgeModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
+import { BotChallengeGate } from "./components/BotChallengeGate";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
 import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -28,6 +29,7 @@ import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
 import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
+import { hasPassedBotChallenge, startStartupBotCheck } from "./lib/botDetection";
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -271,6 +273,22 @@ export function App() {
     setTabCloakSettings(settings);
   };
 
+  // The on-device bot check starts while the glass reveal plays; a suspicious
+  // result raises the Cloudflare check once that loading screen is gone.
+  const [botChallengeRequired, setBotChallengeRequired] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    startStartupBotCheck().then((result) => {
+      if (!cancelled && result.suspected && !hasPassedBotChallenge()) {
+        setBotChallengeRequired(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [siteLockEnabled, setSiteLockEnabled] = React.useState(() => {
     return localStorage.getItem("polytrack_site_lock_enabled") === "true";
   });
@@ -371,6 +389,7 @@ export function App() {
     <BackgroundWrapper config={bgConfig}>
       {loadingRevealEnabled && showLoadReveal && <GlassReveal21st onComplete={() => setShowLoadReveal(false)} />}
       {isLocked && <SiteLock onUnlock={() => setIsUnlocked(true)} />}
+      {botChallengeRequired && <BotChallengeGate onVerified={() => setBotChallengeRequired(false)} />}
 
       <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
         <a

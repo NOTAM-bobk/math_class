@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T19:39:47.835Z",
-  "totalBytes": 347273127,
+  "generatedAt": "2026-11-18T19:50:33.621Z",
+  "totalBytes": 347273263,
   "files": [
     {
       "url": "/index.html",
@@ -13,15 +13,15 @@
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 60470
+      "bytes": 60614
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 903371
+      "bytes": 903367
     },
     {
       "url": "/home.bundle.js",
-      "bytes": 903371
+      "bytes": 903367
     },
     {
       "url": "/games/config.json",

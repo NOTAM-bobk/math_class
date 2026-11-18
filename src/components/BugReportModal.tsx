@@ -1,5 +1,6 @@
 import * as React from "react";
 import { X, Bug, AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
+import { useDialogFocus } from "@/lib/dialogFocus";
 
 interface BugReportModalProps {
   isOpen: boolean;
@@ -11,9 +12,6 @@ const CHIP_STYLE: React.CSSProperties = {
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
   const [title, setTitle] = React.useState("");
@@ -56,44 +54,14 @@ export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
     return () => clearInterval(interval);
   }, [rateLimitSeconds]);
 
-  // Trap focus and handle Escape
+  useDialogFocus({ active: isOpen, onClose, panelRef });
+
+  // Submitting replaces the form with a confirmation, so move focus there
+  // instead of leaving it on the button that just disappeared.
+  const successRef = React.useRef<HTMLHeadingElement>(null);
   React.useEffect(() => {
-    if (!isOpen) return;
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key !== "Tab" || !panelRef.current) return;
-
-      const items = Array.from(
-        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-      ).filter((element) => element.getClientRects().length > 0);
-      if (items.length === 0) return;
-
-      const first = items[0];
-      const last = items[items.length - 1];
-      const active = document.activeElement;
-
-      if (e.shiftKey && (active === first || active === panelRef.current)) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown, true);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
-      previouslyFocused?.focus?.();
-    };
-  }, [isOpen, onClose]);
+    if (success) successRef.current?.focus();
+  }, [success]);
 
   if (!isOpen) return null;
 
@@ -216,7 +184,7 @@ export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
             <div className="mb-3 rounded-full bg-emerald-500/10 p-3 text-emerald-400">
               <CheckCircle2 className="h-8 w-8" />
             </div>
-            <h3 className="text-base font-semibold text-zinc-100">Bug Report Submitted!</h3>
+            <h3 ref={successRef} tabIndex={-1} className="text-base font-semibold text-zinc-100 focus:outline-none">Bug Report Submitted!</h3>
             <p className="mt-1.5 text-xs text-zinc-400 max-w-sm">
               Thanks for reporting this issue. Your report has been saved and will be reviewed to keep games running smoothly.
             </p>
@@ -251,6 +219,7 @@ export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
               </label>
               <input
                 id="bug-game-url"
+                name="gameUrl"
                 type="text"
                 value={gameUrl}
                 onChange={(e) => setGameUrl(e.target.value)}
@@ -272,6 +241,7 @@ export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
               </label>
               <input
                 id="bug-title"
+                name="title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -296,6 +266,7 @@ export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
               </div>
               <textarea
                 id="bug-description"
+                name="description"
                 rows={3}
                 required
                 value={description}

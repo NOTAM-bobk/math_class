@@ -24,8 +24,17 @@ I haven't implemented buffer memory beaming yet
 Alongside the version archives this repository hosts the game hub in `src/` (React + esbuild). The hub is what has its own version number, release notes and settings.
 
 - Version: **v1.1.0** (see [`src/lib/changelog.ts`](src/lib/changelog.ts))
-- Build: `npm install` then `npm run build` — writes `dist/home.bundle.js`, which `index.html` loads (with the root `home.bundle.js` as a fallback).
+- Build: `npm install` then `npm run build` — writes `dist/styles.css` (prebuilt Tailwind) and `dist/home.bundle.js`, which `index.html` loads (with the root `home.bundle.js` as a fallback).
 - Settings live in the gear button in the top bar: Site Lock, background style, new game notifications, ad preference, tab cloaking, panic redirect, and the change log.
+
+## Backend auth
+
+Admin changes go through the Vercel functions in `api/`, which only accept requests when
+`ADMIN_PASSWORD` (or `ADMIN_SECRET` / `VERCEL_ADMIN_PASSWORD`) is set and matches. The
+Cloudflare Worker in `cf/` also accepts the proxy shortcut only when `HUB_INTERNAL_KEY`
+is set to the same value in both deployments. The Vercel functions send the shared admin
+password as well, so keep `ADMIN_PASSWORD` identical on both deployments. Set these as
+deployment environment variables, never in the repo.
 
 ## New game notifications
 
@@ -71,7 +80,7 @@ Recent releases:
 Ordered by impact for a classroom-facing game hub:
 
 1. **Search the catalog server-side.** `games/config.json` is fetched whole on every visit; past ~200 games the catalog should page or query an endpoint instead.
-2. **Cache the catalog and bundle.** `index.html` loads Tailwind and Fonts from CDNs, so a slow network leaves the hub unstyled; ship a built CSS file and system-font fallback.
+2. **Cache the catalog and fonts.** Tailwind is now built into `dist/styles.css`; the Geist stylesheet still comes from Google Fonts, so a slow network can leave the hub on its system-font fallback.
 3. **Per-game report dashboard.** Bug reports are collected but there is no view of them; the admin panel should list open reports per game and one-click toggle `error:bug`.
 4. **Real notification delivery.** The current alerts are local browser notifications and only appear while the site is open at least once per version; a Web Push backend would reach visitors who are not on the page.
 5. **Settings sync.** Site Lock, background, favorites and notification choices are per-device `localStorage`. An optional account would carry them across devices and make favorites meaningful on shared classroom machines.

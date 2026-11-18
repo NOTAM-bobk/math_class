@@ -1,5 +1,8 @@
 const WORKER_ORIGIN = "https://polytrack-hub-api.sawyerbobk563.workers.dev";
 
+// The Worker only trusts the proxy shortcut when this shared key matches.
+const internalKey = () => process.env.HUB_INTERNAL_KEY || "";
+
 // In-memory rate limiting map for Vercel instances
 const rateLimitMap = new Map();
 
@@ -128,6 +131,7 @@ module.exports = async function handler(req, res) {
       headers: {
         "Content-Type": "application/json",
         "X-Vercel-Admin-Verified": "1",
+        ...(internalKey() ? { "X-Hub-Internal-Key": internalKey() } : {}),
         "X-Admin-Password": givenPassword,
       },
       body: JSON.stringify(body),

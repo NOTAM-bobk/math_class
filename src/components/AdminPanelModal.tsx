@@ -28,6 +28,7 @@ import { loadNotMobileGameIds, saveNotMobileGameIds, onNotMobileGamesChange } fr
 import { loadBlockedGameIds, saveBlockedGameIds, onBlockedGamesChange } from "@/lib/blockedGames";
 import { loadGameFlags, updateAdminGameFlags, type GameFlagsData } from "@/lib/hubApi";
 import { Cloud, UploadCloud } from "lucide-react";
+import { useDialogFocus } from "@/lib/dialogFocus";
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -87,9 +88,6 @@ const CHIP_STYLE: React.CSSProperties = {
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [password, setPassword] = React.useState(() => {
@@ -276,44 +274,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     }
   }, [isOpen, password, isAuthenticated, fetchBugs]);
 
-  // Keyboard and focus management
-  React.useEffect(() => {
-    if (!isOpen) return;
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key !== "Tab" || !panelRef.current) return;
-
-      const items = Array.from(
-        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-      ).filter((element) => element.getClientRects().length > 0);
-      if (items.length === 0) return;
-
-      const first = items[0];
-      const last = items[items.length - 1];
-      const active = document.activeElement;
-
-      if (e.shiftKey && (active === first || active === panelRef.current)) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown, true);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
-      previouslyFocused?.focus?.();
-    };
-  }, [isOpen, onClose]);
+  useDialogFocus({ active: isOpen, onClose, panelRef });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -763,6 +724,9 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
             <div className="relative">
               <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
               <input
+                id="admin-password"
+                name="adminPassword"
+                aria-label="Admin password"
                 type={showPassword ? "text" : "password"}
                 autoFocus
                 value={password}
@@ -782,9 +746,10 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-zinc-500 hover:text-zinc-300 cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff aria-hidden="true" className="w-4 h-4" /> : <Eye aria-hidden="true" className="w-4 h-4" />}
               </button>
             </div>
 
@@ -835,7 +800,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 type="button"
                 onClick={() => setAdminTab("verified")}
                 style={CHIP_STYLE}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                   adminTab === "verified"
                     ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
                     : "text-zinc-400 hover:text-white"
@@ -853,7 +818,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 type="button"
                 onClick={() => setAdminTab("tags")}
                 style={CHIP_STYLE}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                   adminTab === "tags"
                     ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm"
                     : "text-zinc-400 hover:text-white"
@@ -871,7 +836,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 type="button"
                 onClick={() => setAdminTab("blocked")}
                 style={CHIP_STYLE}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                   adminTab === "blocked"
                     ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
                     : "text-zinc-400 hover:text-white"
@@ -889,7 +854,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 type="button"
                 onClick={() => setAdminTab("mobile")}
                 style={CHIP_STYLE}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                   adminTab === "mobile"
                     ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
                     : "text-zinc-400 hover:text-white"
@@ -907,7 +872,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 type="button"
                 onClick={() => setAdminTab("bugs")}
                 style={CHIP_STYLE}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                   adminTab === "bugs"
                     ? "bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm"
                     : "text-zinc-400 hover:text-white"
@@ -925,7 +890,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 type="button"
                 onClick={() => setAdminTab("submissions")}
                 style={CHIP_STYLE}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                   adminTab === "submissions"
                     ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
                     : "text-zinc-400 hover:text-white"
@@ -1541,7 +1506,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                               ? "inset 0 0 0 1px rgba(168, 85, 247, 0.3)"
                               : "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
                           }}
-                          className="flex items-center justify-between gap-3 p-2.5 transition-all hover:bg-white/[0.04]"
+                          className="flex items-center justify-between gap-3 p-2.5 transition hover:bg-white/[0.04]"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div
@@ -1674,7 +1639,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                             background: "rgba(255, 255, 255, 0.03)",
                             boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
                           }}
-                          className="p-3.5 flex flex-col gap-2 transition-all hover:bg-white/[0.04]"
+                          className="p-3.5 flex flex-col gap-2 transition hover:bg-white/[0.04]"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2 flex-wrap min-w-0">
@@ -1783,7 +1748,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                             background: "rgba(255, 255, 255, 0.03)",
                             boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
                           }}
-                          className="flex flex-col gap-2 p-3.5 transition-all hover:bg-white/[0.04]"
+                          className="flex flex-col gap-2 p-3.5 transition hover:bg-white/[0.04]"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex min-w-0 flex-wrap items-center gap-2">

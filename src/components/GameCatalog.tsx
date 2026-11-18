@@ -8,6 +8,7 @@ import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandom
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 import { BidvertiserAd } from "./BidvertiserAd";
+import { useDialogFocus } from "@/lib/dialogFocus";
 import { ONLINE_GAMES } from "@/data/onlineGames";
 import { HFMANOR_GAMES } from "@/data/hfmanorGames";
 
@@ -833,6 +834,7 @@ function HighlightText({ text, query }: { text: string; query: string }) {
 function VerifiedBadge() {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLSpanElement>(null);
+  const tipId = React.useId();
 
   React.useEffect(() => {
     if (!open) return;
@@ -859,6 +861,7 @@ function VerifiedBadge() {
         type="button"
         aria-label="Verified game — what does this mean?"
         aria-expanded={open}
+        aria-describedby={open ? tipId : undefined}
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -879,6 +882,7 @@ function VerifiedBadge() {
       </button>
       {open && (
         <span
+          id={tipId}
           role="tooltip"
           className="absolute left-1/2 top-full z-30 mt-1.5 w-40 -translate-x-1/2 rounded-lg border border-white/10 bg-[#1c1c1e] px-2 py-1.5 text-[10.5px] font-normal leading-snug text-zinc-300 shadow-[0_8px_24px_rgba(0,0,0,0.6)] sm:w-44"
         >
@@ -928,7 +932,7 @@ function GameCard({
         <div className="mb-1.5 flex items-start justify-between gap-2 sm:mb-2">
           <h4 className="flex min-w-0 flex-wrap items-center gap-2 text-base font-semibold text-zinc-100">
             {game.disabled ? (
-              <span className="truncate">
+              <span className="line-clamp-2" title={game.name}>
                 <HighlightText text={game.name} query={searchQuery} />
               </span>
             ) : (
@@ -937,7 +941,8 @@ function GameCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(event) => onPlay(game, event)}
-                className="game-card-link min-w-0 truncate transition-colors group-hover:text-white"
+                title={game.name}
+                className="game-card-link min-w-0 line-clamp-2 transition-colors group-hover:text-white"
               >
                 <HighlightText text={game.name} query={searchQuery} />
                 <span className="sr-only"> {opensInHub ? "(opens in the hub)" : "(opens in a new tab)"}</span>
@@ -1036,7 +1041,7 @@ function GameCard({
               onPointerDown={(e) => e.stopPropagation()}
               aria-label={isFavorite ? `Remove ${game.name} from favorites` : `Add ${game.name} to favorites`}
               title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              className="relative z-20 group/fav inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-all hover:bg-white/[0.12] hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 active:scale-90"
+              className="relative z-20 group/fav inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.12] hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 active:scale-90"
             >
               <Star
                 aria-hidden="true"
@@ -1107,12 +1112,14 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const [sortOption, setSortOption] = React.useState<SortOption>(initialSortOption);
   const [filterOpen, setFilterOpen] = React.useState(false);
   const filterRef = React.useRef<HTMLDivElement>(null);
+  const filterMenuRef = React.useRef<HTMLDivElement>(null);
+  const filterButtonRef = React.useRef<HTMLButtonElement>(null);
   const [launcherGame, setLauncherGame] = React.useState<GameItem | null>(null);
   const [launcherNonce, setLauncherNonce] = React.useState(0);
   const [launcherLoaded, setLauncherLoaded] = React.useState(false);
   const [launcherSlow, setLauncherSlow] = React.useState(false);
+  const launcherPanelRef = React.useRef<HTMLDivElement>(null);
   const launcherBackRef = React.useRef<HTMLButtonElement>(null);
-  const launcherReturnFocusRef = React.useRef<HTMLElement | null>(null);
   const [popularGameIds, setPopularGameIds] = React.useState<Set<string>>(() => new Set());
   const [recentIds, setRecentIds] = React.useState<Set<string>>(
     () => new Set(loadRecentGames().map((entry) => entry.id))
@@ -1198,7 +1205,9 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   }, []);
 
   React.useEffect(() => {
-    fetch("/games/config.json", { cache: "no-store" })
+    // The response carries s-maxage/stale-while-revalidate headers, so let the
+    // browser and CDN reuse it instead of forcing a full download every visit.
+    fetch("/games/config.json")
       .then((res) => {
         if (!res.ok) throw new Error("Config not found");
         return res.json();
@@ -1245,7 +1254,6 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   }, []);
 
   const openLauncher = React.useCallback((game: GameItem) => {
-    launcherReturnFocusRef.current = document.activeElement as HTMLElement | null;
     setLauncherGame(game);
     setLauncherNonce((value) => value + 1);
     setLauncherLoaded(false);
@@ -1255,7 +1263,6 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const dismissLauncher = React.useCallback(() => {
     setLauncherGame(null);
     setLauncherSlow(false);
-    launcherReturnFocusRef.current?.focus?.();
   }, []);
 
   const closeLauncher = React.useCallback(() => {
@@ -1303,21 +1310,22 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
 
   // The in-page launcher stays open while the game runs; Escape or the return
   // bar closes it, and only then is the play session finalized.
+  useDialogFocus({
+    active: !!launcherGame,
+    onClose: closeLauncher,
+    panelRef: launcherPanelRef,
+    initialFocusRef: launcherBackRef,
+  });
+
   React.useEffect(() => {
     if (!launcherGame) return;
     document.documentElement.dataset.gameLauncher = "open";
-    launcherBackRef.current?.focus();
     const slowTimer = window.setTimeout(() => setLauncherSlow(true), 8000);
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeLauncher();
-    };
-    document.addEventListener("keydown", handleKeyDown);
     return () => {
       delete document.documentElement.dataset.gameLauncher;
       window.clearTimeout(slowTimer);
-      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [launcherGame, launcherNonce, closeLauncher]);
+  }, [launcherGame, launcherNonce]);
 
   // Keep search and category filter in the URL so filtered views can be shared or bookmarked.
   React.useEffect(() => {
@@ -1337,6 +1345,30 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }, [searchQuery, selectedCategory, sortOption]);
 
+  // A menu opens onto its first item and responds to the arrow keys, Home,
+  // End and Escape, matching the role="menu" semantics it announces.
+  React.useEffect(() => {
+    if (!filterOpen) return;
+    filterMenuRef.current?.querySelector<HTMLElement>('[role^="menuitem"]')?.focus();
+  }, [filterOpen]);
+
+  const handleFilterMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Home" && event.key !== "End") {
+      return;
+    }
+    const items = Array.from(
+      filterMenuRef.current?.querySelectorAll<HTMLElement>('[role^="menuitem"]') ?? []
+    );
+    if (items.length === 0) return;
+    event.preventDefault();
+    const current = items.indexOf(document.activeElement as HTMLElement);
+    if (event.key === "Home") return items[0].focus();
+    if (event.key === "End") return items[items.length - 1].focus();
+    const step = event.key === "ArrowDown" ? 1 : -1;
+    const next = current === -1 ? 0 : (current + step + items.length) % items.length;
+    items[next].focus();
+  };
+
   React.useEffect(() => {
     if (!filterOpen) return;
     const closeOnOutsideClick = (event: PointerEvent) => {
@@ -1347,6 +1379,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setFilterOpen(false);
+        filterButtonRef.current?.focus();
       }
     };
     document.addEventListener("pointerdown", closeOnOutsideClick);
@@ -1590,7 +1623,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <div className="relative min-w-0 flex-1">
             <div
-              role="tablist"
+              role="group"
               aria-label="Filter games by category"
               className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pt-0.5 pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
@@ -1600,8 +1633,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   <button
                     key={cat.id}
                     type="button"
-                    role="tab"
-                    aria-selected={active}
+                    aria-pressed={active}
                     onClick={() => setSelectedCategory(cat.id)}
                     style={{
                       ...CHIP_STYLE,
@@ -1613,7 +1645,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                         ? "0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
                         : "inset 0 0 0 1px rgba(255, 255, 255, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
                     }}
-                    className="inline-flex shrink-0 items-center gap-1 px-3 py-1 text-[11px] transition-all hover:text-white active:scale-95"
+                    className="inline-flex shrink-0 items-center gap-1 px-3 py-1 text-[11px] transition hover:text-white active:scale-95"
                   >
                     <span>{cat.label}</span>
                     {cat.id === "favorites" && favoriteIds.size > 0 && (
@@ -1632,6 +1664,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
 
             <div className="relative shrink-0" ref={filterRef}>
               <button
+                ref={filterButtonRef}
                 type="button"
                 aria-haspopup="menu"
                 aria-expanded={filterOpen}
@@ -1657,8 +1690,10 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
               </button>
               {filterOpen && (
                 <div
+                  ref={filterMenuRef}
                   role="menu"
                   aria-label="Sort and filter games"
+                  onKeyDown={handleFilterMenuKeyDown}
                   className="absolute right-0 top-full z-30 mt-2 min-w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1d1d1d] p-1.5 shadow-2xl"
                 >
                   <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
@@ -1675,6 +1710,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                         onClick={() => {
                           setSortOption(option.id);
                           setFilterOpen(false);
+                          filterButtonRef.current?.focus();
                         }}
                         className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs text-zinc-200 transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                       >
@@ -1701,6 +1737,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                         onClick={() => {
                           setSelectedCategory((current) => (current === tag.id ? "all" : tag.id));
                           setFilterOpen(false);
+                          filterButtonRef.current?.focus();
                         }}
                         className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${
                           active ? "text-amber-300 font-medium" : "text-zinc-200"
@@ -1745,13 +1782,13 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
               }}
               className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5"
             >
-              <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-600">
+              <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
                 Ad
               </span>
               <BidvertiserAd slot="catalog" className="flex items-center justify-center" />
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
-                className="shrink-0 text-[10px] text-zinc-600 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
+                className="shrink-0 text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
               >
                 Advertise
               </a>
@@ -1761,7 +1798,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
           {!isFiltered && recentGameItems.length > 0 && (
             <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">
               <div className="flex items-center gap-2">
-                <h3 id="catalog-recent-heading" className="text-[11px] font-medium text-zinc-400">Recently played</h3>
+                <h3 id="catalog-recent-heading" className="text-xs font-semibold text-zinc-200">Recently played</h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
               </div>
               <div className="relative">
@@ -1784,12 +1821,15 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
           {playableGames.length > 0 && (
             <section aria-labelledby="catalog-play-heading" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
-                <h3 id="catalog-play-heading" className="text-[11px] font-medium text-zinc-400">
+                <h3 id="catalog-play-heading" className="text-xs font-semibold text-zinc-200">
                   {isFiltered ? "Filtered matches" : "Play now"}
                 </h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                <span className="text-[11px] tabular-nums text-zinc-500">{playableGames.length}</span>
+                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                  {playableGames.length}
+                </span>
               </div>
+              <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
               {sortedPlayableGames.map((game) => (
                 <GameCard
                   key={game.id}
@@ -1807,18 +1847,22 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   onToggleFavorite={toggleFavorite}
                 />
               ))}
+              </div>
             </section>
           )}
 
           {comingSoonGames.length > 0 && (
             <section aria-labelledby="catalog-soon-heading" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
-                <h3 id="catalog-soon-heading" className="text-[11px] font-medium text-zinc-400">
+                <h3 id="catalog-soon-heading" className="text-xs font-semibold text-zinc-200">
                   Coming soon
                 </h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                <span className="text-[11px] tabular-nums text-zinc-500">{comingSoonGames.length}</span>
+                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                  {comingSoonGames.length}
+                </span>
               </div>
+              <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
               {comingSoonGames.map((game) => (
                 <GameCard
                   key={game.id}
@@ -1836,6 +1880,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                   onToggleFavorite={toggleFavorite}
                 />
               ))}
+              </div>
             </section>
           )}
 
@@ -1880,6 +1925,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
       {launcherGame && typeof document !== "undefined"
         ? createPortal(
             <div
+              ref={launcherPanelRef}
               className="fixed inset-0 z-[60] flex flex-col bg-[#09090b]"
               role="dialog"
               aria-modal="true"

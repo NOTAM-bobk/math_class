@@ -1,5 +1,6 @@
 import * as React from "react";
 import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText } from "lucide-react";
+import { useDialogFocus } from "@/lib/dialogFocus";
 import {
   BACKGROUND_PRESETS,
   loadBackgroundConfig,
@@ -143,9 +144,6 @@ const DESKTOP_LIGHT_CSS = `
 .sm-desk section{border-top:none!important;padding-top:0!important}
 }
 `;
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -328,45 +326,7 @@ export function SettingsModal({
     };
   }, [isOpen]);
 
-  // Dialog behaviour: move focus in, keep it inside, close on Escape, hand focus back on close.
-  React.useEffect(() => {
-    if (!isOpen) return;
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab" || !panelRef.current) return;
-
-      const items = Array.from(
-        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-      ).filter((element) => element.getClientRects().length > 0);
-      if (items.length === 0) return;
-
-      const first = items[0];
-      const last = items[items.length - 1];
-      const active = document.activeElement;
-
-      if (event.shiftKey && (active === first || active === panelRef.current)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown, true);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
-      previouslyFocused?.focus?.();
-    };
-  }, [isOpen, onClose]);
+  useDialogFocus({ active: isOpen, onClose, panelRef });
 
   if (!isOpen) return null;
 
@@ -993,6 +953,7 @@ export function SettingsModal({
                   />
                   <input
                     id="site-lock-password"
+                    name="classroomPassword"
                     type={showPassword ? "text" : "password"}
                     value={passwordInput}
                     onChange={(e) => {
@@ -1115,7 +1076,7 @@ export function SettingsModal({
               <button
                 type="button"
                 onClick={() => setBgTab("shader")}
-                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition cursor-pointer ${
                   bgTab === "shader"
                     ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
@@ -1126,7 +1087,7 @@ export function SettingsModal({
               <button
                 type="button"
                 onClick={() => setBgTab("solid")}
-                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition cursor-pointer ${
                   bgTab === "solid"
                     ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
@@ -1137,7 +1098,7 @@ export function SettingsModal({
               <button
                 type="button"
                 onClick={() => setBgTab("gradient")}
-                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition cursor-pointer ${
                   bgTab === "gradient"
                     ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
@@ -1157,7 +1118,7 @@ export function SettingsModal({
                       key={preset.id}
                       type="button"
                       onClick={() => handleSelectPreset(preset)}
-                      className={`flex items-center justify-between gap-3 rounded-xl p-2.5 text-left transition-all cursor-pointer ${
+                      className={`flex items-center justify-between gap-3 rounded-xl p-2.5 text-left transition cursor-pointer ${
                         isSelected
                           ? "bg-white/[0.09] ring-2 ring-emerald-400/80 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
                           : "bg-white/[0.03] ring-1 ring-white/[0.06] hover:bg-white/[0.06]"
@@ -1205,7 +1166,7 @@ export function SettingsModal({
                         key={preset.id}
                         type="button"
                         onClick={() => handleSelectPreset(preset)}
-                        className={`flex items-center gap-2.5 rounded-xl p-2 text-left transition-all cursor-pointer ${
+                        className={`flex items-center gap-2.5 rounded-xl p-2 text-left transition cursor-pointer ${
                           isSelected
                             ? "bg-white/[0.1] ring-2 ring-emerald-400/80 shadow-[0_2px_10px_rgba(0,0,0,0.5)]"
                             : "bg-white/[0.03] ring-1 ring-white/[0.06] hover:bg-white/[0.06]"
@@ -1272,7 +1233,7 @@ export function SettingsModal({
                       key={preset.id}
                       type="button"
                       onClick={() => handleSelectPreset(preset)}
-                      className={`flex flex-col gap-1.5 rounded-xl p-2 text-left transition-all cursor-pointer ${
+                      className={`flex flex-col gap-1.5 rounded-xl p-2 text-left transition cursor-pointer ${
                         isSelected
                           ? "bg-white/[0.1] ring-2 ring-emerald-400/80 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
                           : "bg-white/[0.03] ring-1 ring-white/[0.06] hover:bg-white/[0.06]"
@@ -1986,7 +1947,7 @@ export function SettingsModal({
                     ? `${SITE_MIRRORS.filter((mirror) => proxyStatus[mirror.url] === "reachable").length} reachable · ${SITE_MIRRORS.filter((mirror) => proxyStatus[mirror.url] === "blocked").length} blocked`
                     : "Scroll here to check the proxies from this network."}
               </p>
-              <p className="text-[10px] leading-relaxed text-zinc-600">
+              <p className="text-[10px] leading-relaxed text-zinc-500">
                 The check loads each proxy in a hidden frame. “Blocked” means the frame did not load, so a filter can
                 also be the cause.
               </p>

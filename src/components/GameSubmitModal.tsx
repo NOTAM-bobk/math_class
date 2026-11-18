@@ -1,5 +1,6 @@
 import * as React from "react";
 import { X, Send, AlertCircle, CheckCircle2, Loader2, Gamepad2 } from "lucide-react";
+import { useDialogFocus } from "@/lib/dialogFocus";
 import { submitGameRequest } from "@/lib/hubApi";
 import { CATEGORY_FILTERS } from "./GameCatalog";
 
@@ -20,9 +21,6 @@ const FIELD_STYLE: React.CSSProperties = {
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
 };
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
-
 const SUBMISSION_CATEGORIES = CATEGORY_FILTERS.filter(
   (category) => !["all", "favorites", "editors", "trending", "buggy", "blocked"].includes(category.id)
 );
@@ -39,44 +37,14 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
   const [success, setSuccess] = React.useState(false);
 
   const panelRef = React.useRef<HTMLDivElement>(null);
+  useDialogFocus({ active: isOpen, onClose, panelRef });
 
+  // Submitting replaces the form with a confirmation, so move focus there
+  // instead of leaving it on the button that just disappeared.
+  const successRef = React.useRef<HTMLHeadingElement>(null);
   React.useEffect(() => {
-    if (!isOpen) return;
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab" || !panelRef.current) return;
-
-      const items = Array.from(
-        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-      ).filter((element) => element.getClientRects().length > 0);
-      if (items.length === 0) return;
-
-      const first = items[0];
-      const last = items[items.length - 1];
-      const active = document.activeElement;
-
-      if (event.shiftKey && (active === first || active === panelRef.current)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown, true);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
-      previouslyFocused?.focus?.();
-    };
-  }, [isOpen, onClose]);
+    if (success) successRef.current?.focus();
+  }, [success]);
 
   if (!isOpen) return null;
 
@@ -186,7 +154,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
             <div className="mb-3 rounded-full bg-emerald-500/10 p-3 text-emerald-400">
               <CheckCircle2 className="h-8 w-8" />
             </div>
-            <h3 className="text-base font-semibold text-zinc-100">Game request sent!</h3>
+            <h3 ref={successRef} tabIndex={-1} className="text-base font-semibold text-zinc-100 focus:outline-none">Game request sent!</h3>
             <p className="mt-1.5 max-w-sm text-xs text-zinc-400">
               Thanks — an admin will review the game and add it to the catalog if it fits.
             </p>
@@ -217,6 +185,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
                 </label>
                 <input
                   id="submit-game-name"
+                  name="name"
                   type="text"
                   required
                   value={name}
@@ -238,6 +207,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
                 </label>
                 <select
                   id="submit-game-category"
+                  name="category"
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
                   style={FIELD_STYLE}
@@ -259,6 +229,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
               </label>
               <input
                 id="submit-game-url"
+                name="url"
                 type="text"
                 required
                 inputMode="url"
@@ -285,6 +256,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
               </div>
               <textarea
                 id="submit-game-notes"
+                name="description"
                 rows={3}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -297,10 +269,11 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="submit-game-author" className="text-[11px] font-medium text-zinc-400">
-                Your name <span className="text-zinc-600">(optional)</span>
+                Your name <span className="text-zinc-500">(optional)</span>
               </label>
               <input
                 id="submit-game-author"
+                name="submittedBy"
                 type="text"
                 value={submittedBy}
                 onChange={(event) => setSubmittedBy(event.target.value)}
@@ -317,6 +290,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
               <label htmlFor="submit-game-website">Website</label>
               <input
                 id="submit-game-website"
+                name="website"
                 type="text"
                 tabIndex={-1}
                 autoComplete="off"

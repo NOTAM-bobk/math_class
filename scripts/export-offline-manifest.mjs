@@ -1,6 +1,6 @@
 // Builds offline-manifest.json: the files Settings downloads for offline use.
-// Same-origin files are counted by size so the page can show real progress;
-// the CDN stylesheets and script are listed too, since the hub is styled by them.
+// Same-origin files are counted by size so the page can show real progress.
+// The font stylesheet is still remote; the hub's own CSS is same-origin.
 import fs from "node:fs";
 import path from "node:path";
 
@@ -40,6 +40,7 @@ function walk(relativeDir) {
 for (const file of [
   "index.html",
   "manifest.json",
+  "dist/styles.css",
   "dist/home.bundle.js",
   "home.bundle.js",
   "games/config.json",
@@ -56,7 +57,6 @@ for (const directory of ["0.5.0", "0.3.1", "outside", "ai", "terms", "submit", "
 }
 
 const remoteFiles = [
-  "https://cdn.tailwindcss.com",
   "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
 ];
 

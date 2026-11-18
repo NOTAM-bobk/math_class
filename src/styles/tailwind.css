@@ -1,0 +1,4 @@
+/* Built to dist/styles.css by `npm run build:css`; index.html links the result. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

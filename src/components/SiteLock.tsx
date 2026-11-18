@@ -87,6 +87,7 @@ export function SiteLock({ onUnlock }: SiteLockProps) {
             />
             <input
               id="class-password"
+              name="classroomPassword"
               ref={inputRef}
               type={showPlain ? "text" : "password"}
               autoFocus
@@ -96,7 +97,7 @@ export function SiteLock({ onUnlock }: SiteLockProps) {
                 if (error) setError("");
               }}
               placeholder="Enter password…"
-              autoComplete="off"
+              autoComplete="current-password"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
@@ -136,7 +137,7 @@ export function SiteLock({ onUnlock }: SiteLockProps) {
 
           <button
             type="submit"
-            className="w-full py-2.5 px-4 rounded-full text-xs font-semibold text-zinc-950 bg-white hover:bg-zinc-100 active:scale-[0.98] transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 mt-1"
+            className="w-full py-2.5 px-4 rounded-full text-xs font-semibold text-zinc-950 bg-white hover:bg-zinc-100 active:scale-[0.98] transition shadow-md cursor-pointer flex items-center justify-center gap-2 mt-1"
           >
             <Lock aria-hidden="true" className="w-3.5 h-3.5" />
             <span>Access class</span>

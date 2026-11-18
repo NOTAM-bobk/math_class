@@ -10,10 +10,11 @@ import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
 import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
+import { AdsNudgeModal } from "./components/AdsNudgeModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
-import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X, BellOff } from "lucide-react";
+import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
   backgroundIsLight,
@@ -332,14 +333,18 @@ export function App() {
               fontFamily: "system-ui, -apple-system, sans-serif",
             }}
           >
-            <a href="/" className="order-1 hidden shrink-0 items-center gap-2 group sm:flex">
+            <a
+              href="/"
+              aria-label="math_games home"
+              className={`order-1 ${navCollapsed ? "flex" : "hidden"} shrink-0 items-center gap-2 group sm:flex`}
+            >
               <span
                 style={{
                   borderRadius: 36,
                   background: "rgba(255, 255, 255, 0.06)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
                 }}
-                className="px-3 py-1 text-xs font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white whitespace-nowrap"
+                className="whitespace-nowrap px-2 py-1 font-mono text-[10.5px] font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white sm:px-3 sm:text-[11.5px]"
               >
                 math_games
               </span>
@@ -353,6 +358,7 @@ export function App() {
                 id="site-nav-links"
                 ref={navLinksRef}
                 aria-hidden={navCollapsed}
+                inert={navCollapsed}
                 className="flex min-w-0 items-center gap-1 overflow-hidden transition-[max-width,opacity,transform] duration-300 ease-in-out sm:gap-1.5"
                 style={{
                   maxWidth: navCollapsed ? 0 : navLinksWidth > 0 ? `${navLinksWidth}px` : "1000px",
@@ -408,7 +414,7 @@ export function App() {
 
         {installNoticeVisible && (
           <div className="fixed right-3 top-3 z-50 flex max-w-[min(24rem,calc(100vw-1.5rem))] items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 pr-2.5 text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300" role="status">
-            <p className="text-xs leading-relaxed">Add to home for this site to act like app, and get more advanced features!</p>
+            <p className="text-xs leading-relaxed">Add math_games to your home screen to use it like an app and unlock the advanced features.</p>
             <button type="button" aria-label="Close install notice" onClick={() => {
               setInstallNoticeVisible(false);
               try {
@@ -580,12 +586,21 @@ export function App() {
         }}
         onClose={() => setSettingsOpen(false)}
         onLockNow={() => setIsUnlocked(false)}
-        onReportBug={() => setBugModalOpen(true)}
-        onOpenAdmin={() => setAdminModalOpen(true)}
+        onReportBug={() => {
+          setSettingsOpen(false);
+          setBugModalOpen(true);
+        }}
+        onOpenAdmin={() => {
+          setSettingsOpen(false);
+          setAdminModalOpen(true);
+        }}
         onConfigChange={handleConfigChange}
         tabCloakSettings={tabCloakSettings}
         onTabCloakChange={handleTabCloakChange}
-        onOpenChangelog={() => setChangelogOpen(true)}
+        onOpenChangelog={() => {
+          setSettingsOpen(false);
+          setChangelogOpen(true);
+        }}
         adSpotEnabled={adSpotEnabled}
         onAdSpotChange={handleAdSpotChange}
         onAdsBlockedChange={setAdsBlocked}
@@ -614,56 +629,16 @@ export function App() {
         onClose={() => setAdminModalOpen(false)}
       />
 
-      {adsNudgeOpen && (
-        <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) setAdsNudgeOpen(false);
-          }}
-        >
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ads-nudge-title"
-            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#1d1d1d] p-5 text-zinc-100 shadow-[0_24px_60px_rgba(0,0,0,0.7)]"
-          >
-            <div className="flex items-start gap-3">
-              <span className="rounded-full bg-amber-500/10 p-2 text-amber-300">
-                <BellOff aria-hidden="true" className="h-5 w-5" />
-              </span>
-              <div>
-                <h2 id="ads-nudge-title" className="text-base font-semibold">
-                  Dont like the ads??? turn them off
-                </h2>
-                <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-                  You can turn off every ad on the site for this browser anytime in Settings.
-                </p>
-              </div>
-            </div>
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setAdsNudgeOpen(false)}
-                className="rounded-lg px-3 py-2 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100"
-              >
-                Maybe later
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setNotificationAdsBlocked(true);
-                  setAdsBlocked(true);
-                  setAdsNudgeOpen(false);
-                  window.location.reload();
-                }}
-                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100"
-              >
-                Turn off ads
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      <AdsNudgeModal
+        isOpen={adsNudgeOpen}
+        onClose={() => setAdsNudgeOpen(false)}
+        onTurnOffAds={() => {
+          setNotificationAdsBlocked(true);
+          setAdsBlocked(true);
+          setAdsNudgeOpen(false);
+          window.location.reload();
+        }}
+      />
 
       <FeatureTooltips />
     </BackgroundWrapper>

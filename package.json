@@ -2,7 +2,8 @@
   "name": "polytrack-hub",
   "version": "1.0.0",
   "scripts": {
-    "build": "node scripts/export-catalog.mjs && node scripts/export-offline-manifest.mjs && esbuild src/index.tsx --bundle --minify --alias:@=./src --outfile=dist/home.bundle.js",
+    "build": "npm run build:css && node scripts/export-catalog.mjs && node scripts/export-offline-manifest.mjs && esbuild src/index.tsx --bundle --minify --alias:@=./src --outfile=dist/home.bundle.js",
+    "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./dist/styles.css --minify",
     "build:catalog": "node scripts/export-catalog.mjs",
     "build:offline-manifest": "node scripts/export-offline-manifest.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,6 +19,7 @@
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "tailwindcss": "^3.4.19"
   }
 }

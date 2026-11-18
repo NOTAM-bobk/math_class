@@ -350,7 +350,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
           <div style={CHIP_STYLE} className="p-1.5 text-zinc-300">
             <Radio aria-hidden="true" className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-semibold text-zinc-200">Chat</span>
+          <h2 className="text-xs font-semibold text-zinc-200">Chat</h2>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -389,7 +389,12 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-3 scroll-smooth [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent]"
+          role="log"
+          aria-live="polite"
+          aria-relevant="additions"
+          aria-label="Chat messages"
+          tabIndex={0}
+          className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-3 scroll-smooth focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-white [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent]"
           style={{
             WebkitOverflowScrolling: "touch",
           }}
@@ -398,7 +403,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <Sparkles className="w-6 h-6 text-zinc-600 mb-2" />
               <p className="text-xs font-medium text-zinc-400">No messages yet</p>
-              <p className="text-[11px] text-zinc-600 mt-1 max-w-[180px]">
+              <p className="text-[11px] text-zinc-400 mt-1 max-w-[180px]">
                 Say hi or share your best PolyTrack times with fellow racers!
               </p>
             </div>
@@ -417,7 +422,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
                 type="button"
                 onClick={loadOlderMessages}
                 style={CHIP_STYLE}
-                className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                className="inline-flex min-h-6 cursor-pointer items-center gap-1.5 px-3 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
               >
                 <ArrowDown aria-hidden="true" className="h-3 w-3 rotate-180" />
                 <span>Load older messages</span>
@@ -430,7 +435,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
             return (
               <div
                 key={message.id}
-                className={`flex flex-col transition-all duration-200 ${
+                className={`flex flex-col transition duration-200 ${
                   isUser ? "items-end" : "items-start"
                 }`}
               >
@@ -444,7 +449,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
                 </div>
 
                 <div
-                  className={`max-w-[88%] px-3 py-2 text-xs leading-relaxed break-words shadow-sm transition-all ${
+                  className={`max-w-[88%] px-3 py-2 text-xs leading-relaxed break-words shadow-sm transition ${
                     isUser
                       ? "bg-white text-zinc-950 rounded-2xl rounded-tr-xs font-medium shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
                       : "text-[#d4d4d8] rounded-2xl rounded-tl-xs"
@@ -472,7 +477,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
           <button
             type="button"
             onClick={() => scrollToBottom(true)}
-            className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/95 hover:bg-zinc-700 text-white border border-white/10 text-xs font-semibold shadow-lg backdrop-blur-md transition-all active:scale-95 cursor-pointer z-10 animate-in fade-in zoom-in-90 duration-150"
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/95 hover:bg-zinc-700 text-white border border-white/10 text-xs font-semibold shadow-lg backdrop-blur-md transition active:scale-95 cursor-pointer z-10 animate-in fade-in zoom-in-90 duration-150"
           >
             <ArrowDown className="w-3.5 h-3.5 text-amber-300 animate-bounce" />
             <span>Latest messages</span>
@@ -487,7 +492,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
 
       {error && (
         <div
-          role="status"
+          role="alert"
           className="mx-2.5 mb-1.5 flex items-center gap-2 rounded-xl bg-amber-500/10 px-2.5 py-2 text-[11px] text-amber-200 sm:mx-3"
         >
           <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
@@ -510,7 +515,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
           className={`shrink-0 border-t border-white/[0.04] px-3 py-1 ${adVisible ? "" : "hidden"}`}
         >
           <div className="flex items-center justify-center gap-2 overflow-hidden">
-            <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+            <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.14em] text-zinc-400">
               Ad
             </span>
             <BidvertiserAd slot="chat" className="flex items-center justify-center" />
@@ -526,7 +531,8 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
               key={emoji}
               type="button"
               onClick={() => handleReactionClick(emoji)}
-              className="px-2 py-0.5 text-xs rounded-full hover:bg-white/[0.08] active:scale-90 transition-transform cursor-pointer"
+              aria-label={`Add ${emoji} reaction`}
+              className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-xs transition-transform hover:bg-white/[0.08] active:scale-90 cursor-pointer"
               title={`Add ${emoji}`}
             >
               {emoji}
@@ -548,6 +554,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
         </label>
         <input
           id="chat-name"
+          name="nickname"
           type="text"
           value={nickname}
           onChange={(event) => handleNicknameChange(event.target.value)}
@@ -569,6 +576,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
         </label>
         <input
           id="chat-message"
+          name="message"
           type="text"
           value={inputText}
           onChange={(event) => setInputText(event.target.value)}
@@ -597,7 +605,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
           style={{
             borderRadius: 12,
           }}
-          className="flex items-center justify-center w-8 h-8 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm"
+          className="flex items-center justify-center w-8 h-8 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer shrink-0 shadow-sm"
         >
           <Send aria-hidden="true" className={`w-3.5 h-3.5 ${sending ? "animate-pulse" : ""}`} />
         </button>

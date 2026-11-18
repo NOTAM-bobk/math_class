@@ -1,6 +1,20 @@
 const WORKER_ORIGIN = "https://polytrack-hub-api.sawyerbobk563.workers.dev";
 const FLAGS_TITLE = "__POLYTRACK_GAME_FLAGS__";
 
+// The Worker only trusts the proxy shortcut when this shared key matches.
+const internalKey = () => process.env.HUB_INTERNAL_KEY || "";
+const adminPassword = () =>
+  process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || process.env.VERCEL_ADMIN_PASSWORD || "";
+
+// Everything the Worker needs to recognise this deployment. The internal key is
+// the preferred proof; the shared admin password keeps the D1 fallback working
+// on deployments that have not set it yet.
+const proxyAuthHeaders = () => ({
+  "X-Vercel-Admin-Verified": "1",
+  ...(internalKey() ? { "X-Hub-Internal-Key": internalKey() } : {}),
+  ...(adminPassword() ? { "X-Admin-Password": adminPassword() } : {}),
+});
+
 // Helper to fetch from Cloudflare Worker safely with custom UA
 async function cfFetch(path, options = {}) {
   const url = new URL(path, WORKER_ORIGIN);
@@ -21,7 +35,7 @@ async function readFlagsFromD1() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Vercel-Admin-Verified": "1",
+        ...proxyAuthHeaders(),
       },
       body: JSON.stringify({ action: "list" }),
     });
@@ -88,7 +102,7 @@ async function writeFlagsToD1(verified, buggy, notMobile, blocked = [], oldIds =
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-Vercel-Admin-Verified": "1",
+              ...proxyAuthHeaders(),
             },
             body: JSON.stringify({ action: "delete", id }),
           });
@@ -174,10 +188,16 @@ module.exports = async function handler(req, res) {
     const configuredPassword = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || process.env.VERCEL_ADMIN_PASSWORD;
     const givenPassword = String(req.headers["x-admin-password"] || body.password || "");
 
-    if (configuredPassword) {
-      if (!givenPassword || !safeEqual(givenPassword, configuredPassword)) {
-        return res.status(401).json({ ok: false, error: "Incorrect admin password." });
-      }
+    // Fail closed: without a configured password nobody may change badges.
+    if (!configuredPassword) {
+      return res.status(503).json({
+        ok: false,
+        needsSetup: true,
+        error: "ADMIN_PASSWORD is not configured in the environment yet.",
+      });
+    }
+    if (!givenPassword || !safeEqual(givenPassword, configuredPassword)) {
+      return res.status(401).json({ ok: false, error: "Incorrect admin password." });
     }
 
     // Try upstream Worker /api/admin/flags first
@@ -186,7 +206,7 @@ module.exports = async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Vercel-Admin-Verified": "1",
+          ...proxyAuthHeaders(),
           "X-Admin-Password": givenPassword,
         },
         body: JSON.stringify(body),

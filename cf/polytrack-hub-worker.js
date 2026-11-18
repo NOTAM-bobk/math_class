@@ -12,7 +12,7 @@ const cors = (r) => {
   const h = {
     Vary: "Origin",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "content-type, x-admin-password, x-vercel-admin-verified",
+    "Access-Control-Allow-Headers": "content-type, x-admin-password, x-vercel-admin-verified, x-hub-internal-key",
     "Access-Control-Max-Age": "86400",
   };
   if (ALLOWED.includes(o) || HUB.test(o)) {
@@ -48,6 +48,15 @@ const digest = async (v) => {
   return Array.from(new Uint8Array(d))
     .map((x) => x.toString(16).padStart(2, "0"))
     .join("");
+};
+
+// Header-only claims are not authentication: anyone can send them. The Vercel
+// proxy proves itself with a shared key that only the two deployments know.
+const isTrustedProxy = (r, e) => {
+  const key = e.HUB_INTERNAL_KEY;
+  if (!key) return false;
+  if (r.headers.get("x-vercel-admin-verified") !== "1") return false;
+  return equal(r.headers.get("x-hub-internal-key") || "", key);
 };
 
 const equal = (a, b) => {
@@ -298,12 +307,11 @@ async function adminBugs(r, e) {
     );
   }
 
-  const isVercelVerified = r.headers.get("x-vercel-admin-verified") === "1";
   const b = await read(r);
   const given = r.headers.get("x-admin-password") || b?.password || "";
 
   let authorized = false;
-  if (isVercelVerified) {
+  if (isTrustedProxy(r, e)) {
     authorized = true;
   } else if (e.ADMIN_PASSWORD && equal(given, e.ADMIN_PASSWORD)) {
     authorized = true;
@@ -377,12 +385,11 @@ async function adminFlags(r, e) {
   const clientIp = ip(r);
   const ipHash = await digest(clientIp);
 
-  const isVercelVerified = r.headers.get("x-vercel-admin-verified") === "1";
   const b = await read(r);
   const given = r.headers.get("x-admin-password") || b?.password || "";
 
   let authorized = false;
-  if (isVercelVerified) {
+  if (isTrustedProxy(r, e)) {
     authorized = true;
   } else if (e.ADMIN_PASSWORD && equal(given, e.ADMIN_PASSWORD)) {
     authorized = true;

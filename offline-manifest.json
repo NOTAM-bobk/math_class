@@ -1,23 +1,27 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T00:20:39.584Z",
-  "totalBytes": 346543549,
+  "generatedAt": "2026-11-18T00:46:51.514Z",
+  "totalBytes": 346748684,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 10338
+      "bytes": 9884
     },
     {
       "url": "/manifest.json",
       "bytes": 754
     },
     {
+      "url": "/dist/styles.css",
+      "bytes": 52385
+    },
+    {
       "url": "/dist/home.bundle.js",
-      "bytes": 573116
+      "bytes": 649657
     },
     {
       "url": "/home.bundle.js",
-      "bytes": 573116
+      "bytes": 649779
     },
     {
       "url": "/games/config.json",
@@ -1198,10 +1202,6 @@
     {
       "url": "/yt/index.html",
       "bytes": 50544
-    },
-    {
-      "url": "https://cdn.tailwindcss.com",
-      "bytes": 0
     },
     {
       "url": "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",

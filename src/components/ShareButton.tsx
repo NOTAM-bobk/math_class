@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Check, Copy, Mail, Share2, X } from "lucide-react";
+import { useDialogFocus } from "@/lib/dialogFocus";
 
 type ShareState = "idle" | "copied" | "error";
 
@@ -41,18 +42,16 @@ export function ShareButton({ compact = false }: { compact?: boolean }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [state, setState] = React.useState<ShareState>("idle");
   const copyButtonRef = React.useRef<HTMLButtonElement>(null);
+  const panelRef = React.useRef<HTMLElement>(null);
   const canUseNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const url = pageUrl();
 
-  React.useEffect(() => {
-    if (!isOpen) return;
-    copyButtonRef.current?.focus();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  useDialogFocus({
+    active: isOpen,
+    onClose: () => setIsOpen(false),
+    panelRef,
+    initialFocusRef: copyButtonRef,
+  });
 
   const handleCopy = async () => {
     try {
@@ -86,7 +85,7 @@ export function ShareButton({ compact = false }: { compact?: boolean }) {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         style={CHIP_STYLE}
-        className={`inline-flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all whitespace-nowrap active:scale-[0.98] cursor-pointer ${compact ? "h-8 w-8 justify-center rounded-full p-0 sm:h-auto sm:w-auto sm:justify-start sm:rounded-none sm:px-3 sm:py-1" : "px-3 py-1"}`}
+        className={`inline-flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.08] transition whitespace-nowrap active:scale-[0.98] cursor-pointer ${compact ? "h-8 w-8 justify-center rounded-full p-0 sm:h-auto sm:w-auto sm:justify-start sm:rounded-none sm:px-3 sm:py-1" : "px-3 py-1"}`}
       >
         <Share2 aria-hidden="true" className="w-3.5 h-3.5 text-zinc-400" />
         <span className="hidden sm:inline">{LABELS[state]}</span>
@@ -100,6 +99,7 @@ export function ShareButton({ compact = false }: { compact?: boolean }) {
           }}
         >
           <section
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="share-dialog-title"

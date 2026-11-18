@@ -35,7 +35,7 @@ export function BidvertiserAd({
       rows: 1,
       cols: 1,
       textpos: "below",
-      imagewidth: 150,
+      imagewidth: 120,
       mobilecols: 1,
       cb: Date.now(),
     };

@@ -531,7 +531,7 @@ export function SettingsModal({
     const next = !adsBlocked;
     setAdsBlocked(next);
     setNotificationAdsBlocked(next);
-    // Also hides the catalog, chat and footer sponsor slots right away.
+    // Also hides the catalog and chat sponsor slots right away.
     onAdsBlockedChange?.(next);
   };
 
@@ -770,7 +770,7 @@ export function SettingsModal({
           <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
             <div>
               <div className="text-sm font-medium text-zinc-200">Ad space</div>
-              <div className="text-xs text-zinc-500">Show the sponsor slots in the catalog, chat and above the footer</div>
+              <div className="text-xs text-zinc-500">Show the sponsor slots in the catalog and chat</div>
             </div>
             <button type="button" onClick={() => onAdSpotChange(!adSpotEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${adSpotEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={adSpotEnabled} aria-label="Ad space">
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${adSpotEnabled ? "translate-x-5" : "translate-x-0"}`} />

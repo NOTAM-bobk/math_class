@@ -1,7 +1,7 @@
 {
-  "name": "Math Class",
-  "short_name": "Math Class",
-  "description": "Educational games and learning tools for classrooms.",
+  "name": "math_games",
+  "short_name": "math_games",
+  "description": "math_games is a free browser game hub: quick games for a study break, no sign-in and no downloads.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

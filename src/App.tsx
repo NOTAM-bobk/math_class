@@ -12,7 +12,6 @@ import { AdminPanelModal } from "./components/AdminPanelModal";
 import { ChangelogModal } from "./components/ChangelogModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
-import { BidvertiserAd } from "./components/BidvertiserAd";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
 import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X, BellOff } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
@@ -102,7 +101,7 @@ export function App() {
     () => localStorage.getItem("polytrack_ad_spot_enabled") !== "false"
   );
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
-  // "Turn off ads" stops every slot (catalog, chat, site strip), not just the notification ads.
+  // "Turn off ads" stops every slot (catalog and chat), not just the notification ads.
   const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
   const adsVisible = adSpotEnabled && !adsBlocked;
   const [installNoticeVisible, setInstallNoticeVisible] = React.useState(() => {
@@ -477,22 +476,6 @@ export function App() {
             )}
           </div>
         </nav>
-
-        {/* Site-wide sponsor slot, above the footer */}
-        {adsVisible && (
-          <div className="hidden shrink-0 justify-center px-3 sm:flex" aria-label="Advertisement">
-            <div
-              className="flex max-h-24 w-full max-w-xs items-center justify-center overflow-hidden px-2 py-1"
-              style={{
-                borderRadius: 14,
-                background: "rgba(255, 255, 255, 0.015)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
-              }}
-            >
-              <BidvertiserAd slot="site" className="flex items-center justify-center" />
-            </div>
-          </div>
-        )}
 
         {/* Bottom Footer with Bug Report and Admin Panel */}
         <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>

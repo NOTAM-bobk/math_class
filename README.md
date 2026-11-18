@@ -19,7 +19,7 @@ Additionally the communication between main and simulation threads is experiment
 Main then reassembles those 90% of steps by copying the last (and only) step sent by the simulation and applying a custom step count to it (using the startStepCount by sim) while not changing any of the actual states data.  
 I haven't implemented buffer memory beaming yet
 
-# Hub site ("Education" Games)
+# Hub site (math_games)
 
 Alongside the version archives this repository hosts the game hub in `src/` (React + esbuild). The hub is what has its own version number, release notes and settings.
 

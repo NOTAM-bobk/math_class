@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T00:56:00.995Z",
-  "totalBytes": 346866102,
+  "generatedAt": "2026-11-18T15:14:41.679Z",
+  "totalBytes": 346881215,
   "files": [
     {
       "url": "/index.html",
@@ -13,15 +13,15 @@
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 52385
+      "bytes": 52517
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 708427
+      "bytes": 712640
     },
     {
       "url": "/home.bundle.js",
-      "bytes": 708427
+      "bytes": 712640
     },
     {
       "url": "/games/config.json",
@@ -45,7 +45,7 @@
     },
     {
       "url": "/games/age-of-war.html",
-      "bytes": 7606
+      "bytes": 7951
     },
     {
       "url": "/games/awsome-tanks.html",
@@ -73,15 +73,15 @@
     },
     {
       "url": "/games/bloons-super-monkey.html",
-      "bytes": 7374
+      "bytes": 7719
     },
     {
       "url": "/games/bloons-td4.html",
-      "bytes": 9492
+      "bytes": 9837
     },
     {
       "url": "/games/bloxorz.html",
-      "bytes": 7597
+      "bytes": 7942
     },
     {
       "url": "/games/clbrawlsimulator3d.html",
@@ -101,7 +101,7 @@
     },
     {
       "url": "/games/dad-n-me.html",
-      "bytes": 7343
+      "bytes": 7688
     },
     {
       "url": "/games/doodle-jump.html",
@@ -117,7 +117,7 @@
     },
     {
       "url": "/games/duck-life-2.html",
-      "bytes": 7382
+      "bytes": 7727
     },
     {
       "url": "/games/duck-life-3.html",
@@ -125,11 +125,11 @@
     },
     {
       "url": "/games/duck-life.html",
-      "bytes": 7603
+      "bytes": 7948
     },
     {
       "url": "/games/fancy-pants-adventures.html",
-      "bytes": 7383
+      "bytes": 7728
     },
     {
       "url": "/games/flappy-bird.html",
@@ -149,11 +149,11 @@
     },
     {
       "url": "/games/henry-stickmin-breaking-the-bank.html",
-      "bytes": 7674
+      "bytes": 8019
     },
     {
       "url": "/games/henry-stickmin-escaping-the-prison.html",
-      "bytes": 7421
+      "bytes": 7766
     },
     {
       "url": "/games/iron-snout.html",
@@ -161,7 +161,7 @@
     },
     {
       "url": "/games/learn-to-fly.html",
-      "bytes": 7612
+      "bytes": 7957
     },
     {
       "url": "/games/monster-track.html",
@@ -177,11 +177,11 @@
     },
     {
       "url": "/games/papas-pizzeria.html",
-      "bytes": 7620
+      "bytes": 7965
     },
     {
       "url": "/games/portal-flash.html",
-      "bytes": 7379
+      "bytes": 7724
     },
     {
       "url": "/games/retro-bowl.html",
@@ -189,11 +189,11 @@
     },
     {
       "url": "/games/riddle-school-3.html",
-      "bytes": 7362
+      "bytes": 7707
     },
     {
       "url": "/games/riddle-school.html",
-      "bytes": 7615
+      "bytes": 7960
     },
     {
       "url": "/games/ruffle/172de42e6619eac8f371.wasm",
@@ -217,7 +217,7 @@
     },
     {
       "url": "/games/stick-rpg.html",
-      "bytes": 7344
+      "bytes": 7689
     },
     {
       "url": "/games/stickman-hook.html",
@@ -225,11 +225,11 @@
     },
     {
       "url": "/games/super-mario-63.html",
-      "bytes": 7359
+      "bytes": 7704
     },
     {
       "url": "/games/super-smash-flash.html",
-      "bytes": 7368
+      "bytes": 7713
     },
     {
       "url": "/games/swf/age-of-war.swf",
@@ -313,7 +313,7 @@
     },
     {
       "url": "/games/the-worlds-hardest-game.html",
-      "bytes": 7647
+      "bytes": 7992
     },
     {
       "url": "/games/tiny-fishing.html",

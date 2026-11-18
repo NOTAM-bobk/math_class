@@ -14,7 +14,7 @@ import { AdsNudgeModal } from "./components/AdsNudgeModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
-import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
   backgroundIsLight,
@@ -70,6 +70,21 @@ function BackgroundWrapper({
 const INSTALL_NOTICE_SEEN_KEY = "polytrack_install_notice_seen";
 const SITE_VISITS_KEY = "polytrack_site_visits";
 const ADS_NUDGE_SEEN_KEY = "polytrack_ads_nudge_seen";
+const FOOTER_EXPANDED_KEY = "polytrack_footer_expanded";
+// The bug report has its own shareable address, so /bug can be sent to anyone.
+const BUG_REPORT_PATH = "/bug";
+
+function bugReportOpenFromUrl() {
+  try {
+    return (
+      /\/bug\/?$/.test(window.location.pathname) ||
+      new URLSearchParams(window.location.search).get("bug") === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
 
 export function App() {
   const [loadingRevealEnabled, setLoadingRevealEnabled] = React.useState(() => {
@@ -91,7 +106,17 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [adsNudgeOpen, setAdsNudgeOpen] = React.useState(false);
   const visitCountedRef = React.useRef(false);
-  const [bugModalOpen, setBugModalOpen] = React.useState(false);
+  const [bugModalOpen, setBugModalOpen] = React.useState(bugReportOpenFromUrl);
+  // The page the report is about, captured before /bug takes over the address bar.
+  const [bugReportSourcePath, setBugReportSourcePath] = React.useState("/");
+  // The footer starts collapsed; an explicit show/hide choice is remembered.
+  const [footerVisible, setFooterVisible] = React.useState(() => {
+    try {
+      return localStorage.getItem(FOOTER_EXPANDED_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [submitModalOpen, setSubmitModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
   // The nav starts closed; an explicit open/close choice is remembered.
@@ -249,6 +274,43 @@ export function App() {
   const isLocked = siteLockEnabled && siteLockPassword.trim().length > 0 && !isUnlocked;
 
   // Remember whether the nav options are open or closed between visits.
+  const toggleFooter = React.useCallback(() => {
+    setFooterVisible((visible) => {
+      const next = !visible;
+      try {
+        localStorage.setItem(FOOTER_EXPANDED_KEY, next ? "true" : "false");
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  const bugReturnUrlRef = React.useRef("/");
+
+  const openBugReport = React.useCallback(() => {
+    setBugReportSourcePath(window.location.pathname || "/");
+    if (!bugReportOpenFromUrl()) {
+      bugReturnUrlRef.current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      try {
+        window.history.pushState({ bugReport: true }, "", BUG_REPORT_PATH);
+      } catch {}
+    }
+    setBugModalOpen(true);
+  }, []);
+
+  const closeBugReport = React.useCallback(() => {
+    setBugModalOpen(false);
+    try {
+      if (bugReportOpenFromUrl()) window.history.replaceState(null, "", bugReturnUrlRef.current || "/");
+    } catch {}
+  }, []);
+
+  // Back and forward move in and out of the bug report like any other page.
+  React.useEffect(() => {
+    const syncWithUrl = () => setBugModalOpen(bugReportOpenFromUrl());
+    window.addEventListener("popstate", syncWithUrl);
+    return () => window.removeEventListener("popstate", syncWithUrl);
+  }, []);
+
   const toggleNav = () => {
     setNavCollapsed((collapsed) => {
       const next = !collapsed;
@@ -518,8 +580,26 @@ export function App() {
           </div>
         </nav>
 
-        {/* Bottom Footer with Bug Report and Admin Panel */}
-        <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
+        {/* Bottom Footer with Bug Report and Admin Panel; collapsed until asked for. */}
+        <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
+          <button
+            type="button"
+            onClick={toggleFooter}
+            aria-expanded={footerVisible}
+            aria-label={footerVisible ? "Hide footer" : "Show footer"}
+            title={footerVisible ? "Hide footer" : "Show footer, bug report and admin panel"}
+            style={footerChipStyle}
+            className={`inline-flex cursor-pointer items-center gap-1 px-2.5 py-1 text-[10.5px] font-medium transition-colors ${footerIsLight ? "text-black/70 hover:bg-black/[0.07] hover:text-black" : "text-zinc-400 hover:bg-white/[0.08] hover:text-white"}`}
+          >
+            {footerVisible ? (
+              <ChevronDown aria-hidden="true" className="h-3 w-3" />
+            ) : (
+              <ChevronUp aria-hidden="true" className="h-3 w-3" />
+            )}
+            <span>Footer</span>
+          </button>
+          {footerVisible && (
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
             <span className={`hidden font-medium sm:inline ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>Built by SS</span>
             <span
@@ -532,7 +612,7 @@ export function App() {
               <button
                 type="button"
                 data-hint-target="bug-report"
-                onClick={() => setBugModalOpen(true)}
+                onClick={openBugReport}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer ${
                   footerIsLight ? "text-black/80 hover:text-black hover:bg-black/[0.07]" : "text-zinc-300 hover:text-white hover:bg-white/[0.08]"
                 }`}
@@ -571,6 +651,8 @@ export function App() {
               Submit a game
             </button>
           </nav>
+          </div>
+          )}
         </footer>
       </div>
 
@@ -588,7 +670,7 @@ export function App() {
         onLockNow={() => setIsUnlocked(false)}
         onReportBug={() => {
           setSettingsOpen(false);
-          setBugModalOpen(true);
+          openBugReport();
         }}
         onOpenAdmin={() => {
           setSettingsOpen(false);
@@ -616,7 +698,8 @@ export function App() {
 
       <BugReportModal
         isOpen={bugModalOpen}
-        onClose={() => setBugModalOpen(false)}
+        sourcePath={bugReportSourcePath}
+        onClose={closeBugReport}
       />
 
       <GameSubmitModal

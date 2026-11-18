@@ -5,6 +5,7 @@ import { notifyNewChatMessage } from "@/lib/chatNotifications";
 import { isChatVerified } from "@/lib/turnstile";
 import { TurnstileGate } from "./TurnstileGate";
 import { BidvertiserAd } from "./BidvertiserAd";
+import { formatChatText } from "@/lib/chatFormat";
 
 export interface ChatMessage extends HubMessage {
   from: "user" | "assistant" | "system" | "racer";
@@ -449,7 +450,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
                 </div>
 
                 <div
-                  className={`max-w-[88%] px-3 py-2 text-xs leading-relaxed break-words shadow-sm transition ${
+                  className={`max-w-[88%] whitespace-pre-wrap px-3 py-2 text-xs leading-relaxed break-words shadow-sm transition ${
                     isUser
                       ? "bg-white text-zinc-950 rounded-2xl rounded-tr-xs font-medium shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
                       : "text-[#d4d4d8] rounded-2xl rounded-tl-xs"
@@ -464,7 +465,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
                         }
                   }
                 >
-                  {message.text}
+                  {formatChatText(message.text)}
                 </div>
               </div>
             );

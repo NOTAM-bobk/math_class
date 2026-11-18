@@ -17,6 +17,9 @@ const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_RECENT_GAMES = 6;
 const SEARCH_PARAM = "q";
 const CATEGORY_PARAM = "c";
+// The catalog scrolls inside its own panel, so remember where it was left when a
+// game takes over the screen.
+const CATALOG_SCROLL_KEY = "polytrack_catalog_scroll_top";
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -1146,6 +1149,47 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const [blockedIds, setBlockedIds] = React.useState<Set<string>>(loadBlockedGameIds);
   const [blockedEmoji] = React.useState<string>(() => getRandomBlockedEmoji());
 
+  const catalogScrollRef = React.useRef<HTMLDivElement>(null);
+  const savedCatalogScrollRef = React.useRef(0);
+  const catalogScrollTouchedRef = React.useRef(false);
+
+  const rememberCatalogScroll = React.useCallback((top?: number) => {
+    const value = Math.max(0, Math.round(top ?? catalogScrollRef.current?.scrollTop ?? 0));
+    savedCatalogScrollRef.current = value;
+    try {
+      sessionStorage.setItem(CATALOG_SCROLL_KEY, String(value));
+    } catch {}
+  }, []);
+
+  const handleCatalogScroll = React.useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => rememberCatalogScroll(event.currentTarget.scrollTop),
+    [rememberCatalogScroll]
+  );
+
+  const markCatalogScrollTouched = React.useCallback(() => {
+    catalogScrollTouchedRef.current = true;
+  }, []);
+
+  // Returning from a game (including a fresh page load in this tab) should put
+  // the reader back on the row they left.
+  React.useEffect(() => {
+    try {
+      savedCatalogScrollRef.current = Number(sessionStorage.getItem(CATALOG_SCROLL_KEY) || "0") || 0;
+    } catch {}
+    if (savedCatalogScrollRef.current <= 0) return;
+    const restore = () => {
+      if (catalogScrollTouchedRef.current) return;
+      const element = catalogScrollRef.current;
+      if (element) element.scrollTop = savedCatalogScrollRef.current;
+    };
+    const frame = window.requestAnimationFrame(() => window.requestAnimationFrame(restore));
+    const timers = [150, 600, 1500].map((delay) => window.setTimeout(restore, delay));
+    return () => {
+      window.cancelAnimationFrame(frame);
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, []);
+
   React.useEffect(() => {
     return onBlockedGamesChange((updated) => setBlockedIds(updated));
   }, []);
@@ -1268,6 +1312,8 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const closeLauncher = React.useCallback(() => {
     finalizePlaySession();
     dismissLauncher();
+    const element = catalogScrollRef.current;
+    if (element && savedCatalogScrollRef.current > 0) element.scrollTop = savedCatalogScrollRef.current;
   }, [dismissLauncher]);
 
   const handleGameClick = (game: GameItem) => {
@@ -1304,6 +1350,7 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
   const launchGame = (game: GameItem, event?: React.MouseEvent) => {
     const embed = !game.disabled && isSameOriginGame(game.url);
     if (embed) event?.preventDefault();
+    rememberCatalogScroll();
     handleGameClick(game);
     if (embed) openLauncher(game);
   };
@@ -1765,6 +1812,11 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
 
       {/* Game list */}
       <div
+        ref={catalogScrollRef}
+        onScroll={handleCatalogScroll}
+        onWheel={markCatalogScrollTouched}
+        onTouchStart={markCatalogScrollTouched}
+        onKeyDown={markCatalogScrollTouched}
         className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4"
         style={{
           background: "rgba(0, 0, 0, 0.18)",

@@ -5,6 +5,9 @@ import { useDialogFocus } from "@/lib/dialogFocus";
 interface BugReportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // The hub page the reporter came from; the report keeps this once the address
+  // bar switches to /bug.
+  sourcePath?: string;
 }
 
 const CHIP_STYLE: React.CSSProperties = {
@@ -13,7 +16,7 @@ const CHIP_STYLE: React.CSSProperties = {
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
 
-export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
+export function BugReportModal({ isOpen, onClose, sourcePath }: BugReportModalProps) {
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [gameUrl, setGameUrl] = React.useState("");
@@ -87,7 +90,7 @@ export function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
           title: title.trim() || cleanDesc.slice(0, 60),
           description: cleanDesc,
           gameUrl: gameUrl.trim(),
-          pageUrl: window.location.pathname || "/",
+          pageUrl: sourcePath || window.location.pathname || "/",
           browserInfo,
         }),
       });

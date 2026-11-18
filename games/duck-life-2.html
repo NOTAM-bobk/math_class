@@ -129,6 +129,12 @@
       to { transform: rotate(360deg); }
     }
   </style>
+  <style>html.embedded header { display: none !important; }</style>
+  <script>
+    // Inside the hub launcher the page already has a title and back bar, so this
+    // page's own bar would be a second, identical header. Keep it for direct tabs.
+    if (window.self !== window.top) document.documentElement.classList.add("embedded");
+  </script>
 </head>
 <body>
   <header>

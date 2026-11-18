@@ -71,6 +71,10 @@
   ],
   "rewrites": [
     {
+      "source": "/bug",
+      "destination": "/index.html"
+    },
+    {
       "source": "/api/avatar",
       "destination": "/api/avatar"
     },

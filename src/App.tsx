@@ -156,13 +156,22 @@ export function App() {
 
   React.useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
-    // A first visit has no controller to replace, so only a swap counts.
-    const hadController = !!navigator.serviceWorker.controller;
     const handleControllerChange = () => {
-      if (hadController) setUpdateReady(true);
+      setUpdateReady(true);
     };
     navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
-    return () => navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+
+    const handleFocus = () => {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => r.update().catch(() => {}));
+      }).catch(() => {});
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   React.useEffect(() => {

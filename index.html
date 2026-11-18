@@ -2,6 +2,16 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
+    <!-- Ask the browser to check for the latest service worker on each visit. -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(registration) {
+            registration.update().catch(function() {});
+          });
+        }).catch(function() {});
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>math_games</title>
     <meta name="description" content="math_games is a free browser game hub: quick games for a study break, no sign-in and no downloads.">
@@ -87,7 +97,7 @@
     </script>
 
     <!-- Prebuilt Tailwind CSS (npm run build:css) -->
-    <link rel="stylesheet" href="./dist/styles.css">
+    <link rel="stylesheet" href="./dist/styles.css?v=1.4.0">
 
     <style>
       * {
@@ -307,6 +317,6 @@
     <div id="root"></div>
 
     <!-- Pre-compiled application bundle -->
-    <script src="./dist/home.bundle.js" onerror="this.onerror=null;this.src='./home.bundle.js';"></script>
+    <script src="./dist/home.bundle.js?v=1.4.0" onerror="this.onerror=null;this.src='./home.bundle.js?v=1.4.0';"></script>
 </body>
 </html>

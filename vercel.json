@@ -75,6 +75,10 @@
       "destination": "/api/mp/[...path]"
     },
     {
+      "source": "/bidvertiser/:path*",
+      "destination": "https://cdn.hyperpromote.com/bidvertiser/:path*"
+    },
+    {
       "source": "/api/avatar",
       "destination": "/api/avatar"
     },

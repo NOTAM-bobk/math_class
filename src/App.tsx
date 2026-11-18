@@ -102,6 +102,7 @@ export function App() {
     () => localStorage.getItem("polytrack_ad_spot_enabled") !== "false"
   );
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
+  const [footerHidden, setFooterHidden] = React.useState(() => localStorage.getItem("polytrack_footer_hidden") === "true");
   // "Turn off ads" stops every slot (catalog and chat), not just the notification ads.
   const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
   const adsVisible = adSpotEnabled && !adsBlocked;
@@ -519,7 +520,7 @@ export function App() {
         </nav>
 
         {/* Bottom Footer with Bug Report and Admin Panel */}
-        <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
+        {!footerHidden && <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
             <span className={`hidden font-medium sm:inline ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>Built by SS</span>
             <span
@@ -571,7 +572,7 @@ export function App() {
               Submit a game
             </button>
           </nav>
-        </footer>
+        </footer>}
       </div>
 
       <SettingsModal
@@ -605,6 +606,11 @@ export function App() {
         onAdSpotChange={handleAdSpotChange}
         onAdsBlockedChange={setAdsBlocked}
         sideChatEnabled={sideChatEnabled}
+        footerHidden={footerHidden}
+        onFooterHiddenChange={(hidden) => {
+          localStorage.setItem("polytrack_footer_hidden", hidden ? "true" : "false");
+          setFooterHidden(hidden);
+        }}
         onSideChatChange={(enabled) => {
           localStorage.setItem("polytrack_side_chat_enabled", enabled ? "true" : "false");
           setSideChatEnabled(enabled);

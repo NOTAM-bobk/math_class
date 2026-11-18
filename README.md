@@ -1,4 +1,4 @@
-# math_games (PolyTrack Hub)
+# math_games (637 game Hub)
 
 A classroom-friendly browser game hub: hundreds of games in one place, plus PolyTrack
 build archives, favourites, play stats, offline play and the settings a shared computer

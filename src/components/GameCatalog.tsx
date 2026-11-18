@@ -8,6 +8,7 @@ import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandom
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 import { loadGameCardLayout, onGameCardLayoutChange, type GameCardLayout } from "@/lib/gameCardLayout";
+import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { PanicButton } from "./PanicButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
@@ -87,69 +88,11 @@ function mosaicSpan(index: number) {
   return MOSAIC_SPAN_PATTERN[index % MOSAIC_SPAN_PATTERN.length];
 }
 
-function gameInitials(name: string) {
+function gameAccent(game: GameItem) {
   return (
-    name
-      .split(/[^A-Za-z0-9]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word) => word[0])
-      .join("") || "🎮"
-  ).toUpperCase();
-}
-
-// A game on another origin has its own icon; same-origin pages would only show
-// the hub's icon, so those get the generated cover instead.
-function gameIconUrl(url: string) {
-  try {
-    const parsed = new URL(url, window.location.origin);
-    if (parsed.origin === window.location.origin) return "";
-    return `${parsed.origin}/favicon.ico`;
-  } catch {
-    return "";
-  }
-}
-
-function GameCoverArt({ game, accent }: { game: GameItem; accent: string }) {
-  const [iconFailed, setIconFailed] = React.useState(false);
-  const iconUrl = React.useMemo(() => gameIconUrl(game.url), [game.url]);
-  const initials = React.useMemo(() => gameInitials(game.name), [game.name]);
-  const showIcon = !!iconUrl && !iconFailed;
-
-  return (
-    <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(125% 125% at 18% 6%, ${accent}66 0%, rgba(18, 18, 22, 0.96) 56%, #0c0c0f 100%)`,
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-[0.12]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      />
-      <div className="absolute inset-0 flex items-center justify-center pb-8">
-        {showIcon ? (
-          <img
-            src={iconUrl}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            onError={() => setIconFailed(true)}
-            className="h-12 w-12 rounded-xl object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110"
-          />
-        ) : (
-          <span className="select-none text-4xl font-black tracking-tight text-white/90 drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-105">
-            {initials}
-          </span>
-        )}
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-    </div>
+    CATEGORY_FILTERS.map((cat) => cat.id)
+      .filter((id) => CATEGORY_ACCENTS[id] && matchesCategory(game, id as CategoryId))
+      .map((id) => CATEGORY_ACCENTS[id])[0] ?? "#6366f1"
   );
 }
 
@@ -1026,9 +969,7 @@ function GameCard({
   sizeClass?: string;
 }) {
   const opensInHub = !game.disabled && isSameOriginGame(game.url);
-  const genreAccent = CATEGORY_FILTERS.map((cat) => cat.id)
-    .filter((id) => CATEGORY_ACCENTS[id] && matchesCategory(game, id as CategoryId))
-    .map((id) => CATEGORY_ACCENTS[id])[0];
+  const genreAccent = gameAccent(game);
 
   if (variant === "mosaic") {
     const compactChip = "inline-flex h-5 shrink-0 items-center gap-1 rounded-full bg-black/45 px-1.5 text-[9.5px] font-medium leading-none text-zinc-200 backdrop-blur-sm";
@@ -1039,7 +980,7 @@ function GameCard({
           game.disabled ? "opacity-80" : ""
         }`}
       >
-        <GameCoverArt game={game} accent={genreAccent ?? "#6366f1"} />
+        <GameCoverArt game={game} accent={genreAccent} />
 
         <div className="relative z-10 flex items-start justify-between gap-1.5 p-2.5">
           <div className="flex min-w-0 flex-wrap items-center gap-1">
@@ -1332,7 +1273,7 @@ export function GameCatalog({
   bugReportOpen = false,
 }: {
   showAdSpot?: boolean;
-  onReportBug?: () => void;
+  onReportBug?: (gameName?: string) => void;
   // While the report form is up it owns focus, not the game launcher.
   bugReportOpen?: boolean;
 }) {
@@ -2115,7 +2056,9 @@ export function GameCatalog({
               <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
                 {recentGameItems.map((game) => (
                   <a key={game.id} href={game.url} target="_blank" rel="noopener noreferrer" onClick={(event) => launchGame(game, event)} className="group flex w-44 shrink-0 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 text-left transition hover:border-white/[0.16] hover:bg-white/[0.07]">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-zinc-200"><Gamepad2 className="h-4 w-4" /></span>
+                    <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
+                      <GameCoverArt game={game} accent={gameAccent(game)} compact />
+                    </span>
                     <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span><span className="mt-0.5 block text-[10px] text-zinc-500">Play again</span></span>
                     <Play className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition group-hover:text-zinc-200" />
                   </a>
@@ -2291,7 +2234,7 @@ export function GameCatalog({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onReportBug?.()}
+                  onClick={() => onReportBug?.(launcherGame.name)}
                   aria-label="Report a bug"
                   title="Report a bug"
                   aria-haspopup="dialog"

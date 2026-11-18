@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.3.0";
+export const SITE_VERSION = "1.3.1";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.3.1",
+    date: "November 2026",
+    title: "Faster bug reports and game art",
+    changes: [
+      "Reporting a bug from inside a game now fills in that game's name for you.",
+      "Recently played games show their own cover art instead of a generic icon.",
+      "The Admin pane shows the build stamp and credit read-only instead of offering editable fields.",
+    ],
+  },
   {
     version: "1.3.0",
     date: "November 2026",

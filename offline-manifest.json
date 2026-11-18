@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T18:49:30.157Z",
-  "totalBytes": 346928594,
+  "generatedAt": "2026-11-18T18:58:12.941Z",
+  "totalBytes": 346928128,
   "files": [
     {
       "url": "/index.html",
@@ -13,11 +13,11 @@
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 56662
+      "bytes": 56769
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 739587
+      "bytes": 739014
     },
     {
       "url": "/home.bundle.js",

@@ -51,7 +51,7 @@ import {
   type GameCardLayout,
 } from "@/lib/gameCardLayout";
 import { hardResetSite } from "@/lib/hardReset";
-import { DEFAULT_BUILT_BY, type SiteMeta } from "@/lib/siteMeta";
+import type { SiteMeta } from "@/lib/siteMeta";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -66,10 +66,8 @@ interface SettingsModalProps {
   sideChatEnabled: boolean;
   onSideChatChange: (enabled: boolean) => void;
   adSpotEnabled: boolean;
-  // Footer credit lines, editable from the Admin pane.
+  // Footer credit lines, shown read-only in the Admin pane.
   siteMeta: SiteMeta;
-  onSiteMetaChange: (meta: SiteMeta) => void;
-  onSiteMetaReset: () => void;
   loadingRevealEnabled?: boolean;
   onLoadingRevealChange?: (enabled: boolean) => void;
   footerHidden?: boolean;
@@ -199,8 +197,6 @@ export function SettingsModal({
   onSideChatChange,
   adSpotEnabled,
   siteMeta,
-  onSiteMetaChange,
-  onSiteMetaReset,
   loadingRevealEnabled = true,
   onLoadingRevealChange,
   footerHidden = false,
@@ -237,25 +233,6 @@ export function SettingsModal({
     return current.type === "solid" && current.id === "custom-solid" ? current.value : "#09090b";
   });
   const [bgNotice, setBgNotice] = React.useState<string | null>(null);
-
-  // Footer credit drafts, saved into this browser from the Admin pane.
-  const [metaUpdatedDraft, setMetaUpdatedDraft] = React.useState(siteMeta.updatedAt);
-  const [metaBuiltByDraft, setMetaBuiltByDraft] = React.useState(siteMeta.builtBy);
-  const [metaNotice, setMetaNotice] = React.useState("");
-
-  React.useEffect(() => {
-    if (!isOpen) return;
-    setMetaUpdatedDraft(siteMeta.updatedAt);
-    setMetaBuiltByDraft(siteMeta.builtBy);
-    setMetaNotice("");
-    // Only a fresh open resets the drafts; saving keeps its confirmation visible.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  React.useEffect(() => {
-    setMetaUpdatedDraft(siteMeta.updatedAt);
-    setMetaBuiltByDraft(siteMeta.builtBy);
-  }, [siteMeta]);
 
   // Local play statistics; the pane updates live while counting runs.
   const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
@@ -2217,80 +2194,41 @@ export function SettingsModal({
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                 <span id="admin-title">Admin</span>
                 <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
-                  This browser
+                  Read-only
                 </span>
               </div>
               <div className="text-xs text-zinc-400">
-                Set the “Updated …” time and “Built by …” line shown in the footer
+                The credit lines shown in the footer
               </div>
             </div>
           </div>
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium text-zinc-400">Last updated</span>
-            <input
-              type="text"
-              value={metaUpdatedDraft}
-              onChange={(event) => {
-                setMetaUpdatedDraft(event.target.value);
-                if (metaNotice) setMetaNotice("");
-              }}
-              maxLength={80}
-              placeholder={formatLastUpdated()}
+          <dl className="flex flex-col gap-2">
+            <div
               style={{
-                borderRadius: 10,
-                background: "rgba(255, 255, 255, 0.04)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                borderRadius: 12,
+                background: "rgba(0, 0, 0, 0.3)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
-              className="w-full px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
-            />
-          </label>
-
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium text-zinc-400">Built by</span>
-            <input
-              type="text"
-              value={metaBuiltByDraft}
-              onChange={(event) => {
-                setMetaBuiltByDraft(event.target.value);
-                if (metaNotice) setMetaNotice("");
-              }}
-              maxLength={40}
-              placeholder={DEFAULT_BUILT_BY}
+              className="flex items-baseline justify-between gap-3 px-3 py-2.5"
+            >
+              <dt className="text-[11px] font-medium text-zinc-400">Last updated</dt>
+              <dd className="text-right text-xs font-medium text-zinc-100">{siteMeta.updatedAt}</dd>
+            </div>
+            <div
               style={{
-                borderRadius: 10,
-                background: "rgba(255, 255, 255, 0.04)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                borderRadius: 12,
+                background: "rgba(0, 0, 0, 0.3)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
-              className="w-full px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
-            />
-          </label>
+              className="flex items-baseline justify-between gap-3 px-3 py-2.5"
+            >
+              <dt className="text-[11px] font-medium text-zinc-400">Built by</dt>
+              <dd className="text-right text-xs font-medium text-zinc-100">{siteMeta.builtBy}</dd>
+            </div>
+          </dl>
 
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                onSiteMetaChange({
-                  updatedAt: metaUpdatedDraft.trim() || formatLastUpdated(),
-                  builtBy: metaBuiltByDraft.trim() || DEFAULT_BUILT_BY,
-                });
-                setMetaNotice("Saved. The footer now shows these values.");
-              }}
-              className="cursor-pointer rounded-lg bg-white px-3 py-2 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-[0.98]"
-            >
-              Save changes
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onSiteMetaReset();
-                setMetaNotice("Restored the built-in build stamp.");
-              }}
-              style={CHIP_STYLE}
-              className="cursor-pointer px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
-            >
-              Reset to build stamp
-            </button>
             <button
               type="button"
               onClick={() => {
@@ -2305,8 +2243,8 @@ export function SettingsModal({
             </button>
           </div>
 
-          <p role="status" className="text-[10.5px] leading-relaxed text-zinc-500">
-            {metaNotice || `Build stamp: ${formatLastUpdated()}`}
+          <p className="text-[10.5px] leading-relaxed text-zinc-500">
+            These values are read-only and match the lines in the footer.
           </p>
         </section>
         </div>

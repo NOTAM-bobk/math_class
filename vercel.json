@@ -71,6 +71,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/mp/:path*",
+      "destination": "/api/mp/[...path]"
+    },
+    {
       "source": "/api/avatar",
       "destination": "/api/avatar"
     },

@@ -123,6 +123,9 @@ async function ensureWorker(): Promise<ServiceWorker | null> {
     );
     if (!registration) return null;
 
+    // Immediately trigger an update check to pull the newest worker build
+    registration.update().catch(() => {});
+
     // An older worker may still be active while this deployment's script
     // installs. Wait for the update before sending it the schedule.
     const pending = registration.installing || registration.waiting;

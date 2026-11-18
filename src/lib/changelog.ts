@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.3.0";
+export const SITE_VERSION = "1.4.0";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,26 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.4.0",
+    date: "November 2026",
+    title: "Update history grid and customizable system fonts",
+    changes: [
+      "Added an interactive 371-day update history grid to Settings and the Change log dialog, tracking commits, engine updates, and releases with smooth spring tooltips.",
+      "Added custom System Font settings under Theme & Fonts with 10 fun and unique typefaces (8-bit arcade, CRT terminal, cyber, comic, bubbly, chalkboard, developer code, and blocky arcade).",
+      "Live typography preview card and instant site-wide application with zero layout flash.",
+    ],
+  },
+  {
+    version: "1.3.1",
+    date: "November 2026",
+    title: "Faster bug reports and game art",
+    changes: [
+      "Reporting a bug from inside a game now fills in that game's name for you.",
+      "Recently played games show their own cover art instead of a generic icon.",
+      "The Admin pane shows the build stamp and credit read-only instead of offering editable fields.",
+    ],
+  },
   {
     version: "1.3.0",
     date: "November 2026",

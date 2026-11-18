@@ -20,7 +20,7 @@ try {
 // Offline copy
 // ---------------------------------------------------------------------------
 
-const OFFLINE_CACHE = "polytrack-offline-v1";
+const OFFLINE_CACHE = "polytrack-offline-v1.4.0";
 const OFFLINE_META_CACHE = "polytrack-offline-meta-v1";
 const OFFLINE_CONFIG_URL = "/__polytrack_offline_config__";
 const OFFLINE_MANIFEST_URL = "/offline-manifest.json";
@@ -29,7 +29,7 @@ const REMOTE_CACHE_HOSTS = ["cdn.tailwindcss.com", "fonts.googleapis.com", "font
 // The bundle changes on every deploy. Serving the cached copy first left
 // returning visitors on an old build until a second page load, so these go to
 // the network first and only fall back to the cached copy when it is offline.
-const NETWORK_FIRST_PATHS = ["/dist/home.bundle.js", "/home.bundle.js"];
+const NETWORK_FIRST_PATHS = ["/dist/home.bundle.js", "/home.bundle.js", "/dist/styles.css", "/", "/index.html"];
 
 const DEFAULT_CONFIG = {
 	requested: false,
@@ -122,11 +122,17 @@ async function handleSameOrigin(request) {
 	const cached = request.cache === "reload" ? undefined : await cache.match(request);
 	const preferCache = config.requested && isInScheduleWindow(config);
 
-	// Inside the scheduled window the downloaded copy wins outright, so a
-	// network that blocks game pages cannot stop them from opening.
-	if (preferCache && cached) return cached;
+	const url = new URL(request.url);
+	const isCorePath = NETWORK_FIRST_PATHS.includes(url.pathname);
 
-	if (NETWORK_FIRST_PATHS.includes(new URL(request.url).pathname)) {
+	// Inside the scheduled window the downloaded copy wins for games and assets,
+	// but core application bundles and HTML navigation still hit the network first
+	// when connected so updates are never blocked.
+	if (preferCache && cached && !isCorePath && request.mode !== "navigate") {
+		return cached;
+	}
+
+	if (isCorePath) {
 		try {
 			const response = await fetch(request);
 			if (isCacheable(response)) void cache.put(request, response.clone());

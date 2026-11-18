@@ -23,7 +23,7 @@ import {
   type BackgroundConfig,
 } from "./lib/backgroundTheme";
 import { LAST_UPDATED_ISO } from "./lib/lastUpdated";
-import { clearSiteMeta, loadSiteMeta, saveSiteMeta, type SiteMeta } from "./lib/siteMeta";
+import { loadSiteMeta, type SiteMeta } from "./lib/siteMeta";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
 import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
@@ -109,6 +109,8 @@ export function App() {
   const [bugModalOpen, setBugModalOpen] = React.useState(bugReportOpenFromUrl);
   // The page the report is about, captured before /bug takes over the address bar.
   const [bugReportSourcePath, setBugReportSourcePath] = React.useState("/");
+  // A game the reporter was playing; the form fills this in for them.
+  const [bugReportGame, setBugReportGame] = React.useState("");
   const [submitModalOpen, setSubmitModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
   // The nav starts closed; an explicit open/close choice is remembered.
@@ -154,13 +156,22 @@ export function App() {
 
   React.useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
-    // A first visit has no controller to replace, so only a swap counts.
-    const hadController = !!navigator.serviceWorker.controller;
     const handleControllerChange = () => {
-      if (hadController) setUpdateReady(true);
+      setUpdateReady(true);
     };
     navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
-    return () => navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+
+    const handleFocus = () => {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => r.update().catch(() => {}));
+      }).catch(() => {});
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -239,15 +250,8 @@ export function App() {
   // The footer sits on the theme background, so its ink flips to whichever of
   // black or white stays readable against that particular backdrop.
   const footerIsLight = React.useMemo(() => backgroundIsLight(bgConfig), [bgConfig]);
-  // Admin-editable footer credit lines, defaulting to the build stamp.
-  const [siteMeta, setSiteMeta] = React.useState<SiteMeta>(loadSiteMeta);
-  const handleSiteMetaChange = React.useCallback((meta: SiteMeta) => {
-    saveSiteMeta(meta);
-    setSiteMeta(meta);
-  }, []);
-  const handleSiteMetaReset = React.useCallback(() => {
-    setSiteMeta(clearSiteMeta());
-  }, []);
+  // Footer credit lines from the build stamp.
+  const [siteMeta] = React.useState<SiteMeta>(loadSiteMeta);
   const footerChipStyle: React.CSSProperties = footerIsLight
     ? {
         borderRadius: 36,
@@ -284,8 +288,9 @@ export function App() {
   // Remember whether the nav options are open or closed between visits.
   const bugReturnUrlRef = React.useRef("/");
 
-  const openBugReport = React.useCallback(() => {
+  const openBugReport = React.useCallback((gameName?: string) => {
     setBugReportSourcePath(window.location.pathname || "/");
+    setBugReportGame(gameName?.trim() || "");
     if (!bugReportOpenFromUrl()) {
       bugReturnUrlRef.current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       try {
@@ -297,6 +302,7 @@ export function App() {
 
   const closeBugReport = React.useCallback(() => {
     setBugModalOpen(false);
+    setBugReportGame("");
     try {
       if (bugReportOpenFromUrl()) window.history.replaceState(null, "", bugReturnUrlRef.current || "/");
     } catch {}
@@ -591,7 +597,7 @@ export function App() {
               <button
                 type="button"
                 data-hint-target="bug-report"
-                onClick={openBugReport}
+                onClick={() => openBugReport()}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer ${
                   footerIsLight ? "text-black/80 hover:text-black hover:bg-black/[0.07]" : "text-zinc-300 hover:text-white hover:bg-white/[0.08]"
                 }`}
@@ -662,8 +668,6 @@ export function App() {
         }}
         adSpotEnabled={adSpotEnabled}
         siteMeta={siteMeta}
-        onSiteMetaChange={handleSiteMetaChange}
-        onSiteMetaReset={handleSiteMetaReset}
         sideChatEnabled={sideChatEnabled}
         footerHidden={footerHidden}
         onFooterHiddenChange={(hidden) => {
@@ -682,6 +686,7 @@ export function App() {
       <BugReportModal
         isOpen={bugModalOpen}
         sourcePath={bugReportSourcePath}
+        initialGame={bugReportGame}
         onClose={closeBugReport}
       />
 

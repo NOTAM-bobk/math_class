@@ -10,6 +10,8 @@ interface BugReportModalProps {
   // The hub page the reporter came from; the report keeps this once the address
   // bar switches to /bug.
   sourcePath?: string;
+  // Set when the report was opened from a running game, so its name is filled in.
+  initialGame?: string;
 }
 
 const CHIP_STYLE: React.CSSProperties = {
@@ -18,10 +20,10 @@ const CHIP_STYLE: React.CSSProperties = {
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
 
-export function BugReportModal({ isOpen, onClose, sourcePath }: BugReportModalProps) {
+export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: BugReportModalProps) {
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
-  const [gameUrl, setGameUrl] = React.useState("");
+  const [gameUrl, setGameUrl] = React.useState(initialGame?.trim() || "");
   const [submitting, setSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [success, setSuccess] = React.useState(false);
@@ -58,6 +60,12 @@ export function BugReportModal({ isOpen, onClose, sourcePath }: BugReportModalPr
     }, 1000);
     return () => clearInterval(interval);
   }, [rateLimitSeconds]);
+
+  // Each open starts the affected field with the game that opened it, if any.
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setGameUrl(initialGame?.trim() || "");
+  }, [isOpen, initialGame]);
 
   useDialogFocus({ active: isOpen, onClose, panelRef });
 
@@ -240,6 +248,9 @@ export function BugReportModal({ isOpen, onClose, sourcePath }: BugReportModalPr
                 }}
                 className="w-full px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
               />
+              {initialGame?.trim() && gameUrl.trim() === initialGame.trim() && (
+                <p className="text-[10px] text-emerald-400/90">Added from the game you were playing.</p>
+              )}
             </div>
 
             {/* Bug Title */}

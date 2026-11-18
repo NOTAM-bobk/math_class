@@ -1,5 +1,9 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type } from "lucide-react";
+import { GitHubActivityGrid } from "./GitHubActivityGrid";
+import { getUpdateHistoryDays } from "@/lib/updateHistory";
+import { SYSTEM_FONTS, getStoredSystemFont, applySystemFont } from "@/lib/systemFont";
+import { CHANGELOG, SITE_VERSION } from "@/lib/changelog";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import {
   BACKGROUND_PRESETS,
@@ -148,7 +152,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
     { id: "notifications", label: "Notifications", icon: Bell, keywords: "notifications new games chat alerts" },
   ] },
   { heading: "Appearance", items: [
-    { id: "appearance", label: "Background", icon: Palette, keywords: "background theme color gradient image" },
+    { id: "appearance", label: "Theme & Fonts", icon: Palette, keywords: "background theme color gradient image font system font typography text" },
     { id: "cloak", label: "Tab cloak", icon: CloakIcon, keywords: "tab cloak title icon disguise" },
     { id: "panic", label: "Panic button", icon: Siren, keywords: "panic key redirect escape" },
   ] },
@@ -233,6 +237,22 @@ export function SettingsModal({
     return current.type === "solid" && current.id === "custom-solid" ? current.value : "#09090b";
   });
   const [bgNotice, setBgNotice] = React.useState<string | null>(null);
+
+  // System Font state
+  const [currentFontId, setCurrentFontId] = React.useState<string>(getStoredSystemFont);
+  const [fontFilter, setFontFilter] = React.useState<string>("all");
+  const [fontNotice, setFontNotice] = React.useState<string | null>(null);
+
+  const handleSelectFont = (fontId: string) => {
+    setCurrentFontId(fontId);
+    applySystemFont(fontId);
+    const chosen = SYSTEM_FONTS.find((f) => f.id === fontId);
+    setFontNotice("Applied " + (chosen?.name || fontId));
+    setTimeout(() => setFontNotice(null), 2500);
+  };
+
+  // 371-day activity history for changelog pane
+  const activityDays = React.useMemo(() => getUpdateHistoryDays(), []);
 
   // Local play statistics; the pane updates live while counting runs.
   const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
@@ -1544,6 +1564,145 @@ export function SettingsModal({
               </div>
             )}
           </div>
+          {/* System Font (Typography) */}
+          <div className="flex flex-col gap-3 border-t border-white/[0.08] pt-4 mt-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div
+                  style={{
+                    borderRadius: 36,
+                    background: "rgba(99, 102, 241, 0.12)",
+                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  }}
+                  className="p-1.5 text-indigo-400"
+                >
+                  <Type aria-hidden="true" className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                    <span>System Font</span>
+                    {fontNotice && (
+                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300 animate-fade-in">
+                        {fontNotice}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-zinc-400">
+                    Customize interface typography with clean, retro arcade, cyber, and playful options
+                  </div>
+                </div>
+              </div>
+
+              {currentFontId !== "geist" && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectFont("geist")}
+                  style={CHIP_STYLE}
+                  className="inline-flex cursor-pointer items-center gap-1 px-2.5 py-1 text-xs text-zinc-400 transition hover:bg-white/[0.08] hover:text-white active:scale-95"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  <span>Reset to default</span>
+                </button>
+              )}
+            </div>
+
+            <div
+              style={{
+                borderRadius: 14,
+                background: "rgba(0, 0, 0, 0.3)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                padding: "12px",
+              }}
+              className="flex flex-col gap-3"
+            >
+              {/* Active Font Preview Card */}
+              <div
+                style={{
+                  borderRadius: 10,
+                  background: "rgba(255, 255, 255, 0.03)",
+                  border: "1px solid rgba(255, 255, 255, 0.07)",
+                  padding: "12px 14px",
+                  fontFamily: SYSTEM_FONTS.find((f) => f.id === currentFontId)?.family,
+                }}
+                className="flex flex-col gap-1 transition-all"
+              >
+                <div className="flex items-center justify-between text-[10px] font-sans text-zinc-500">
+                  <span>LIVE TYPOGRAPHY PREVIEW</span>
+                  <span className="font-mono font-medium text-indigo-400">
+                    {SYSTEM_FONTS.find((f) => f.id === currentFontId)?.name}
+                  </span>
+                </div>
+                <div className="text-sm font-medium text-zinc-100 sm:text-base">
+                  The quick brown fox jumps over 1337 unblocked math games!
+                </div>
+                <div className="text-xs text-zinc-400">
+                  0 1 2 3 4 5 6 7 8 9 · High Scores · Polytrack Speedway · Level Complete
+                </div>
+              </div>
+
+              {/* Category Filter Chips */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {["all", "Standard", "Retro Gaming", "Sci-Fi", "Playful", "School", "Developer", "Unique"].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setFontFilter(cat)}
+                    className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition cursor-pointer ${
+                      fontFilter === cat
+                        ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
+                        : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    {cat === "all" ? "All Styles" : cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Font Options Grid */}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {SYSTEM_FONTS.filter((f) => fontFilter === "all" || f.category === fontFilter).map((font) => {
+                  const isSelected = currentFontId === font.id;
+                  return (
+                    <button
+                      key={font.id}
+                      type="button"
+                      onClick={() => handleSelectFont(font.id)}
+                      className={`flex flex-col gap-1.5 rounded-xl p-3 text-left transition cursor-pointer ${
+                        isSelected
+                          ? "bg-indigo-500/15 ring-2 ring-indigo-400/80 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
+                          : "bg-white/[0.03] ring-1 ring-white/[0.06] hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="truncate text-xs font-semibold text-zinc-100">{font.name}</span>
+                          {font.badge && (
+                            <span className="shrink-0 rounded-full bg-white/[0.07] px-1.5 py-0.5 text-[9px] font-medium text-zinc-300">
+                              {font.badge}
+                            </span>
+                          )}
+                        </div>
+                        {isSelected ? (
+                          <span className="shrink-0 rounded-full bg-indigo-500 p-0.5 text-white shadow">
+                            <Check className="h-3 w-3" />
+                          </span>
+                        ) : (
+                          <span className="shrink-0 text-[10px] text-zinc-500">{font.category}</span>
+                        )}
+                      </div>
+                      <div
+                        style={{ fontFamily: font.family }}
+                        className="rounded-lg bg-black/40 px-2 py-1.5 text-xs text-zinc-200 truncate"
+                      >
+                        {font.sample}
+                      </div>
+                      <div className="text-[10.5px] text-zinc-400 line-clamp-1">{font.description}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </section>
         </div>
 
@@ -2039,41 +2198,168 @@ export function SettingsModal({
         </section>
         </div>
 
-        {/* About: change log */}
+        {/* About: change log & update history */}
         <div style={paneStyle("changelog")}>
-        <section aria-label="Change log" className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-3">
-          <p className="text-[10.5px] leading-relaxed text-zinc-500">
-            See what changed in each site update.
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onReportBug();
-              }}
-              style={CHIP_STYLE}
-              className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
-              aria-haspopup="dialog"
-            >
-              <Bug aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
-              <span>Report a bug</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onOpenChangelog();
-              }}
-              style={CHIP_STYLE}
-              className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
-              aria-haspopup="dialog"
-            >
-              <History aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
-              <span>View change log</span>
-            </button>
-          </div>
-        </section>
+          <section aria-label="Change log & Update History" className="flex flex-col gap-4 border-t border-white/[0.08] pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div
+                  style={{
+                    borderRadius: 36,
+                    background: "rgba(56, 189, 248, 0.12)",
+                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  }}
+                  className="p-1.5 text-sky-400"
+                >
+                  <History aria-hidden="true" className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                    <span>Update History & Activity</span>
+                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-[#caccd2]">
+                      v{SITE_VERSION}
+                    </span>
+                  </div>
+                  <div className="text-xs text-zinc-400">
+                    Interactive activity grid tracking commits, engine updates, and releases
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onReportBug();
+                  }}
+                  style={CHIP_STYLE}
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                >
+                  <Bug aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Report bug</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenChangelog();
+                  }}
+                  style={CHIP_STYLE}
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                >
+                  <ScrollText aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
+                  <span>Full Dialog</span>
+                </button>
+              </div>
+            </div>
+
+            {/* GitHub Activity Grid Component following attached UI */}
+            <GitHubActivityGrid
+              days={activityDays}
+              subtitle="commits & updates in the last year"
+            />
+
+            {/* Quick summary stats */}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div
+                style={{
+                  borderRadius: 12,
+                  background: "rgba(0, 0, 0, 0.25)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  padding: "10px 12px",
+                }}
+              >
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Total Updates</div>
+                <div className="mt-0.5 font-mono text-base font-semibold text-emerald-400">
+                  {activityDays.reduce((acc, d) => acc + d.count, 0)}
+                </div>
+              </div>
+              <div
+                style={{
+                  borderRadius: 12,
+                  background: "rgba(0, 0, 0, 0.25)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  padding: "10px 12px",
+                }}
+              >
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Active Days</div>
+                <div className="mt-0.5 font-mono text-base font-semibold text-zinc-200">
+                  {activityDays.filter((d) => d.count > 0).length} days
+                </div>
+              </div>
+              <div
+                style={{
+                  borderRadius: 12,
+                  background: "rgba(0, 0, 0, 0.25)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  padding: "10px 12px",
+                }}
+              >
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Current Release</div>
+                <div className="mt-0.5 font-mono text-base font-semibold text-sky-400">
+                  v{SITE_VERSION}
+                </div>
+              </div>
+              <div
+                style={{
+                  borderRadius: 12,
+                  background: "rgba(0, 0, 0, 0.25)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  padding: "10px 12px",
+                }}
+              >
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Releases</div>
+                <div className="mt-0.5 font-mono text-base font-semibold text-purple-400">
+                  {CHANGELOG.length} versions
+                </div>
+              </div>
+            </div>
+
+            {/* Releases list */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-xs font-semibold text-zinc-200">
+                <span>Release Version Notes</span>
+                <span className="text-[11px] font-normal text-zinc-500">Latest changes</span>
+              </div>
+              <div className="flex max-h-72 flex-col gap-2.5 overflow-y-auto pr-1">
+                {CHANGELOG.map((entry, index) => (
+                  <div
+                    key={entry.version}
+                    style={{
+                      borderRadius: 12,
+                      background: "rgba(0, 0, 0, 0.25)",
+                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                      padding: "12px",
+                    }}
+                    className="flex flex-col gap-1.5"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs font-semibold text-zinc-100">
+                        v{entry.version}
+                      </span>
+                      {index === 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                          <Sparkles aria-hidden="true" className="h-3 w-3" />
+                          Latest
+                        </span>
+                      )}
+                      <span className="text-[11px] text-zinc-500">{entry.date}</span>
+                    </div>
+                    <div className="text-xs font-medium text-zinc-300">{entry.title}</div>
+                    <ul className="mt-0.5 flex flex-col gap-1">
+                      {entry.changes.map((c) => (
+                        <li key={c} className="flex gap-2 text-[11px] leading-relaxed text-[#9BA1AA]">
+                          <span aria-hidden="true" className="mt-[6px] h-1 w-1 shrink-0 rounded-full bg-zinc-600" />
+                          <span>{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
         </div>
 
         {/* About: source code and proxy links */}

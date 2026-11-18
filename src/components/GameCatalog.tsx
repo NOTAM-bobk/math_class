@@ -8,6 +8,7 @@ import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandom
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 import { BidvertiserAd } from "./BidvertiserAd";
+import { ONLINE_GAMES } from "@/data/onlineGames";
 
 const RECENT_GAMES_KEY = "polytrack_recent_games";
 const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -647,7 +648,10 @@ export const DEFAULT_GAMES: GameItem[] = [
     description: "Browser-based Minecraft with survival and multiplayer.",
     tags: ["Casual", "Sandbox", "Minecraft", "Multiplayer"],
     disabled: true
-  }
+  },
+  // Imported from the OnlineGames.io feed; their urls go through this site's
+  // own /api/proxy routes so a blocked domain does not take the games down.
+  ...ONLINE_GAMES
 ];
 
 function matchesCategory(game: GameItem, categoryId: CategoryId): boolean {

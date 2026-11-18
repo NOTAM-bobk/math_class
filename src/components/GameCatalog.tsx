@@ -1123,7 +1123,13 @@ function GameCard({
   );
 }
 
-export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
+export function GameCatalog({
+  showAdSpot = true,
+  onReportBug,
+}: {
+  showAdSpot?: boolean;
+  onReportBug?: () => void;
+}) {
   const [games, setGames] = React.useState<GameItem[]>(DEFAULT_GAMES);
   const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryId>(initialCategory);
@@ -2026,6 +2032,38 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                     Playing inside the hub
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(launcherGame.id)}
+                  aria-pressed={favoriteIds.has(launcherGame.id)}
+                  aria-label={
+                    favoriteIds.has(launcherGame.id)
+                      ? `Remove ${launcherGame.name} from favorites`
+                      : `Add ${launcherGame.name} to favorites`
+                  }
+                  title={favoriteIds.has(launcherGame.id) ? "Remove from favorites" : "Add to favorites"}
+                  className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-amber-300 active:scale-95"
+                >
+                  <Star
+                    aria-hidden="true"
+                    className={`h-4 w-4 ${
+                      favoriteIds.has(launcherGame.id)
+                        ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
+                        : "stroke-[1.75]"
+                    }`}
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onReportBug?.()}
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                  aria-haspopup="dialog"
+                  className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-95 sm:px-2.5"
+                >
+                  <Bug aria-hidden="true" className="h-4 w-4 text-amber-400" />
+                  <span className="hidden sm:inline">Report bug</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => {

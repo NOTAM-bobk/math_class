@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import {
   BACKGROUND_PRESETS,
@@ -36,6 +36,7 @@ import {
   type OfflineStatus,
 } from "@/lib/offlineCache";
 import { formatPlayTime, loadPlayStats, type PlayStats } from "@/lib/playStats";
+import { hardResetSite } from "@/lib/hardReset";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -119,9 +120,12 @@ function testMirrorFrame(
   });
 }
 
-type DesktopTab = "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "offline" | "proxies" | "changelog";
+type DesktopTab = "account" | "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "offline" | "proxies" | "changelog";
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
+  { heading: "Account", items: [
+    { id: "account", label: "Account", icon: UserRound, keywords: "account sign in login sync save settings game data" },
+  ] },
   { heading: "General", items: [
     { id: "general", label: "Layout & startup", icon: LayoutGrid, keywords: "loading animation side chat visitor counter ad space layout startup" },
     { id: "stats", label: "Your stats", icon: BarChart3, keywords: "play time clicks most played games stats" },
@@ -134,10 +138,10 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
     { id: "panic", label: "Panic button", icon: Siren, keywords: "panic key redirect escape" },
   ] },
   { heading: "Other", items: [
-    { id: "ads", label: "Ads", icon: Megaphone, keywords: "ads notification ads block" },
     { id: "offline", label: "Offline mode", icon: WifiOff, keywords: "offline download cache schedule" },
     { id: "proxies", label: "Proxies & source", icon: Link2, keywords: "source code github proxies mirrors" },
     { id: "changelog", label: "Change log", icon: ScrollText, keywords: "change log updates history" },
+    { id: "ads", label: "Ad", icon: Megaphone, keywords: "ad ads notification ads block" },
   ] },
 ];
 
@@ -218,6 +222,17 @@ export function SettingsModal({
 
   // Local play statistics
   const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
+
+  // Hard reset asks once before wiping everything this browser kept for the site.
+  const [resetConfirming, setResetConfirming] = React.useState(false);
+  const [resetting, setResetting] = React.useState(false);
+  const resetConfirmTimer = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (resetConfirmTimer.current) window.clearTimeout(resetConfirmTimer.current);
+    };
+  }, []);
 
   // Proxy reachability, checked only once the mirrors scroll into view
   const [proxyStatus, setProxyStatus] = React.useState<Record<string, ProxyCheckStatus>>({});
@@ -614,6 +629,20 @@ export function SettingsModal({
     setTimeout(() => setPanicSaved(false), 2200);
   };
 
+  const handleHardReset = () => {
+    if (resetting) return;
+    if (!resetConfirming) {
+      setResetConfirming(true);
+      if (resetConfirmTimer.current) window.clearTimeout(resetConfirmTimer.current);
+      resetConfirmTimer.current = window.setTimeout(() => setResetConfirming(false), 6000);
+      return;
+    }
+    if (resetConfirmTimer.current) window.clearTimeout(resetConfirmTimer.current);
+    setResetConfirming(false);
+    setResetting(true);
+    void hardResetSite();
+  };
+
   return (
     <div
       className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-2 pt-[4.5rem] backdrop-blur-sm sm:items-center sm:p-4 ${closing ? "settings-backdrop-exit pointer-events-none" : "settings-backdrop-enter"}`}
@@ -768,6 +797,114 @@ export function SettingsModal({
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${adSpotEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
+          <div
+            style={{
+              borderRadius: 12,
+              background: "rgba(239, 68, 68, 0.06)",
+              boxShadow: "inset 0 0 0 1px rgba(239, 68, 68, 0.18)",
+            }}
+            className="flex flex-col gap-2.5 p-3"
+          >
+            <div className="flex items-start gap-2">
+              <RotateCcw aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-zinc-200">Hard reset</div>
+                <div className="text-xs text-zinc-500">
+                  Delete this site’s cache, local storage, cookies and offline copy, then reload so the newest
+                  updates load. Saved settings, favorites and progress on this device are erased.
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleHardReset}
+              disabled={resetting}
+              className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors active:scale-[0.99] disabled:cursor-wait ${
+                resetConfirming
+                  ? "bg-red-500 text-white hover:bg-red-400"
+                  : "border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+              }`}
+            >
+              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+              <span>{resetting ? "Resetting…" : resetConfirming ? "Click again to erase everything" : "Hard reset and reload"}</span>
+            </button>
+            <p role="status" className="text-[11px] leading-relaxed text-zinc-500">
+              {resetConfirming
+                ? "This cannot be undone. Click the button again within a few seconds to continue."
+                : "Use this when an update seems stuck on an old version of the site."}
+            </p>
+          </div>
+        </section>
+        </div>
+
+        {/* Account: sign-in is not available yet, so the whole block is disabled. */}
+        <div style={paneStyle("account")}>
+        <section aria-labelledby="account-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+          <div className="flex items-start gap-2">
+            <div
+              style={{
+                borderRadius: 36,
+                background: "rgba(255, 255, 255, 0.04)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              }}
+              className="p-1.5 text-zinc-400"
+            >
+              <UserRound aria-hidden="true" className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+                <span id="account-title">Account</span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                  Coming soon
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400">
+                Your settings and game data are saved on this device only
+              </div>
+            </div>
+          </div>
+
+          <div
+            aria-disabled="true"
+            className="pointer-events-none select-none rounded-xl border border-dashed border-white/[0.12] bg-white/[0.015] p-4 opacity-50 grayscale"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.04] text-zinc-400">
+                <UserRound aria-hidden="true" className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-zinc-300">Sign in</div>
+                <p className="mt-0.5 text-[11.5px] leading-relaxed text-zinc-500">
+                  Sign in to save your settings and game data to your account, then pick them up on any device.
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                tabIndex={-1}
+                className="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.05] text-xs font-semibold text-zinc-400"
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                tabIndex={-1}
+                className="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.02] text-xs font-medium text-zinc-400"
+              >
+                Create account
+              </button>
+            </div>
+          </div>
+
+          <p className="text-[11px] leading-relaxed text-zinc-500">
+            Sign-in isn’t available yet. Everything stays saved in this browser until it is — a hard reset in
+            Layout &amp; startup clears it.
+          </p>
         </section>
         </div>
 
@@ -1411,88 +1548,6 @@ export function SettingsModal({
         </section>
         </div>
 
-        {/* Notifications: ads */}
-        <div style={paneStyle("ads")}>
-        <section
-          aria-labelledby="ads-title"
-          className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
-        >
-          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-            <BellOff aria-hidden="true" className="h-4 w-4 text-zinc-400" />
-            <h3 id="ads-title">Ads</h3>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div
-                style={{
-                  borderRadius: 36,
-                  background: adsBlocked ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-                }}
-                className="p-1.5 text-zinc-300"
-              >
-                <BellOff
-                  aria-hidden="true"
-                  className={`w-4 h-4 ${adsBlocked ? "text-emerald-400" : "text-zinc-400"}`}
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                  <span>Turn off ads</span>
-                  {adsBlocked && (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                      Off
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-zinc-400">
-                  Stop the notification ads and every sponsor slot on the site
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleToggleAds}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                adsBlocked ? "bg-emerald-600" : "bg-zinc-700"
-              }`}
-              role="switch"
-              aria-checked={adsBlocked}
-              aria-label="Turn off ads"
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
-                  adsBlocked ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
-
-          {adsBlocked && (
-            <div
-              style={{
-                borderRadius: 10,
-                background: "rgba(0, 0, 0, 0.3)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
-              className="flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-zinc-400"
-            >
-              <span className="min-w-0 leading-snug">
-                Notification ads that already started need one reload to stop.
-              </span>
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="shrink-0 cursor-pointer rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-950 transition-colors hover:bg-zinc-100"
-              >
-                Reload page
-              </button>
-            </div>
-          )}
-        </section>
-        </div>
-
         {/* Offline access: downloaded copy and schedule */}
         <div style={paneStyle("offline")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="offline-title">
@@ -2005,6 +2060,88 @@ export function SettingsModal({
             Last updated {formatLastUpdated()}
           </p>
                 </section>
+        </div>
+
+        {/* Ad: kept last in the settings pages */}
+        <div style={paneStyle("ads")}>
+        <section
+          aria-labelledby="ads-title"
+          className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+            <Megaphone aria-hidden="true" className="h-4 w-4 text-zinc-400" />
+            <h3 id="ads-title">Ad</h3>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div
+                style={{
+                  borderRadius: 36,
+                  background: adsBlocked ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                }}
+                className="p-1.5 text-zinc-300"
+              >
+                <BellOff
+                  aria-hidden="true"
+                  className={`w-4 h-4 ${adsBlocked ? "text-emerald-400" : "text-zinc-400"}`}
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                  <span>Turn off ads</span>
+                  {adsBlocked && (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                      Off
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-zinc-400">
+                  Stop the notification ads and every sponsor slot on the site
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleAds}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                adsBlocked ? "bg-emerald-600" : "bg-zinc-700"
+              }`}
+              role="switch"
+              aria-checked={adsBlocked}
+              aria-label="Turn off ads"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
+                  adsBlocked ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {adsBlocked && (
+            <div
+              style={{
+                borderRadius: 10,
+                background: "rgba(0, 0, 0, 0.3)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              }}
+              className="flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-zinc-400"
+            >
+              <span className="min-w-0 leading-snug">
+                Notification ads that already started need one reload to stop.
+              </span>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="shrink-0 cursor-pointer rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-950 transition-colors hover:bg-zinc-100"
+              >
+                Reload page
+              </button>
+            </div>
+          )}
+        </section>
         </div>
         </div>
       </div>

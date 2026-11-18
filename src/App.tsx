@@ -511,7 +511,7 @@ export function App() {
             className={`${mobilePanel === "games" ? "flex" : "hidden"} md:flex flex-1 flex-col min-h-0 min-w-0`}
           >
             <div id="games" className="flex-1 flex flex-col min-h-0">
-              <GameCatalog showAdSpot={adsVisible} />
+              <GameCatalog showAdSpot={adsVisible} onReportBug={openBugReport} />
             </div>
           </section>
 

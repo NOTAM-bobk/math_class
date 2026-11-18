@@ -1,11 +1,19 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Search, Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Star, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink } from "lucide-react";
+import { Search, Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Star, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
 import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandomBlockedEmoji } from "@/lib/blockedGames";
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
+import {
+  loadHiddenGames,
+  onHiddenGamesChange,
+  hideGame,
+  restoreGame,
+  type HiddenGameEntry,
+  type HiddenGameReason,
+} from "@/lib/hiddenGames";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 import { loadGameCardLayout, onGameCardLayoutChange, type GameCardLayout } from "@/lib/gameCardLayout";
 import { GameCoverArt } from "./GameCoverArt";
@@ -49,6 +57,7 @@ export const CATEGORY_FILTERS = [
   { id: "favorites", label: "⭐ Favorites" },
   { id: "editors", label: "✨ Editor’s Pick" },
   { id: "verified", label: "✅ Verified" },
+  { id: "hidden", label: "🙈 Hidden" },
   { id: "trending", label: "🔥 Trending" },
   { id: "flash", label: "⚡ Flash" },
   { id: "action", label: "⚔️ Action" },
@@ -107,6 +116,7 @@ const DEFAULT_SORT: SortOption = "popular";
 const TAG_FILTERS = [
   { id: "editors", emoji: "✨", label: "Editor’s Pick" },
   { id: "verified", emoji: "✅", label: "Verified" },
+  { id: "hidden", emoji: "🙈", label: "Hidden" },
   { id: "buggy", emoji: "🐛", label: "Error: bug" },
   { id: "blocked", emoji: "😿", label: "Blocked" },
 ] as const satisfies readonly { id: CategoryId; emoji: string; label: string }[];
@@ -947,10 +957,12 @@ function GameCard({
   isVerified,
   isNotMobile,
   isBlocked,
+  hiddenInfo,
   blockedEmoji,
   searchQuery,
   onPlay,
   onToggleFavorite,
+  onRestoreHidden,
   variant = "classic",
   sizeClass
 }: {
@@ -962,10 +974,12 @@ function GameCard({
   isVerified: boolean;
   isNotMobile: boolean;
   isBlocked: boolean;
+  hiddenInfo?: HiddenGameEntry | null;
   blockedEmoji: string;
   searchQuery: string;
   onPlay: (game: GameItem, event?: React.MouseEvent) => void;
   onToggleFavorite: (id: string, event?: React.MouseEvent) => void;
+  onRestoreHidden?: (id: string) => void;
   variant?: GameCardLayout;
   sizeClass?: string;
 }) {
@@ -1016,6 +1030,11 @@ function GameCard({
                 Blocked:{blockedEmoji}
               </span>
             )}
+            {hiddenInfo && (
+              <span title={hiddenInfo.detail} className={`${compactChip} text-zinc-200`}>
+                <EyeOff aria-hidden="true" className="h-2.5 w-2.5 text-zinc-400" /> hidden
+              </span>
+            )}
           </div>
           <button
             type="button"
@@ -1052,6 +1071,20 @@ function GameCard({
             <span className="truncate text-[10px] text-zinc-300/80">
               {game.disabled ? "Coming soon" : game.tags[0] || (opensInHub ? "In the hub" : "New tab")}
             </span>
+            {hiddenInfo && onRestoreHidden && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onRestoreHidden(game.id);
+                }}
+                title="Put this game back in the main catalog"
+                className="relative z-20 inline-flex h-6 shrink-0 cursor-pointer items-center rounded-full bg-white/15 px-2 text-[10px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25"
+              >
+                Restore
+              </button>
+            )}
             {game.disabled ? (
               <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2 text-[10px] font-medium text-zinc-200 backdrop-blur-sm">
                 <Clock3 aria-hidden="true" className="h-2.5 w-2.5" /> Soon
@@ -1165,6 +1198,21 @@ function GameCard({
                 <span>Blocked:{blockedEmoji}</span>
               </span>
             )}
+            {hiddenInfo && (
+              <span
+                title={`${hiddenInfo.source === "auto" ? "Automated check" : "Failed to load in this browser"}: ${hiddenInfo.detail}`}
+                style={{
+                  ...CHIP_STYLE,
+                  background: "linear-gradient(135deg, rgba(113, 113, 122, 0.25), rgba(63, 63, 70, 0.18))",
+                  border: "1px solid rgba(161, 161, 170, 0.35)",
+                  color: "#d4d4d8"
+                }}
+                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[10.5px] font-semibold tracking-wide font-mono"
+              >
+                <EyeOff aria-hidden="true" className="h-3 w-3 shrink-0 text-zinc-400" />
+                <span>auto-hidden</span>
+              </span>
+            )}
             {isRecent && (
               <span
                 title="You played this in the last week"
@@ -1244,6 +1292,20 @@ function GameCard({
                 {game.clicks} {game.clicks === 1 ? "play" : "plays"}
               </span>
             )}
+            {hiddenInfo && onRestoreHidden && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onRestoreHidden(game.id);
+                }}
+                title="Put this game back in the main catalog"
+                className="inline-flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-white/15 px-2.5 text-[11px] font-medium text-zinc-200 transition-colors hover:bg-white/[0.1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              >
+                Restore
+              </button>
+            )}
             {game.disabled ? (
               <span
                 style={CHIP_STYLE}
@@ -1292,6 +1354,8 @@ export function GameCatalog({
   const [launcherNonce, setLauncherNonce] = React.useState(0);
   const [launcherLoaded, setLauncherLoaded] = React.useState(false);
   const [launcherSlow, setLauncherSlow] = React.useState(false);
+  const launcherIframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [launcherIssue, setLauncherIssue] = React.useState<{ reason: HiddenGameReason; detail: string } | null>(null);
   // Closing the sponsor slot only pauses it; it comes back after 30 seconds.
   const [adSpotHidden, setAdSpotHidden] = React.useState(false);
   const adSpotTimerRef = React.useRef<number | null>(null);
@@ -1332,6 +1396,13 @@ export function GameCatalog({
 
   const [blockedIds, setBlockedIds] = React.useState<Set<string>>(loadBlockedGameIds);
   const [blockedEmoji] = React.useState<string>(() => getRandomBlockedEmoji());
+  // Broken games are hidden from the main list, but a scan cannot see a game
+  // that dies after loading, so the launcher adds its own detections here.
+  const [hiddenGames, setHiddenGames] = React.useState<Record<string, HiddenGameEntry>>(loadHiddenGames);
+
+  React.useEffect(() => {
+    return onHiddenGamesChange((updated) => setHiddenGames(updated));
+  }, []);
 
   const catalogScrollRef = React.useRef<HTMLDivElement>(null);
   const savedCatalogScrollRef = React.useRef(0);
@@ -1491,7 +1562,42 @@ export function GameCatalog({
     setLauncherNonce((value) => value + 1);
     setLauncherLoaded(false);
     setLauncherSlow(false);
+    setLauncherIssue(null);
   }, []);
+
+  // A game that fails inside the launcher is remembered as hidden, so the same
+  // dead embed is not offered to the next visitor on this device.
+  const flagLauncherBroken = React.useCallback(
+    (game: GameItem, reason: HiddenGameReason, detail: string) => {
+      hideGame(game.id, reason, detail);
+      setLauncherIssue({ reason, detail });
+    },
+    [],
+  );
+
+  const inspectLauncherFrame = React.useCallback(
+    (game: GameItem) => {
+      if (!isSameOriginGame(game.url)) return;
+      window.setTimeout(() => {
+        try {
+          const doc = launcherIframeRef.current?.contentDocument;
+          const body = doc?.body;
+          if (!doc || !body) return;
+          const text = (body.innerText || body.textContent || "").replace(/\s+/g, " ").trim();
+          const hasGameContent =
+            !!doc.querySelector("canvas, embed, object, video, iframe, img, svg, audio") || doc.scripts.length > 0;
+          if (/^(404|410)\b|page not found|the page could not be found|cannot get /i.test(text) && text.length < 300) {
+            flagLauncherBroken(game, "not-found", `the game page says “${text.slice(0, 80)}”`);
+          } else if (text.length < 10 && !hasGameContent) {
+            flagLauncherBroken(game, "blank", "the game loaded with no visible content");
+          }
+        } catch {
+          // Cross-origin frames cannot be inspected; the load/error events still cover them.
+        }
+      }, 2500);
+    },
+    [flagLauncherBroken],
+  );
 
   const dismissLauncher = React.useCallback(() => {
     setLauncherGame(null);
@@ -1571,6 +1677,16 @@ export function GameCatalog({
       window.clearTimeout(slowTimer);
     };
   }, [launcherGame, launcherNonce]);
+
+  // If the frame never reports a load, treat the game as erroring out and hide
+  // it. The generous window keeps slow Unity downloads from being flagged.
+  React.useEffect(() => {
+    if (!launcherGame || launcherLoaded) return;
+    const stuckTimer = window.setTimeout(() => {
+      flagLauncherBroken(launcherGame, "error", "the game never finished loading (25s)");
+    }, 25_000);
+    return () => window.clearTimeout(stuckTimer);
+  }, [launcherGame, launcherNonce, launcherLoaded, flagLauncherBroken]);
 
   // Keep search and category filter in the URL so filtered views can be shared or bookmarked.
   React.useEffect(() => {
@@ -1699,12 +1815,17 @@ export function GameCatalog({
     const trimmedQuery = searchQuery.trim();
     const usingServer = trimmedQuery.length >= 2 && serverMatches !== null;
     let list = usingServer ? serverMatches : games;
+    if (selectedCategory !== "hidden") {
+      list = list.filter((game) => !hiddenGames[game.id]);
+    }
     if (selectedCategory === "favorites") {
       list = list.filter((game) => favoriteIds.has(game.id));
     } else if (selectedCategory === "editors") {
       list = list.filter((game) => !!game.editorsPick);
     } else if (selectedCategory === "verified") {
       list = list.filter((game) => verifiedIds.has(game.id) || !!game.verified);
+    } else if (selectedCategory === "hidden") {
+      list = list.filter((game) => !!hiddenGames[game.id]);
     } else if (selectedCategory === "trending") {
       list = list.filter((game) => popularGameIds.has(game.id));
     } else if (selectedCategory === "buggy") {
@@ -1722,7 +1843,7 @@ export function GameCatalog({
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameIds, searchQuery, serverMatches]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameIds, hiddenGames, searchQuery, serverMatches]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1779,18 +1900,19 @@ export function GameCatalog({
     const byId = new Map(games.map((game) => [game.id, game]));
     return loadRecentGames()
       .map((entry) => byId.get(entry.id))
-      .filter((game): game is GameItem => !!game && !game.disabled);
-  }, [games, recentIds]);
+      .filter((game): game is GameItem => !!game && !game.disabled && !hiddenGames[game.id]);
+  }, [games, recentIds, hiddenGames]);
 
   const searching = searchQuery.trim().length > 0;
   const tagCounts: Record<TagFilterId, number> = React.useMemo(
     () => ({
       editors: games.filter((game) => !!game.editorsPick).length,
       verified: games.filter((game) => verifiedIds.has(game.id) || !!game.verified).length,
+      hidden: Object.keys(hiddenGames).length,
       buggy: games.filter((game) => buggyIds.has(game.id) || !!game.errorBug).length,
       blocked: blockedIds.size,
     }),
-    [games, verifiedIds, buggyIds, blockedIds]
+    [games, verifiedIds, buggyIds, blockedIds, hiddenGames]
   );
 
   const isFiltered = searching || selectedCategory !== "all";
@@ -2125,10 +2247,12 @@ export function GameCatalog({
                   isVerified={verifiedIds.has(game.id) || !!game.verified}
                   isNotMobile={notMobileIds.has(game.id)}
                   isBlocked={blockedIds.has(game.id)}
+                  hiddenInfo={hiddenGames[game.id] ?? null}
                   blockedEmoji={blockedEmoji}
                   searchQuery={searchQuery}
                   onPlay={launchGame}
                   onToggleFavorite={toggleFavorite}
+                  onRestoreHidden={restoreGame}
                 />
               ))}
               </div>
@@ -2160,10 +2284,12 @@ export function GameCatalog({
                   isVerified={verifiedIds.has(game.id) || !!game.verified}
                   isNotMobile={notMobileIds.has(game.id)}
                   isBlocked={blockedIds.has(game.id)}
+                  hiddenInfo={hiddenGames[game.id] ?? null}
                   blockedEmoji={blockedEmoji}
                   searchQuery={searchQuery}
                   onPlay={launchGame}
                   onToggleFavorite={toggleFavorite}
+                  onRestoreHidden={restoreGame}
                 />
               ))}
               </div>
@@ -2172,7 +2298,15 @@ export function GameCatalog({
 
           {filteredGames.length === 0 && (
             <div className="flex flex-col items-center gap-2 py-12 text-center">
-              {selectedCategory === "favorites" ? (
+              {selectedCategory === "hidden" ? (
+                <>
+                  <CheckCircle2 className="h-8 w-8 text-emerald-400/50" aria-hidden="true" />
+                  <p className="text-sm font-medium text-zinc-300">No hidden games</p>
+                  <p className="max-w-[20rem] text-xs leading-relaxed text-zinc-500">
+                    Every game passed the broken-game check. Games are hidden when they 404, error out, load blank, or fail inside the launcher.
+                  </p>
+                </>
+              ) : selectedCategory === "favorites" ? (
                 <>
                   <Star className="h-8 w-8 text-amber-400/50" aria-hidden="true" />
                   <p className="text-sm font-medium text-zinc-300">
@@ -2301,6 +2435,24 @@ export function GameCatalog({
               </div>
 
               <div className="relative min-h-0 flex-1 bg-black">
+                {launcherIssue && (
+                  <div className="absolute inset-x-3 top-3 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-400/30 bg-[#1c1315]/95 px-3 py-2 text-[11px] text-zinc-200 shadow-lg">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <EyeOff aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-red-300" />
+                      <span>Hidden from the catalog — {launcherIssue.detail}.</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (launcherGame) restoreGame(launcherGame.id);
+                        setLauncherIssue(null);
+                      }}
+                      className="shrink-0 cursor-pointer rounded-full border border-white/15 px-2.5 py-1 font-semibold text-white transition-colors hover:bg-white/[0.1]"
+                    >
+                      Keep visible
+                    </button>
+                  </div>
+                )}
                 {!launcherLoaded && (
                   <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-[#09090b]">
                     <div className="flex flex-col items-center gap-3 text-xs text-zinc-400">
@@ -2313,10 +2465,18 @@ export function GameCatalog({
                   </div>
                 )}
                 <iframe
+                  ref={launcherIframeRef}
                   key={`${launcherGame.id}-${launcherNonce}`}
                   src={launcherGame.url}
                   title={launcherGame.name}
-                  onLoad={() => setLauncherLoaded(true)}
+                  onLoad={() => {
+                    setLauncherLoaded(true);
+                    if (launcherGame) inspectLauncherFrame(launcherGame);
+                  }}
+                  onError={() => {
+                    setLauncherLoaded(true);
+                    if (launcherGame) flagLauncherBroken(launcherGame, "error", "the browser could not load the game");
+                  }}
                   className="h-full w-full border-0 bg-black"
                   allow="autoplay; fullscreen; gamepad; clipboard-write; encrypted-media; picture-in-picture"
                   allowFullScreen

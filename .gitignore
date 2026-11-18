@@ -1,4 +1,7 @@
 node_modules/
+# Scanner output; the generated list that ships is src/lib/autoHiddenGames.ts.
+scripts/.game-check-progress.jsonl
+scripts/game-check-report.json
 .env
 .env.*
 !.env.example

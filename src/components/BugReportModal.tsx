@@ -1,4 +1,5 @@
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { X, Bug, AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
 
@@ -130,9 +131,11 @@ export function BugReportModal({ isOpen, onClose, sourcePath }: BugReportModalPr
     setGameUrl("");
   };
 
-  return (
+  // Portalled to <body> so the form sits above the in-page game launcher,
+  // which is itself a body-level overlay.
+  return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto overscroll-contain bg-black/80 p-3 backdrop-blur-sm sm:p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overscroll-contain bg-black/80 p-3 backdrop-blur-sm sm:p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -342,6 +345,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath }: BugReportModalPr
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

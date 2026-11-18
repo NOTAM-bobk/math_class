@@ -3,18 +3,16 @@ import { BellOff, X } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
 
 /**
- * The occasional reminder that the visitor can hide every ad. It is a real
- * dialog: focus moves in, Tab stays inside, Escape closes it, and focus returns
- * to whatever opened it.
+ * The occasional reminder about ads. Ads can no longer be switched off one by
+ * one: Ultra will remove them. It is a real dialog: focus moves in, Tab stays
+ * inside, Escape closes it, and focus returns to whatever opened it.
  */
 export function AdsNudgeModal({
   isOpen,
   onClose,
-  onTurnOffAds,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onTurnOffAds: () => void;
 }) {
   const panelRef = React.useRef<HTMLDivElement>(null);
   useDialogFocus({ active: isOpen, onClose, panelRef });
@@ -43,10 +41,11 @@ export function AdsNudgeModal({
           </span>
           <div className="min-w-0 flex-1">
             <h2 id="ads-nudge-title" className="text-base font-semibold">
-              Don’t like ads? You can turn them off.
+              Ads keep the games free.
             </h2>
             <p id="ads-nudge-description" className="mt-1 text-xs leading-relaxed text-zinc-300">
-              Every ad on the site can be hidden for this browser, anytime in Settings.
+              Ultra is on the way for $1: no ads and more features. Until then ads can’t be turned off
+              separately.
             </p>
           </div>
           <button
@@ -69,10 +68,11 @@ export function AdsNudgeModal({
           </button>
           <button
             type="button"
-            onClick={onTurnOffAds}
-            className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100"
+            disabled
+            aria-disabled="true"
+            className="cursor-not-allowed rounded-lg bg-white/40 px-3 py-2 text-xs font-semibold text-zinc-800"
           >
-            Turn off ads
+            Upgrade to Ultra · $1
           </button>
         </div>
       </div>

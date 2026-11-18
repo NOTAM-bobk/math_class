@@ -8,6 +8,7 @@ import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandom
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 import { BidvertiserAd } from "./BidvertiserAd";
+import { PanicButton } from "./PanicButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { ONLINE_GAMES } from "@/data/onlineGames";
 import { HFMANOR_GAMES } from "@/data/hfmanorGames";
@@ -1126,9 +1127,12 @@ function GameCard({
 export function GameCatalog({
   showAdSpot = true,
   onReportBug,
+  bugReportOpen = false,
 }: {
   showAdSpot?: boolean;
   onReportBug?: () => void;
+  // While the report form is up it owns focus, not the game launcher.
+  bugReportOpen?: boolean;
 }) {
   const [games, setGames] = React.useState<GameItem[]>(DEFAULT_GAMES);
   const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
@@ -1142,6 +1146,19 @@ export function GameCatalog({
   const [launcherNonce, setLauncherNonce] = React.useState(0);
   const [launcherLoaded, setLauncherLoaded] = React.useState(false);
   const [launcherSlow, setLauncherSlow] = React.useState(false);
+  // Closing the sponsor slot only pauses it; it comes back after 30 seconds.
+  const [adSpotHidden, setAdSpotHidden] = React.useState(false);
+  const adSpotTimerRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    return () => {
+      if (adSpotTimerRef.current) window.clearTimeout(adSpotTimerRef.current);
+    };
+  }, []);
+  const dismissAdSpot = React.useCallback(() => {
+    setAdSpotHidden(true);
+    if (adSpotTimerRef.current) window.clearTimeout(adSpotTimerRef.current);
+    adSpotTimerRef.current = window.setTimeout(() => setAdSpotHidden(false), 30_000);
+  }, []);
   const launcherPanelRef = React.useRef<HTMLDivElement>(null);
   const launcherBackRef = React.useRef<HTMLButtonElement>(null);
   const [popularGameIds, setPopularGameIds] = React.useState<Set<string>>(() => new Set());
@@ -1379,7 +1396,7 @@ export function GameCatalog({
   // The in-page launcher stays open while the game runs; Escape or the return
   // bar closes it, and only then is the play session finalized.
   useDialogFocus({
-    active: !!launcherGame,
+    active: !!launcherGame && !bugReportOpen,
     onClose: closeLauncher,
     panelRef: launcherPanelRef,
     initialFocusRef: launcherBackRef,
@@ -1860,18 +1877,27 @@ export function GameCatalog({
                 background: "rgba(255, 255, 255, 0.015)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
               }}
-              className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5"
+              className={`flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
             >
               <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
                 Ad
               </span>
-              <BidvertiserAd slot="catalog" className="flex items-center justify-center" />
+              <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
                 className="shrink-0 text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
               >
                 Advertise
               </a>
+              <button
+                type="button"
+                onClick={dismissAdSpot}
+                aria-label="Close ad"
+                title="Close ad (comes back in 30s)"
+                className="-mr-1 flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
+              >
+                <X aria-hidden="true" className="h-3 w-3" />
+              </button>
             </div>
           )}
 
@@ -2008,7 +2034,9 @@ export function GameCatalog({
               ref={launcherPanelRef}
               className="fixed inset-0 z-[60] flex flex-col bg-[#09090b]"
               role="dialog"
-              aria-modal="true"
+              aria-modal={bugReportOpen ? undefined : "true"}
+              aria-hidden={bugReportOpen || undefined}
+              inert={bugReportOpen}
               aria-label={`${launcherGame.name} game`}
             >
               <div
@@ -2077,6 +2105,7 @@ export function GameCatalog({
                 >
                   <RotateCcw aria-hidden="true" className="h-4 w-4" />
                 </button>
+                <PanicButton compact />
                 <a
                   href={launcherGame.url}
                   target="_blank"

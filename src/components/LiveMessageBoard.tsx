@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, Smile, Sparkles } from "lucide-react";
+import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, Smile, Sparkles, X } from "lucide-react";
 import { HubMessage, loadMessages, sendMessage } from "@/lib/hubApi";
 import { notifyNewChatMessage } from "@/lib/chatNotifications";
 import { isChatVerified } from "@/lib/turnstile";
@@ -136,6 +136,18 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
   // Mounted on the first showing and kept mounted: the tag loads exactly once.
   const [adMounted, setAdMounted] = React.useState(false);
   const [adVisible, setAdVisible] = React.useState(false);
+  // Closing the chat ad only pauses it: it is back after 30 seconds.
+  const adDismissTimerRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    return () => {
+      if (adDismissTimerRef.current) window.clearTimeout(adDismissTimerRef.current);
+    };
+  }, []);
+  const dismissAd = React.useCallback(() => {
+    setAdVisible(false);
+    if (adDismissTimerRef.current) window.clearTimeout(adDismissTimerRef.current);
+    adDismissTimerRef.current = window.setTimeout(() => setAdVisible(true), 30_000);
+  }, []);
   const pendingScrollAdjustRef = React.useRef(0);
   const lastSendAtRef = React.useRef(0);
   const sendTimesRef = React.useRef<number[]>([]);
@@ -519,7 +531,16 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
             <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.14em] text-zinc-400">
               Ad
             </span>
-            <BidvertiserAd slot="chat" className="flex items-center justify-center" />
+            <BidvertiserAd slot="chat" showClose={false} className="flex items-center justify-center" />
+            <button
+              type="button"
+              onClick={dismissAd}
+              aria-label="Close ad"
+              title="Close ad (comes back in 30s)"
+              className="flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
+            >
+              <X aria-hidden="true" className="h-3 w-3" />
+            </button>
           </div>
         </div>
       )}

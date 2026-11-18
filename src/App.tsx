@@ -22,11 +22,12 @@ import {
   onBackgroundConfigChange,
   type BackgroundConfig,
 } from "./lib/backgroundTheme";
-import { formatLastUpdated, LAST_UPDATED_ISO } from "./lib/lastUpdated";
+import { LAST_UPDATED_ISO } from "./lib/lastUpdated";
+import { clearSiteMeta, loadSiteMeta, saveSiteMeta, type SiteMeta } from "./lib/siteMeta";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
 import { finalizePlaySession } from "./lib/playStats";
-import { areNotificationAdsBlocked, setNotificationAdsBlocked } from "./lib/adNotifications";
+import { areNotificationAdsBlocked } from "./lib/adNotifications";
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -114,9 +115,8 @@ export function App() {
   const [navCollapsed, setNavCollapsed] = React.useState(
     () => localStorage.getItem("polytrack_nav_collapsed") !== "false"
   );
-  const [adSpotEnabled, setAdSpotEnabled] = React.useState(
-    () => localStorage.getItem("polytrack_ad_spot_enabled") !== "false"
-  );
+  // Ads are always on now: removing them is an Ultra feature, not a setting.
+  const adSpotEnabled = true;
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
   // The footer starts hidden; Settings > Show footer turns it back on.
   const [footerHidden, setFooterHidden] = React.useState(() => {
@@ -126,9 +126,7 @@ export function App() {
       return true;
     }
   });
-  // "Turn off ads" stops every slot (catalog and chat), not just the notification ads.
-  const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
-  const adsVisible = adSpotEnabled && !adsBlocked;
+  const adsVisible = adSpotEnabled;
   const [installNoticeVisible, setInstallNoticeVisible] = React.useState(() => {
     try {
       return localStorage.getItem(INSTALL_NOTICE_SEEN_KEY) !== "true";
@@ -238,7 +236,15 @@ export function App() {
   // The footer sits on the theme background, so its ink flips to whichever of
   // black or white stays readable against that particular backdrop.
   const footerIsLight = React.useMemo(() => backgroundIsLight(bgConfig), [bgConfig]);
-  const lastUpdatedLabel = React.useMemo(() => formatLastUpdated(), []);
+  // Admin-editable footer credit lines, defaulting to the build stamp.
+  const [siteMeta, setSiteMeta] = React.useState<SiteMeta>(loadSiteMeta);
+  const handleSiteMetaChange = React.useCallback((meta: SiteMeta) => {
+    saveSiteMeta(meta);
+    setSiteMeta(meta);
+  }, []);
+  const handleSiteMetaReset = React.useCallback(() => {
+    setSiteMeta(clearSiteMeta());
+  }, []);
   const footerChipStyle: React.CSSProperties = footerIsLight
     ? {
         borderRadius: 36,
@@ -308,13 +314,6 @@ export function App() {
       } catch {}
       return next;
     });
-  };
-
-  const handleAdSpotChange = (enabled: boolean) => {
-    try {
-      localStorage.setItem("polytrack_ad_spot_enabled", enabled ? "true" : "false");
-    } catch {}
-    setAdSpotEnabled(enabled);
   };
 
   // Animate the collapse over the links' real width: transitioning a fixed max-width
@@ -511,7 +510,11 @@ export function App() {
             className={`${mobilePanel === "games" ? "flex" : "hidden"} md:flex flex-1 flex-col min-h-0 min-w-0`}
           >
             <div id="games" className="flex-1 flex flex-col min-h-0">
-              <GameCatalog showAdSpot={adsVisible} onReportBug={openBugReport} />
+              <GameCatalog
+                showAdSpot={adsVisible}
+                onReportBug={openBugReport}
+                bugReportOpen={bugModalOpen}
+              />
             </div>
           </section>
 
@@ -572,12 +575,14 @@ export function App() {
         {/* Bottom Footer with Bug Report and Admin Panel; hidden until Settings shows it. */}
         {!footerHidden && <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
-            <span className={`hidden font-medium sm:inline ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>Built by SS</span>
+            <span className={`hidden font-medium sm:inline ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>
+              Built by {siteMeta.builtBy}
+            </span>
             <span
               className={`hidden sm:inline ${footerIsLight ? "text-black/60" : "text-zinc-500"}`}
               title={`Build ${LAST_UPDATED_ISO}`}
             >
-              Updated {lastUpdatedLabel}
+              Updated {siteMeta.updatedAt}
             </span>
             <div className="hidden items-center gap-1.5 sm:flex">
               <button
@@ -653,8 +658,9 @@ export function App() {
           setChangelogOpen(true);
         }}
         adSpotEnabled={adSpotEnabled}
-        onAdSpotChange={handleAdSpotChange}
-        onAdsBlockedChange={setAdsBlocked}
+        siteMeta={siteMeta}
+        onSiteMetaChange={handleSiteMetaChange}
+        onSiteMetaReset={handleSiteMetaReset}
         sideChatEnabled={sideChatEnabled}
         footerHidden={footerHidden}
         onFooterHiddenChange={(hidden) => {
@@ -689,12 +695,6 @@ export function App() {
       <AdsNudgeModal
         isOpen={adsNudgeOpen}
         onClose={() => setAdsNudgeOpen(false)}
-        onTurnOffAds={() => {
-          setNotificationAdsBlocked(true);
-          setAdsBlocked(true);
-          setAdsNudgeOpen(false);
-          window.location.reload();
-        }}
       />
 
       <FeatureTooltips />

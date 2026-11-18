@@ -8,7 +8,7 @@ import {
   type BackgroundConfig,
   type BackgroundType,
 } from "@/lib/backgroundTheme";
-import { areNotificationAdsBlocked, setNotificationAdsBlocked } from "@/lib/adNotifications";
+
 import {
   isChatNotificationsEnabled,
   setChatNotificationsEnabled,
@@ -37,6 +37,7 @@ import {
 } from "@/lib/offlineCache";
 import { formatPlayTime, loadPlayStats, type PlayStats } from "@/lib/playStats";
 import { hardResetSite } from "@/lib/hardReset";
+import { DEFAULT_BUILT_BY, type SiteMeta } from "@/lib/siteMeta";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -51,8 +52,10 @@ interface SettingsModalProps {
   sideChatEnabled: boolean;
   onSideChatChange: (enabled: boolean) => void;
   adSpotEnabled: boolean;
-  onAdSpotChange: (enabled: boolean) => void;
-  onAdsBlockedChange?: (blocked: boolean) => void;
+  // Footer credit lines, editable from the Admin pane.
+  siteMeta: SiteMeta;
+  onSiteMetaChange: (meta: SiteMeta) => void;
+  onSiteMetaReset: () => void;
   loadingRevealEnabled?: boolean;
   onLoadingRevealChange?: (enabled: boolean) => void;
   footerHidden?: boolean;
@@ -120,7 +123,7 @@ function testMirrorFrame(
   });
 }
 
-type DesktopTab = "account" | "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "offline" | "proxies" | "changelog";
+type DesktopTab = "account" | "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "offline" | "proxies" | "changelog" | "admin";
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
   { heading: "Account", items: [
@@ -142,6 +145,9 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
     { id: "proxies", label: "Proxies & source", icon: Link2, keywords: "source code github proxies mirrors" },
     { id: "changelog", label: "Change log", icon: ScrollText, keywords: "change log updates history" },
     { id: "ads", label: "Ad", icon: Megaphone, keywords: "ad ads notification ads block" },
+  ] },
+  { heading: "Admin", items: [
+    { id: "admin", label: "Admin", icon: Shield, keywords: "admin built by ss last updated time footer credit" },
   ] },
 ];
 
@@ -178,8 +184,9 @@ export function SettingsModal({
   sideChatEnabled,
   onSideChatChange,
   adSpotEnabled,
-  onAdSpotChange,
-  onAdsBlockedChange,
+  siteMeta,
+  onSiteMetaChange,
+  onSiteMetaReset,
   loadingRevealEnabled = true,
   onLoadingRevealChange,
   footerHidden = false,
@@ -217,8 +224,24 @@ export function SettingsModal({
   });
   const [bgNotice, setBgNotice] = React.useState<string | null>(null);
 
-  // Notification ads
-  const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
+  // Footer credit drafts, saved into this browser from the Admin pane.
+  const [metaUpdatedDraft, setMetaUpdatedDraft] = React.useState(siteMeta.updatedAt);
+  const [metaBuiltByDraft, setMetaBuiltByDraft] = React.useState(siteMeta.builtBy);
+  const [metaNotice, setMetaNotice] = React.useState("");
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setMetaUpdatedDraft(siteMeta.updatedAt);
+    setMetaBuiltByDraft(siteMeta.builtBy);
+    setMetaNotice("");
+    // Only a fresh open resets the drafts; saving keeps its confirmation visible.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    setMetaUpdatedDraft(siteMeta.updatedAt);
+    setMetaBuiltByDraft(siteMeta.builtBy);
+  }, [siteMeta]);
 
   // Local play statistics
   const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
@@ -525,14 +548,6 @@ export function SettingsModal({
         ? "On"
         : "Off";
 
-  const handleToggleAds = () => {
-    const next = !adsBlocked;
-    setAdsBlocked(next);
-    setNotificationAdsBlocked(next);
-    // Also hides the catalog and chat sponsor slots right away.
-    onAdsBlockedChange?.(next);
-  };
-
   const handleDownloadOffline = async () => {
     if (!offlineSupported()) {
       setOfflineError("This browser cannot store an offline copy.");
@@ -788,13 +803,24 @@ export function SettingsModal({
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${!footerHidden ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 opacity-60">
             <div>
               <div className="text-sm font-medium text-zinc-200">Ad space</div>
-              <div className="text-xs text-zinc-500">Show the sponsor slots in the catalog and chat</div>
+              <div className="text-xs text-zinc-500">
+                Always on. Upgrade to Ultra for $1 to get no ads and more features.
+              </div>
             </div>
-            <button type="button" onClick={() => onAdSpotChange(!adSpotEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${adSpotEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={adSpotEnabled} aria-label="Ad space">
-              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${adSpotEnabled ? "translate-x-5" : "translate-x-0"}`} />
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              aria-checked={adSpotEnabled}
+              role="switch"
+              aria-label="Ad space (always on)"
+              title="Upgrade to Ultra for $1 to remove ads"
+              className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-emerald-600/70"
+            >
+              <span className="pointer-events-none inline-block h-5 w-5 translate-x-5 transform rounded-full bg-white shadow" />
             </button>
           </div>
           <div
@@ -2062,6 +2088,118 @@ export function SettingsModal({
                 </section>
         </div>
 
+        {/* Admin: footer credit lines, kept above the Ad pane */}
+        <div style={paneStyle("admin")}>
+        <section aria-labelledby="admin-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+          <div className="flex items-start gap-2">
+            <div
+              style={{
+                borderRadius: 36,
+                background: "rgba(59, 130, 246, 0.12)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              }}
+              className="p-1.5 text-blue-400"
+            >
+              <Shield aria-hidden="true" className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+                <span id="admin-title">Admin</span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                  This browser
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400">
+                Set the “Updated …” time and “Built by …” line shown in the footer
+              </div>
+            </div>
+          </div>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-medium text-zinc-400">Last updated</span>
+            <input
+              type="text"
+              value={metaUpdatedDraft}
+              onChange={(event) => {
+                setMetaUpdatedDraft(event.target.value);
+                if (metaNotice) setMetaNotice("");
+              }}
+              maxLength={80}
+              placeholder={formatLastUpdated()}
+              style={{
+                borderRadius: 10,
+                background: "rgba(255, 255, 255, 0.04)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+              }}
+              className="w-full px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-medium text-zinc-400">Built by</span>
+            <input
+              type="text"
+              value={metaBuiltByDraft}
+              onChange={(event) => {
+                setMetaBuiltByDraft(event.target.value);
+                if (metaNotice) setMetaNotice("");
+              }}
+              maxLength={40}
+              placeholder={DEFAULT_BUILT_BY}
+              style={{
+                borderRadius: 10,
+                background: "rgba(255, 255, 255, 0.04)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+              }}
+              className="w-full px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            />
+          </label>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onSiteMetaChange({
+                  updatedAt: metaUpdatedDraft.trim() || formatLastUpdated(),
+                  builtBy: metaBuiltByDraft.trim() || DEFAULT_BUILT_BY,
+                });
+                setMetaNotice("Saved. The footer now shows these values.");
+              }}
+              className="cursor-pointer rounded-lg bg-white px-3 py-2 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-[0.98]"
+            >
+              Save changes
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onSiteMetaReset();
+                setMetaNotice("Restored the built-in build stamp.");
+              }}
+              style={CHIP_STYLE}
+              className="cursor-pointer px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+            >
+              Reset to build stamp
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenAdmin();
+              }}
+              style={CHIP_STYLE}
+              className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+            >
+              <Shield aria-hidden="true" className="h-3.5 w-3.5 text-blue-400" />
+              Open admin panel
+            </button>
+          </div>
+
+          <p role="status" className="text-[10.5px] leading-relaxed text-zinc-500">
+            {metaNotice || `Build stamp: ${formatLastUpdated()}`}
+          </p>
+        </section>
+        </div>
+
         {/* Ad: kept last in the settings pages */}
         <div style={paneStyle("ads")}>
         <section
@@ -2072,75 +2210,80 @@ export function SettingsModal({
             <Megaphone aria-hidden="true" className="h-4 w-4 text-zinc-400" />
             <h3 id="ads-title">Ad</h3>
           </div>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 opacity-60">
             <div className="flex items-center gap-2">
               <div
                 style={{
                   borderRadius: 36,
-                  background: adsBlocked ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
+                  background: "rgba(255, 255, 255, 0.05)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                 }}
-                className="p-1.5 text-zinc-300"
+                className="p-1.5 text-zinc-400"
               >
-                <BellOff
-                  aria-hidden="true"
-                  className={`w-4 h-4 ${adsBlocked ? "text-emerald-400" : "text-zinc-400"}`}
-                />
+                <BellOff aria-hidden="true" className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                   <span>Turn off ads</span>
-                  {adsBlocked && (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                      Off
-                    </span>
-                  )}
+                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                    Ultra only
+                  </span>
                 </div>
                 <div className="text-xs text-zinc-400">
-                  Stop the notification ads and every sponsor slot on the site
+                  Ads can’t be turned off separately any more. Upgrade to Ultra to remove them.
                 </div>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={handleToggleAds}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                adsBlocked ? "bg-emerald-600" : "bg-zinc-700"
-              }`}
+              disabled
+              aria-disabled="true"
+              aria-checked={false}
               role="switch"
-              aria-checked={adsBlocked}
-              aria-label="Turn off ads"
+              aria-label="Turn off ads (Ultra only)"
+              title="Upgrade to Ultra for $1 to get no ads and more features"
+              className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-zinc-700"
             >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
-                  adsBlocked ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
+              <span className="pointer-events-none inline-block h-5 w-5 translate-x-0 transform rounded-full bg-white/70 shadow" />
             </button>
           </div>
 
-          {adsBlocked && (
-            <div
-              style={{
-                borderRadius: 10,
-                background: "rgba(0, 0, 0, 0.3)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
-              className="flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-zinc-400"
-            >
-              <span className="min-w-0 leading-snug">
-                Notification ads that already started need one reload to stop.
-              </span>
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="shrink-0 cursor-pointer rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-950 transition-colors hover:bg-zinc-100"
-              >
-                Reload page
-              </button>
+          <div
+            style={{
+              borderRadius: 12,
+              background: "rgba(251, 191, 36, 0.07)",
+              boxShadow: "inset 0 0 0 1px rgba(251, 191, 36, 0.2)",
+            }}
+            className="flex flex-col gap-3 p-3"
+          >
+            <div className="flex items-start gap-2">
+              <Sparkles aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+                  <span>math_games Ultra</span>
+                  <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                    $1
+                  </span>
+                </div>
+                <div className="text-xs text-zinc-400">
+                  No ads, plus more features as they ship.
+                </div>
+              </div>
             </div>
-          )}
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              title="Checkout is not open yet"
+              className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg bg-amber-400/25 px-3 py-2 text-xs font-semibold text-amber-100/70"
+            >
+              Pay $1 — coming soon
+            </button>
+            <p className="text-[10.5px] leading-relaxed text-zinc-500">
+              Checkout isn’t open yet. The button unlocks when Ultra launches.
+            </p>
+          </div>
         </section>
         </div>
         </div>

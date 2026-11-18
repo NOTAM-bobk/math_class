@@ -12,13 +12,20 @@ let instanceCount = 0;
 export function BidvertiserAd({
   slot,
   className = "",
+  reappearMs = 30_000,
+  showClose = true,
 }: {
   slot: string;
   className?: string;
+  // Closing an ad only pauses it; it returns after this delay.
+  reappearMs?: number;
+  // Parents that draw their own close button turn this one off.
+  showClose?: boolean;
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null);
   const loadedRef = React.useRef(false);
   const [closed, setClosed] = React.useState(false);
+  const reopenTimerRef = React.useRef<number | null>(null);
   const [widgetId] = React.useState(() => {
     instanceCount += 1;
     return `${WIDGET_BASE_ID}_${slot}_${instanceCount}`;
@@ -52,20 +59,38 @@ export function BidvertiserAd({
     host.appendChild(script);
   }, [widgetId]);
 
-  if (closed) return null;
+  React.useEffect(() => {
+    return () => {
+      if (reopenTimerRef.current) window.clearTimeout(reopenTimerRef.current);
+    };
+  }, []);
 
+  const closeAd = () => {
+    setClosed(true);
+    if (reopenTimerRef.current) window.clearTimeout(reopenTimerRef.current);
+    reopenTimerRef.current = window.setTimeout(() => setClosed(false), reappearMs);
+  };
+
+  // The host stays mounted while hidden, so the widget does not have to reload
+  // (and count as a second impression) when the ad comes back.
   return (
-    <div className="relative inline-flex max-w-full">
+    <div
+      className="relative inline-flex max-w-full"
+      style={closed ? { display: "none" } : undefined}
+      aria-hidden={closed || undefined}
+    >
       <div ref={hostRef} id={widgetId} data-ad-slot={slot} className={className} />
-      <button
-        type="button"
-        onClick={() => setClosed(true)}
-        aria-label="Close ad"
-        title="Close ad"
-        className="absolute -right-1.5 -top-1.5 z-10 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-zinc-800 text-[10px] leading-none text-zinc-300 shadow ring-1 ring-white/15 transition-colors hover:bg-zinc-700 hover:text-white"
-      >
-        ×
-      </button>
+      {showClose && (
+        <button
+          type="button"
+          onClick={closeAd}
+          aria-label="Close ad"
+          title="Close ad (comes back in 30s)"
+          className="absolute -right-1.5 -top-1.5 z-10 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-zinc-800 text-[10px] leading-none text-zinc-300 shadow ring-1 ring-white/15 transition-colors hover:bg-zinc-700 hover:text-white"
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }

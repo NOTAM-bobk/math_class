@@ -112,6 +112,9 @@ export function App() {
     }
   });
   const [adminModalOpen, setAdminModalOpen] = React.useState(false);
+  // A new worker taking over means this tab is still running the previous
+  // bundle; offer the reload instead of letting it sit on old features.
+  const [updateReady, setUpdateReady] = React.useState(false);
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [bgConfig, setBgConfig] = React.useState<BackgroundConfig>(loadBackgroundConfig);
@@ -124,6 +127,17 @@ export function App() {
     return onBackgroundConfigChange((newConfig) => {
       setBgConfig(newConfig);
     });
+  }, []);
+
+  React.useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    // A first visit has no controller to replace, so only a swap counts.
+    const hadController = !!navigator.serviceWorker.controller;
+    const handleControllerChange = () => {
+      if (hadController) setUpdateReady(true);
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+    return () => navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
   }, []);
 
   React.useEffect(() => {
@@ -401,6 +415,27 @@ export function App() {
                 localStorage.setItem(INSTALL_NOTICE_SEEN_KEY, "true");
               } catch {}
             }} className="shrink-0 rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
+              <X aria-hidden="true" className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {updateReady && (
+          <div className="fixed left-1/2 top-3 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-zinc-900/95 py-1.5 pl-3.5 pr-1.5 text-xs text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300" role="status">
+            <span className="whitespace-nowrap">New version is ready</span>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-full bg-white/10 px-3 py-1 font-medium text-zinc-100 transition-colors hover:bg-white/20"
+            >
+              Reload
+            </button>
+            <button
+              type="button"
+              aria-label="Dismiss update notice"
+              onClick={() => setUpdateReady(false)}
+              className="rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+            >
               <X aria-hidden="true" className="h-4 w-4" />
             </button>
           </div>

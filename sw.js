@@ -26,6 +26,11 @@ const OFFLINE_CONFIG_URL = "/__polytrack_offline_config__";
 const OFFLINE_MANIFEST_URL = "/offline-manifest.json";
 const REMOTE_CACHE_HOSTS = ["cdn.tailwindcss.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 
+// The bundle changes on every deploy. Serving the cached copy first left
+// returning visitors on an old build until a second page load, so these go to
+// the network first and only fall back to the cached copy when it is offline.
+const NETWORK_FIRST_PATHS = ["/dist/home.bundle.js", "/home.bundle.js"];
+
 const DEFAULT_CONFIG = {
 	requested: false,
 	scheduleEnabled: false,
@@ -120,6 +125,16 @@ async function handleSameOrigin(request) {
 	// Inside the scheduled window the downloaded copy wins outright, so a
 	// network that blocks game pages cannot stop them from opening.
 	if (preferCache && cached) return cached;
+
+	if (NETWORK_FIRST_PATHS.includes(new URL(request.url).pathname)) {
+		try {
+			const response = await fetch(request);
+			if (isCacheable(response)) void cache.put(request, response.clone());
+			return response;
+		} catch (error) {
+			return cached || (await cache.match(request, { ignoreSearch: true })) || Response.error();
+		}
+	}
 
 	if (request.mode === "navigate") {
 		try {

@@ -3622,5 +3622,2918 @@
       "Parkour",
       "Skill"
     ]
+  },
+  {
+    "id": "hf-1",
+    "name": "1",
+    "url": "/api/mp/1/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-10-minutes-till-dawn",
+    "name": "10 Minutes Till Dawn",
+    "url": "/api/mp/10-minutes-till-dawn/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-100ng",
+    "name": "100ng",
+    "url": "/api/mp/100ng/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-1v1lol",
+    "name": "1v1lol",
+    "url": "/api/mp/1v1lol-unblocked/1v1-lol-3.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-1v1space",
+    "name": "1v1space",
+    "url": "/api/mp/1v1space/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-2048-multitask",
+    "name": "2048 Multitask",
+    "url": "/api/mp/2048-multitask/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-9007199254740992",
+    "name": "9007199254740992",
+    "url": "/api/mp/9007199254740992/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-99balls",
+    "name": "99balls",
+    "url": "/api/mp/99balls/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-a-dance-of-fire-and-ice",
+    "name": "A Dance Of Fire And Ice",
+    "url": "/api/mp/a-dance-of-fire-and-ice/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-achievementunlocked",
+    "name": "Achievementunlocked",
+    "url": "/api/mp/achievementunlocked/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-adarkroom",
+    "name": "Adarkroom",
+    "url": "/api/mp/adarkroom/mobileWarning.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-adrenalinechallenge",
+    "name": "Adrenalinechallenge",
+    "url": "/api/mp/adrenalinechallenge/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-adventure-drivers",
+    "name": "Adventure Drivers",
+    "url": "/api/mp/adventure-drivers/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ages-of-conflict",
+    "name": "Ages Of Conflict",
+    "url": "/api/mp/ages-of-conflict/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-alienhominid",
+    "name": "Alienhominid",
+    "url": "/api/mp/alienhominid/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-align-4",
+    "name": "Align 4",
+    "url": "/api/mp/align-4/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-amazing-rope-police",
+    "name": "Amazing Rope Police",
+    "url": "/api/mp/amazing-rope-police/spired.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-amidst-the-clouds",
+    "name": "Amidst The Clouds",
+    "url": "/api/mp/amidst-the-clouds/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-angelunder",
+    "name": "Angelunder",
+    "url": "/api/mp/angelunder/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-angry-sharks",
+    "name": "Angry Sharks",
+    "url": "/api/mp/angry-sharks/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-aquapark-slides",
+    "name": "Aquapark Slides",
+    "url": "/api/mp/aquapark-slides/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-astray",
+    "name": "Astray",
+    "url": "/api/mp/astray/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-avalanche",
+    "name": "Avalanche",
+    "url": "/api/mp/avalanche/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-awesometanks2",
+    "name": "Awesometanks2",
+    "url": "/api/mp/awesometanks2/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-backrooms",
+    "name": "Backrooms",
+    "url": "/api/mp/backrooms/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-backrooms-2d",
+    "name": "Backrooms 2d",
+    "url": "/api/mp/backrooms-2d/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bacon-may-die",
+    "name": "Bacon May Die",
+    "url": "/api/mp/bacon-may-die/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bad-ice-cream-2",
+    "name": "Bad Ice Cream 2",
+    "url": "/api/mp/bad-ice-cream-2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bad-ice-cream-3",
+    "name": "Bad Ice Cream 3",
+    "url": "/api/mp/bad-ice-cream-3/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-baldis-basics",
+    "name": "Baldis Basics",
+    "url": "/api/mp/baldis-basics/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-balldodge",
+    "name": "Balldodge",
+    "url": "/api/mp/balldodge/balldodge.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ballistic-chickens",
+    "name": "Ballistic Chickens",
+    "url": "/api/mp/ballistic-chickens/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-basketbros-io",
+    "name": "Basketbros Io",
+    "url": "/api/mp/basketbros-io/index.html",
+    "description": "Pick up and play a free browser sports game, no install needed.",
+    "tags": [
+      "Sports",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-battleforgondor",
+    "name": "Battleforgondor",
+    "url": "/api/mp/battleforgondor/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bigredbutton",
+    "name": "Bigredbutton",
+    "url": "/api/mp/bigredbutton/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bitlife",
+    "name": "Bitlife",
+    "url": "/api/mp/bitlife/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-blacholesquare",
+    "name": "Blacholesquare",
+    "url": "/api/mp/blacholesquare/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-blackknight",
+    "name": "Blackknight",
+    "url": "/api/mp/blackknight/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-blockpost",
+    "name": "Blockpost",
+    "url": "/api/mp/blockpost/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bloons-tower-defense",
+    "name": "Bloons Tower Defense",
+    "url": "/api/mp/bloonstd/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bloons-tower-defense-2",
+    "name": "Bloons Tower Defense 2",
+    "url": "/api/mp/bloonstd2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bloons-tower-defense-5",
+    "name": "Bloons Tower Defense 5",
+    "url": "/api/mp/btd5/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bloxors",
+    "name": "Bloxors",
+    "url": "/api/mp/bloxors/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bobtherobber2",
+    "name": "Bobtherobber2",
+    "url": "/api/mp/bobtherobber2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bonkio",
+    "name": "Bonkio",
+    "url": "/api/mp/bonkio/bonkio.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-boxhead2play",
+    "name": "Boxhead2play",
+    "url": "/api/mp/boxhead2play/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-breakingthebank",
+    "name": "Breakingthebank",
+    "url": "/api/mp/breakingthebank/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-btts",
+    "name": "Btts",
+    "url": "/api/mp/btts/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-burger-and-frights",
+    "name": "Burger And Frights",
+    "url": "/api/mp/burger-and-frights/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-bus-and-subway",
+    "name": "Bus and subway",
+    "url": "/api/mp/bus%20and%20subway/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-cannon-basketball-4",
+    "name": "Cannon Basketball 4",
+    "url": "/api/mp/cannon-basketball-4/index.html",
+    "description": "Pick up and play a free browser sports game, no install needed.",
+    "tags": [
+      "Sports",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-canyon-defense",
+    "name": "Canyon Defense",
+    "url": "/api/mp/canyondefense/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-cars-simulator",
+    "name": "Cars Simulator",
+    "url": "/api/mp/cars-simulator/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-cell-machine",
+    "name": "Cell Machine",
+    "url": "/api/mp/cell-machine/index.html",
+    "description": "Build and tinker in this free browser sandbox.",
+    "tags": [
+      "Sandbox",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-champion-island",
+    "name": "Champion Island",
+    "url": "/api/mp/champion-island/index.html",
+    "description": "Build and tinker in this free browser sandbox.",
+    "tags": [
+      "Sandbox",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-championarcher",
+    "name": "Championarcher",
+    "url": "/api/mp/championarcher/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-checkers",
+    "name": "Checkers",
+    "url": "/api/mp/checkers/checkers.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-chill-radio",
+    "name": "Chill Radio",
+    "url": "/api/mp/chill-radio/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-chrome-dino",
+    "name": "Chrome Dino",
+    "url": "/api/mp/t-rex-runner/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-circlo",
+    "name": "Circlo",
+    "url": "/api/mp/circlo/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-cluster-rush",
+    "name": "Cluster Rush",
+    "url": "/api/mp/cluster-rush/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-cmm-client",
+    "name": "CMM Client",
+    "url": "/api/mp/CMM%20Client/CMM%20Client.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-connect3",
+    "name": "Connect3",
+    "url": "/api/mp/connect3/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-core-ball",
+    "name": "Core Ball",
+    "url": "/api/mp/core-ball/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-craftmine",
+    "name": "Craftmine",
+    "url": "/api/mp/craftmine/index.html",
+    "description": "Build and tinker in this free browser sandbox.",
+    "tags": [
+      "Sandbox",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-creativekillchamber",
+    "name": "Creativekillchamber",
+    "url": "/api/mp/creativekillchamber/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-csgo-clicker",
+    "name": "Csgo Clicker",
+    "url": "/api/mp/csgo-clicker/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-cubefield",
+    "name": "Cubefield",
+    "url": "/api/mp/cubefield/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-cupcake2048",
+    "name": "Cupcake2048",
+    "url": "/api/mp/cupcake2048/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-cut-the-rope-holiday",
+    "name": "Cut The Rope Holiday",
+    "url": "/api/mp/ctr-holiday/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-cut-the-rope-tr",
+    "name": "Cut The Rope TR",
+    "url": "/api/mp/ctr-tr/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-dante",
+    "name": "Dante",
+    "url": "/api/mp/dante/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-deal-or-no-deal",
+    "name": "Deal Or No Deal",
+    "url": "/api/mp/deal-or-no-deal/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-death-run-3d",
+    "name": "Death Run 3d",
+    "url": "/api/mp/death-run-3d/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-deepest-sword",
+    "name": "Deepest Sword",
+    "url": "/api/mp/deepest-sword/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-defend-the-tank",
+    "name": "Defend The Tank",
+    "url": "/api/mp/defend-the-tank/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-doctor-acorn2",
+    "name": "Doctor Acorn2",
+    "url": "/api/mp/doctor-acorn2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-dodge",
+    "name": "Dodge",
+    "url": "/api/mp/dodge/dodge.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-doge2048",
+    "name": "Doge2048",
+    "url": "/api/mp/doge2048/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-dogeminer",
+    "name": "DogeMiner",
+    "url": "/api/mp/DogeMiner/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-dogeminer2",
+    "name": "Dogeminer2",
+    "url": "/api/mp/Dogeminer2/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-doom",
+    "name": "Doom",
+    "url": "/api/mp/doom/doom.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-doomori",
+    "name": "DOOMORI",
+    "url": "/api/mp/DOOMORI/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-dragon-vs-bricks",
+    "name": "Dragon Vs Bricks",
+    "url": "/api/mp/dragon-vs-bricks/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-draw-the-hill",
+    "name": "Draw The Hill",
+    "url": "/api/mp/draw-the-hill/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ducklife3",
+    "name": "Ducklife3",
+    "url": "/api/mp/ducklife3/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ducklife4",
+    "name": "Ducklife4",
+    "url": "/api/mp/ducklife4/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-duke-nukem-2",
+    "name": "Duke Nukem 2",
+    "url": "/api/mp/duke-nukem-2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-dumbwaystodie",
+    "name": "Dumbwaystodie",
+    "url": "/api/mp/dumbwaystodie/dumbwaystodie.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-eaglerjp",
+    "name": "Eaglerjp",
+    "url": "/api/mp/eaglerjp/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-earntodie",
+    "name": "Earntodie",
+    "url": "/api/mp/earntodie/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-edge-surf",
+    "name": "Edge Surf",
+    "url": "/api/mp/edge-surf/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-edgenotfound",
+    "name": "Edgenotfound",
+    "url": "/api/mp/edgenotfound/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-eel-slap",
+    "name": "Eel Slap",
+    "url": "/api/mp/eel-slap/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-elasticman",
+    "name": "Elasticman",
+    "url": "/api/mp/elasticman/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-endlesswar3",
+    "name": "Endlesswar3",
+    "url": "/api/mp/endlesswar3/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-escapingtheprison",
+    "name": "Escapingtheprison",
+    "url": "/api/mp/escapingtheprison/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-evil-glitch",
+    "name": "Evil Glitch",
+    "url": "/api/mp/evil-glitch/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-evolution",
+    "name": "Evolution",
+    "url": "/api/mp/evolution/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-exo",
+    "name": "Exo",
+    "url": "/api/mp/exo/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-factoryballs",
+    "name": "Factoryballs",
+    "url": "/api/mp/factoryballs/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-fairsquares",
+    "name": "Fairsquares",
+    "url": "/api/mp/fairsquares/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-fake-virus",
+    "name": "Fake Virus",
+    "url": "/api/mp/fake-virus/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-fantasy-dash",
+    "name": "Fantasy Dash",
+    "url": "/api/mp/fantasy-dash/Fantasy%20Dash.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-fireboywatergirlforesttemple",
+    "name": "Fireboywatergirlforesttemple",
+    "url": "/api/mp/fireboywatergirlforesttemple/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-flappy-2048",
+    "name": "Flappy 2048",
+    "url": "/api/mp/flappy-2048/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-flappy-plane",
+    "name": "Flappy plane",
+    "url": "/api/mp/flappy%20plane/Flappy%20Plane.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-flashtetris",
+    "name": "Flashtetris",
+    "url": "/api/mp/flashtetris/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-fleeingthecomplex",
+    "name": "Fleeingthecomplex",
+    "url": "/api/mp/fleeingthecomplex/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-flippy-fish",
+    "name": "Flippy Fish",
+    "url": "/api/mp/flippy-fish/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-fnaw",
+    "name": "Fnaw",
+    "url": "/api/mp/fnaw/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-friday-night-funkin",
+    "name": "Friday Night Funkin'",
+    "url": "/api/mp/fridaynightfunkin/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-froggys-battle",
+    "name": "Froggys Battle",
+    "url": "/api/mp/froggys-battle/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-frying-nemo",
+    "name": "Frying Nemo",
+    "url": "/api/mp/frying-nemo/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-game-inside",
+    "name": "Game Inside",
+    "url": "/api/mp/game-inside/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-generic-fishing-game",
+    "name": "Generic Fishing Game",
+    "url": "/api/mp/generic-fishing-game/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-geodash",
+    "name": "Geodash",
+    "url": "/api/mp/geodash/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-geodashlite",
+    "name": "Geodashlite",
+    "url": "/api/mp/geodashlite/geodashlite.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-geojump",
+    "name": "Geojump",
+    "url": "/api/mp/geojump/index0021.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-geoneondash",
+    "name": "Geoneondash",
+    "url": "/api/mp/geoneondash/sw.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-georgeandtheprinter",
+    "name": "Georgeandtheprinter",
+    "url": "/api/mp/georgeandtheprinter/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-gimme-the-airpod",
+    "name": "Gimme The Airpod",
+    "url": "/api/mp/gimme-the-airpod/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-glass-city",
+    "name": "Glass City",
+    "url": "/api/mp/glass-city/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-go-ball",
+    "name": "Go Ball",
+    "url": "/api/mp/go-ball/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-goodnight",
+    "name": "Goodnight",
+    "url": "/api/mp/goodnight/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-google-feud",
+    "name": "Google Feud",
+    "url": "/api/mp/google-feud/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-google-snake",
+    "name": "Google Snake",
+    "url": "/api/mp/google-snake/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-gravity-soccer",
+    "name": "Gravity Soccer",
+    "url": "/api/mp/gravity-soccer/index.html",
+    "description": "Pick up and play a free browser sports game, no install needed.",
+    "tags": [
+      "Sports",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-greybox",
+    "name": "Greybox",
+    "url": "/api/mp/greybox/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-grindcraft",
+    "name": "Grindcraft",
+    "url": "/api/mp/grindcraft/index.html",
+    "description": "Build and tinker in this free browser sandbox.",
+    "tags": [
+      "Sandbox",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-hackertype",
+    "name": "Hackertype",
+    "url": "/api/mp/hackertype/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-handshakes",
+    "name": "Handshakes",
+    "url": "/api/mp/handshakes/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-happy-hop",
+    "name": "Happy Hop",
+    "url": "/api/mp/happy-hop/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-hardware-tycoon",
+    "name": "Hardware Tycoon",
+    "url": "/api/mp/hardware-tycoon/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-hba",
+    "name": "Hba",
+    "url": "/api/mp/hba/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-helicopter",
+    "name": "Helicopter",
+    "url": "/api/mp/helicopter/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-hexempire",
+    "name": "Hexempire",
+    "url": "/api/mp/hexempire/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-hextris",
+    "name": "Hextris",
+    "url": "/api/mp/hextris/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-highrisehop",
+    "name": "Highrisehop",
+    "url": "/api/mp/highrisehop/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-hill-climb-racing",
+    "name": "Hill Climb Racing",
+    "url": "/api/mp/hill-climb-racing/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-hungry-lamu",
+    "name": "Hungry Lamu",
+    "url": "/api/mp/hungry-lamu/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-iceagebaby",
+    "name": "Iceagebaby",
+    "url": "/api/mp/iceagebaby/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-iceagebaby2",
+    "name": "Iceagebaby2",
+    "url": "/api/mp/iceagebaby2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-idle-breakout",
+    "name": "Idle Breakout",
+    "url": "/api/mp/idle-breakout/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-idle-shark",
+    "name": "Idle Shark",
+    "url": "/api/mp/idle-shark/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-idledices",
+    "name": "Idledices",
+    "url": "/api/mp/idledices/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-interactivebuddy",
+    "name": "Interactivebuddy",
+    "url": "/api/mp/interactivebuddy/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-iron-dash",
+    "name": "Iron dash",
+    "url": "/api/mp/iron%20dash/Iron%20Dash.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-javascript-snake",
+    "name": "Javascript Snake",
+    "url": "/api/mp/JavaScript-Snake/src/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-jetpack-joyride",
+    "name": "Jetpack Joyride",
+    "url": "/api/mp/jetpack-joyride/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-just-fall",
+    "name": "Just Fall",
+    "url": "/api/mp/just-fall/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-just-one-boss",
+    "name": "Just One Boss",
+    "url": "/api/mp/just-one-boss/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-kirkaio",
+    "name": "Kirkaio",
+    "url": "/api/mp/kirkaio/kirka.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-kitchen-gun-game",
+    "name": "Kitchen Gun Game",
+    "url": "/api/mp/kitchen-gun-game/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-kittencannon",
+    "name": "Kittencannon",
+    "url": "/api/mp/kittencannon/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-knife-master",
+    "name": "Knife Master",
+    "url": "/api/mp/knife-master/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-krunker",
+    "name": "Krunker",
+    "url": "/api/mp/krunker/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-learntofly2",
+    "name": "Learntofly2",
+    "url": "/api/mp/learntofly2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-linerider",
+    "name": "Linerider",
+    "url": "/api/mp/linerider/linerider.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ltf-idle",
+    "name": "Ltf Idle",
+    "url": "/api/mp/ltf-idle/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-ltf3",
+    "name": "Ltf3",
+    "url": "/api/mp/ltf3/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-madalin-stunt-cars-2",
+    "name": "Madalin Stunt Cars 2",
+    "url": "/api/mp/madalin-stunt-cars-2/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-madalin-stunt-cars-3",
+    "name": "Madalin Stunt Cars 3",
+    "url": "/api/mp/madalin-stunt-cars-3/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-mario",
+    "name": "Mario",
+    "url": "/api/mp/mario/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-marvinspectrum",
+    "name": "Marvinspectrum",
+    "url": "/api/mp/marvinspectrum/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-matrixrampage",
+    "name": "Matrixrampage",
+    "url": "/api/mp/matrixrampage/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-meme2048",
+    "name": "Meme2048",
+    "url": "/api/mp/meme2048/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-merge-round-racers",
+    "name": "Merge Round Racers",
+    "url": "/api/mp/merge-round-racers/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-mindustry",
+    "name": "Mindustry",
+    "url": "/api/mp/mindustry/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-mineblocks",
+    "name": "Mineblocks",
+    "url": "/api/mp/mineblocks/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-minesweeper",
+    "name": "Minesweeper",
+    "url": "/api/mp/minesweeper/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-miniputt",
+    "name": "Miniputt",
+    "url": "/api/mp/miniputt/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-missiles",
+    "name": "Missiles",
+    "url": "/api/mp/missiles/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-monkey-mart",
+    "name": "Monkey Mart",
+    "url": "/api/mp/MonkeyMart/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-monster-tracks",
+    "name": "Monster Tracks",
+    "url": "/api/mp/monster-tracks/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-moto-x3m-2",
+    "name": "Moto X3M 2",
+    "url": "/api/mp/motox3m2/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-moto-x3m-pool",
+    "name": "Moto X3M Pool",
+    "url": "/api/mp/motox3m-pool/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-moto-x3m-spooky",
+    "name": "Moto X3M Spooky",
+    "url": "/api/mp/motox3m-spooky/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-moto-x3m-winter",
+    "name": "Moto X3M Winter",
+    "url": "/api/mp/motox3m-winter/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-my-rusty-submarine",
+    "name": "My Rusty Submarine",
+    "url": "/api/mp/my-rusty-submarine/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-n-gon",
+    "name": "N Gon",
+    "url": "/api/mp/n-gon/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ninja",
+    "name": "Ninja",
+    "url": "/api/mp/ninja/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ninjavsevilcorp",
+    "name": "Ninjavsevilcorp",
+    "url": "/api/mp/ninjavsevilcorp/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-noob-steve-parkour",
+    "name": "Noob Steve Parkour",
+    "url": "/api/mp/noob-steve-parkour/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ns-shaft",
+    "name": "Ns Shaft",
+    "url": "/api/mp/ns-shaft/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-nsresurgence",
+    "name": "Nsresurgence",
+    "url": "/api/mp/nsresurgence/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-offlineparadise",
+    "name": "OfflineParadise",
+    "url": "/api/mp/OfflineParadise/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-om-bounce",
+    "name": "Om Bounce",
+    "url": "/api/mp/om-bounce/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-overwatch",
+    "name": "Overwatch",
+    "url": "/api/mp/overwatch/overwatch.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-pandemic2",
+    "name": "Pandemic2",
+    "url": "/api/mp/pandemic2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-papasburgeria",
+    "name": "Papasburgeria",
+    "url": "/api/mp/papasburgeria/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-papaspizzaria",
+    "name": "Papaspizzaria",
+    "url": "/api/mp/papaspizzaria/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-paper-io-2",
+    "name": "Paper.io 2",
+    "url": "/api/mp/paperio2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-papery-planes",
+    "name": "Papery Planes",
+    "url": "/api/mp/papery-planes/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-particle-clicker",
+    "name": "Particle Clicker",
+    "url": "/api/mp/particle-clicker/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-piclient",
+    "name": "Piclient",
+    "url": "/api/mp/piclient/piclient.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-pigeon-ascent",
+    "name": "Pigeon Ascent",
+    "url": "/api/mp/pigeon-ascent/--index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-pixel-gun-survival",
+    "name": "Pixel Gun Survival",
+    "url": "/api/mp/pixel-gun-survival/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-planetlife",
+    "name": "Planetlife",
+    "url": "/api/mp/planetlife/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-plants-vs-zombies-1",
+    "name": "Plants vs zombies 1",
+    "url": "/api/mp/plants%20vs%20zombies%201/plants%20vs%20zombies.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-polybranch",
+    "name": "Polybranch",
+    "url": "/api/mp/polybranch/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-poom",
+    "name": "Poom",
+    "url": "/api/mp/poom/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-popcat-classic",
+    "name": "Popcat Classic",
+    "url": "/api/mp/popcat-classic/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-portalflash",
+    "name": "Portalflash",
+    "url": "/api/mp/portalflash/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-precision-client",
+    "name": "Precision Client",
+    "url": "/api/mp/precision-client/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-protektor",
+    "name": "Protektor",
+    "url": "/api/mp/protektor/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-push-the-square",
+    "name": "Push The Square",
+    "url": "/api/mp/push-the-square/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-push-your-luck",
+    "name": "Push Your Luck",
+    "url": "/api/mp/push-your-luck/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-rabbit-samurai",
+    "name": "Rabbit Samurai",
+    "url": "/api/mp/rabbit-samurai/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-rabbit-samurai2",
+    "name": "Rabbit Samurai2",
+    "url": "/api/mp/rabbit-samurai2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-resent-client",
+    "name": "Resent Client",
+    "url": "/api/mp/resent-client/output.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-riddleschool2",
+    "name": "Riddleschool2",
+    "url": "/api/mp/riddleschool2/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-riddleschool4",
+    "name": "Riddleschool4",
+    "url": "/api/mp/riddleschool4/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-riddleschool5",
+    "name": "Riddleschool5",
+    "url": "/api/mp/riddleschool5/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-riddletransfer",
+    "name": "Riddletransfer",
+    "url": "/api/mp/riddletransfer/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-riddletransfer2",
+    "name": "Riddletransfer2",
+    "url": "/api/mp/riddletransfer2/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-robuxclicker",
+    "name": "Robuxclicker",
+    "url": "/api/mp/robuxclicker/robuxclicker.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-rocket-league",
+    "name": "Rocket League",
+    "url": "/api/mp/Rocket-League/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-rolling-forests",
+    "name": "Rolling Forests",
+    "url": "/api/mp/rolling-forests/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-rolly-vortex",
+    "name": "Rolly Vortex",
+    "url": "/api/mp/rolly-vortex/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-rooftop-snipers",
+    "name": "Rooftop Snipers",
+    "url": "/api/mp/rooftop-snipers/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-ruffle",
+    "name": "Ruffle",
+    "url": "/api/mp/ruffle/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-run",
+    "name": "Run",
+    "url": "/api/mp/run/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-run-2",
+    "name": "Run 2",
+    "url": "/api/mp/Run%202/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-runner",
+    "name": "Runner",
+    "url": "/api/mp/runner/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-sand-game",
+    "name": "Sand Game",
+    "url": "/api/mp/sand-game/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-sandboxels",
+    "name": "Sandboxels",
+    "url": "/api/mp/sandboxels/index.html",
+    "description": "Build and tinker in this free browser sandbox.",
+    "tags": [
+      "Sandbox",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-santy-is-home",
+    "name": "Santy Is Home",
+    "url": "/api/mp/santy-is-home/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-scooperia",
+    "name": "Scooperia",
+    "url": "/api/mp/scooperia/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-scrapmetal",
+    "name": "Scrapmetal",
+    "url": "/api/mp/scrapmetal/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-scratcharia",
+    "name": "Scratcharia",
+    "url": "/api/mp/scratcharia/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-shapeshootout",
+    "name": "ShapeShootout",
+    "url": "/api/mp/ShapeShootout/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-shogunshowdown",
+    "name": "Shogunshowdown",
+    "url": "/api/mp/shogunshowdown/shogunshowdown.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-shotinthedark",
+    "name": "Shotinthedark",
+    "url": "/api/mp/shotinthedark/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-shuttledeck",
+    "name": "Shuttledeck",
+    "url": "/api/mp/shuttledeck/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-sky-car-stunt",
+    "name": "Sky Car Stunt",
+    "url": "/api/mp/sky-car-stunt/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-sleepingbeauty",
+    "name": "Sleepingbeauty",
+    "url": "/api/mp/sleepingbeauty/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-slime-rush-td",
+    "name": "Slime Rush Td",
+    "url": "/api/mp/slime-rush-td/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-slope-2",
+    "name": "Slope 2",
+    "url": "/api/mp/slope-2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-slope-ball",
+    "name": "Slope Ball",
+    "url": "/api/mp/slope-ball/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-sm64",
+    "name": "Sm64",
+    "url": "/api/mp/sm64/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-smokingbarrels",
+    "name": "Smokingbarrels",
+    "url": "/api/mp/smokingbarrels/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-snow-rider-3d",
+    "name": "Snow Rider 3D",
+    "url": "/api/mp/snowrider3d/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-snowbattle",
+    "name": "Snowbattle",
+    "url": "/api/mp/snowbattle/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-soccer-random",
+    "name": "Soccer Random",
+    "url": "/api/mp/soccer-random/index.html",
+    "description": "Pick up and play a free browser sports game, no install needed.",
+    "tags": [
+      "Sports",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-soccer-skills",
+    "name": "Soccer Skills",
+    "url": "/api/mp/soccer-skills/index.html",
+    "description": "Pick up and play a free browser sports game, no install needed.",
+    "tags": [
+      "Sports",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-soldier-legend",
+    "name": "Soldier Legend",
+    "url": "/api/mp/soldier-legend/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-sort-the-court",
+    "name": "Sort The Court",
+    "url": "/api/mp/sort-the-court/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-soundboard",
+    "name": "Soundboard",
+    "url": "/api/mp/soundboard/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-space-company",
+    "name": "Space Company",
+    "url": "/api/mp/space-company/index.html",
+    "description": "An idle game that keeps ticking along while you play in the browser.",
+    "tags": [
+      "Casual",
+      "Idle",
+      "Clicker"
+    ]
+  },
+  {
+    "id": "hf-spacegarden",
+    "name": "Spacegarden",
+    "url": "/api/mp/spacegarden/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-spelunky",
+    "name": "Spelunky",
+    "url": "/api/mp/spelunky/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-spinningrat",
+    "name": "Spinningrat",
+    "url": "/api/mp/spinningrat/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stack",
+    "name": "Stack",
+    "url": "/api/mp/stack/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stack-bump-3d",
+    "name": "Stack Bump 3d",
+    "url": "/api/mp/stack-bump-3d/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-station-141",
+    "name": "Station 141",
+    "url": "/api/mp/station-141/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stationmeltdown",
+    "name": "Stationmeltdown",
+    "url": "/api/mp/stationmeltdown/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stealingthediamond",
+    "name": "Stealingthediamond",
+    "url": "/api/mp/stealingthediamond/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stick-duel-battle",
+    "name": "Stick Duel Battle",
+    "url": "/api/mp/stick-duel-battle/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stick-merge",
+    "name": "Stick Merge",
+    "url": "/api/mp/stick-merge/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stickman-boost",
+    "name": "Stickman Boost",
+    "url": "/api/mp/stickman-boost/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stickman-golf",
+    "name": "Stickman Golf",
+    "url": "/api/mp/stickman-golf/index.html",
+    "description": "Pick up and play a free browser sports game, no install needed.",
+    "tags": [
+      "Sports",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stickwar",
+    "name": "Stickwar",
+    "url": "/api/mp/stickwar/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-stormthehouse2",
+    "name": "Stormthehouse2",
+    "url": "/api/mp/stormthehouse2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-subway-surfers",
+    "name": "Subway Surfers",
+    "url": "/api/mp/subway-surfers/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-subway-surfers-ny",
+    "name": "Subway Surfers Ny",
+    "url": "/api/mp/subway-surfers-ny/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-superautopets",
+    "name": "Superautopets",
+    "url": "/api/mp/superautopets/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-superfowlist",
+    "name": "Superfowlist",
+    "url": "/api/mp/superfowlist/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-superhot",
+    "name": "Superhot",
+    "url": "/api/mp/superhot/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-supermarioconstruct",
+    "name": "Supermarioconstruct",
+    "url": "/api/mp/supermarioconstruct/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-sushi-unroll",
+    "name": "Sushi Unroll",
+    "url": "/api/mp/sushi-unroll/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-swerve",
+    "name": "Swerve",
+    "url": "/api/mp/swerve/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-synesthesia",
+    "name": "Synesthesia",
+    "url": "/api/mp/synesthesia/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tactical-weapon-pack-2",
+    "name": "Tactical Weapon Pack 2",
+    "url": "/api/mp/tactical-weapon-pack-2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tacticalassasin2",
+    "name": "Tacticalassasin2",
+    "url": "/api/mp/tacticalassasin2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tank-trouble-2",
+    "name": "Tank Trouble 2",
+    "url": "/api/mp/tank-trouble-2/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tanuki-sunset",
+    "name": "Tanuki Sunset",
+    "url": "/api/mp/tanuki-sunset/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-temple-run-2",
+    "name": "Temple Run 2",
+    "url": "/api/mp/temple-run-2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-the-final-earth",
+    "name": "The Final Earth",
+    "url": "/api/mp/the-final-earth/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-the-final-earth-2",
+    "name": "The Final Earth 2",
+    "url": "/api/mp/the-final-earth-2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-the-hotel",
+    "name": "The Hotel",
+    "url": "/api/mp/the-hotel/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-thebattle",
+    "name": "Thebattle",
+    "url": "/api/mp/thebattle/index.html",
+    "description": "Fast, arcade-style action you can play right here in the browser.",
+    "tags": [
+      "Action",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-theheist",
+    "name": "Theheist",
+    "url": "/api/mp/theheist/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-there-is-no-game",
+    "name": "There Is No Game",
+    "url": "/api/mp/there-is-no-game/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-thisistheonlylevel",
+    "name": "Thisistheonlylevel",
+    "url": "/api/mp/thisistheonlylevel/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-throwrocks",
+    "name": "Throwrocks",
+    "url": "/api/mp/throwrocks/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tiny-islands",
+    "name": "Tiny Islands",
+    "url": "/api/mp/tiny-islands/index.html",
+    "description": "Build and tinker in this free browser sandbox.",
+    "tags": [
+      "Sandbox",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tosstheturtle",
+    "name": "Tosstheturtle",
+    "url": "/api/mp/tosstheturtle/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-townscaper",
+    "name": "Townscaper",
+    "url": "/api/mp/townscaper/index.html",
+    "description": "Build and tinker in this free browser sandbox.",
+    "tags": [
+      "Sandbox",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-trimps",
+    "name": "Trimps",
+    "url": "/api/mp/Trimps/updates.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tube-jumpers",
+    "name": "Tube Jumpers",
+    "url": "/api/mp/tube-jumpers/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-tv-static",
+    "name": "Tv Static",
+    "url": "/api/mp/tv-static/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-twitch-tetris",
+    "name": "Twitch Tetris",
+    "url": "/api/mp/twitch-tetris/controls.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-unfairmario",
+    "name": "Unfairmario",
+    "url": "/api/mp/unfairmario/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-veloce",
+    "name": "Veloce",
+    "url": "/api/mp/veloce/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-vex2",
+    "name": "Vex2",
+    "url": "/api/mp/vex2/vex2.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-vex3",
+    "name": "Vex3",
+    "url": "/api/mp/vex3/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-vex5",
+    "name": "Vex5",
+    "url": "/api/mp/vex5/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-vex6",
+    "name": "Vex6",
+    "url": "/api/mp/vex6/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-vex7",
+    "name": "Vex7",
+    "url": "/api/mp/vex7/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-volley-random",
+    "name": "Volley Random",
+    "url": "/api/mp/volley-random/index.html",
+    "description": "Pick up and play a free browser sports game, no install needed.",
+    "tags": [
+      "Sports",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-wallsmash",
+    "name": "Wallsmash",
+    "url": "/api/mp/wallsmash/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-waterworks",
+    "name": "Waterworks",
+    "url": "/api/mp/waterworks/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-weavesilk",
+    "name": "Weavesilk",
+    "url": "/api/mp/weavesilk/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-webretro",
+    "name": "Webretro",
+    "url": "/api/mp/webretro/roms.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-wolf2d",
+    "name": "Wolf2d",
+    "url": "/api/mp/wolf2d/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-wolf3d",
+    "name": "Wolf3d",
+    "url": "/api/mp/wolf3d/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-wordle",
+    "name": "Wordle",
+    "url": "/api/mp/wordle/index.html",
+    "description": "A free browser puzzler that runs right here with no download.",
+    "tags": [
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "hf-worlds-hardest-game-2",
+    "name": "Worlds Hardest Game 2",
+    "url": "/api/mp/worlds-hardest-game-2/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-x-trial-racing",
+    "name": "X Trial Racing",
+    "url": "/api/mp/x-trial-racing/index.html",
+    "description": "Get behind the wheel in this free browser driving game — no download needed.",
+    "tags": [
+      "Driving",
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-xx142-b2exe",
+    "name": "Xx142 B2exe",
+    "url": "/api/mp/xx142-b2exe/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-yohoho",
+    "name": "Yohoho",
+    "url": "/api/mp/yohoho/privacypolicy.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-yoshifabrication",
+    "name": "Yoshifabrication",
+    "url": "/api/mp/yoshifabrication/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-you-are-bezos",
+    "name": "You Are Bezos",
+    "url": "/api/mp/you-are-bezos/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-zigzag",
+    "name": "Zigzag",
+    "url": "/api/mp/zigzag/zigzag.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
+  },
+  {
+    "id": "hf-zombs-royale",
+    "name": "Zombs Royale",
+    "url": "/api/mp/zombs-royale/index.html",
+    "description": "A free browser arcade game that loads right here — no download needed.",
+    "tags": [
+      "Arcade"
+    ]
   }
 ]

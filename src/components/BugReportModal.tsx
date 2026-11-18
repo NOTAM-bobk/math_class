@@ -2,6 +2,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { X, Bug, AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
+import { posthog } from "@/lib/posthog";
 
 interface BugReportModalProps {
   isOpen: boolean;
@@ -112,6 +113,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath }: BugReportModalPr
         return;
       }
 
+      posthog.capture("bug_report_submitted");
       setSuccess(true);
       setTitle("");
       setDescription("");

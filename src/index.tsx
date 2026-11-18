@@ -2,8 +2,10 @@ import * as React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { initCookieStore } from "./lib/cookieStore";
+import { posthog } from "./lib/posthog";
 
 initCookieStore();
+posthog.logger.info("application bootstrap completed");
 
 const container = document.getElementById("root");
 if (container) {

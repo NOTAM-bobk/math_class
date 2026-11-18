@@ -928,7 +928,7 @@ function GameCard({
         <div className="mb-1.5 flex items-start justify-between gap-2 sm:mb-2">
           <h4 className="flex min-w-0 flex-wrap items-center gap-2 text-base font-semibold text-zinc-100">
             {game.disabled ? (
-              <span className="truncate">
+              <span className="line-clamp-2" title={game.name}>
                 <HighlightText text={game.name} query={searchQuery} />
               </span>
             ) : (
@@ -937,7 +937,8 @@ function GameCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(event) => onPlay(game, event)}
-                className="game-card-link min-w-0 truncate transition-colors group-hover:text-white"
+                title={game.name}
+                className="game-card-link min-w-0 line-clamp-2 transition-colors group-hover:text-white"
               >
                 <HighlightText text={game.name} query={searchQuery} />
                 <span className="sr-only"> {opensInHub ? "(opens in the hub)" : "(opens in a new tab)"}</span>

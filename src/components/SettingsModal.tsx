@@ -35,7 +35,21 @@ import {
   type OfflineSchedule,
   type OfflineStatus,
 } from "@/lib/offlineCache";
-import { formatPlayTime, loadPlayStats, type PlayStats } from "@/lib/playStats";
+import {
+  formatPlayTime,
+  isPlayStatsEnabled,
+  loadPlayStats,
+  setPlayStatsEnabled,
+  subscribePlayStats,
+  type PlayStats,
+} from "@/lib/playStats";
+import {
+  GAME_CARD_LAYOUTS,
+  loadGameCardLayout,
+  onGameCardLayoutChange,
+  saveGameCardLayout,
+  type GameCardLayout,
+} from "@/lib/gameCardLayout";
 import { hardResetSite } from "@/lib/hardReset";
 import { DEFAULT_BUILT_BY, type SiteMeta } from "@/lib/siteMeta";
 
@@ -243,8 +257,13 @@ export function SettingsModal({
     setMetaBuiltByDraft(siteMeta.builtBy);
   }, [siteMeta]);
 
-  // Local play statistics
+  // Local play statistics; the pane updates live while counting runs.
   const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
+  const [statsEnabled, setStatsEnabled] = React.useState(isPlayStatsEnabled);
+
+  // Game card layout, shared with the catalog through localStorage.
+  const [cardLayout, setCardLayout] = React.useState<GameCardLayout>(loadGameCardLayout);
+  React.useEffect(() => onGameCardLayoutChange(setCardLayout), []);
 
   // Hard reset asks once before wiping everything this browser kept for the site.
   const [resetConfirming, setResetConfirming] = React.useState(false);
@@ -303,6 +322,8 @@ export function SettingsModal({
   React.useEffect(() => {
     if (!isOpen) return;
     setPlayStats(loadPlayStats());
+    setStatsEnabled(isPlayStatsEnabled());
+    return subscribePlayStats(setPlayStats);
   }, [isOpen]);
 
   React.useEffect(() => {
@@ -785,6 +806,61 @@ export function SettingsModal({
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${loadingRevealEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
+          <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-medium text-zinc-200">Game card layout</div>
+                <div className="text-xs text-zinc-500">Choose how games are drawn in the catalog</div>
+              </div>
+              <LayoutGrid aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+            </div>
+            <div role="radiogroup" aria-label="Game card layout" className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {GAME_CARD_LAYOUTS.map((option) => {
+                const active = cardLayout === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => {
+                      saveGameCardLayout(option.id);
+                      setCardLayout(option.id);
+                    }}
+                    className={`cursor-pointer rounded-lg p-2.5 text-left ring-1 ring-inset transition-colors ${
+                      active
+                        ? "bg-white/[0.08] text-white ring-white/25"
+                        : "bg-black/20 text-zinc-300 ring-white/[0.06] hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    <span aria-hidden="true" className="mb-2 block overflow-hidden rounded-md bg-black/40 p-1.5">
+                      {option.id === "mosaic" ? (
+                        <span className="grid h-12 grid-cols-4 grid-rows-2 gap-1">
+                          <span className="col-span-2 row-span-2 rounded-sm bg-white/25" />
+                          <span className="rounded-sm bg-white/15" />
+                          <span className="rounded-sm bg-white/15" />
+                          <span className="rounded-sm bg-white/15" />
+                          <span className="rounded-sm bg-white/15" />
+                        </span>
+                      ) : (
+                        <span className="flex h-12 flex-col gap-1">
+                          <span className="h-[22px] rounded-sm bg-white/20" />
+                          <span className="h-[22px] rounded-sm bg-white/10" />
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs font-semibold">
+                      {option.name}
+                      {active && <Check aria-hidden="true" className="h-3 w-3 text-emerald-400" />}
+                    </span>
+                    <span className="mt-0.5 block text-[10.5px] leading-snug text-zinc-500">
+                      {option.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
             <div>
               <div className="text-sm font-medium text-zinc-200">Side chat and visitor counter</div>
@@ -959,9 +1035,43 @@ export function SettingsModal({
             </div>
           </div>
 
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
+                Always count
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                    statsEnabled
+                      ? "border border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
+                      : "border border-white/10 bg-white/[0.04] text-zinc-400"
+                  }`}
+                >
+                  {statsEnabled ? "Live" : "Paused"}
+                </span>
+              </div>
+              <div className="text-xs text-zinc-500">
+                Counts every second on the hub and in games until you turn it off
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !statsEnabled;
+                setPlayStatsEnabled(next);
+                setStatsEnabled(next);
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${statsEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
+              role="switch"
+              aria-checked={statsEnabled}
+              aria-label="Always count statistics"
+            >
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${statsEnabled ? "translate-x-5" : "translate-x-0"}`} />
+            </button>
+          </div>
+
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
-              { label: "Time played", value: formatPlayTime(playStats.totalPlayMs), icon: Timer, tone: "text-sky-400" },
+              { label: "Time on site", value: formatPlayTime(playStats.totalPlayMs), icon: Timer, tone: "text-sky-400" },
               { label: "Game clicks", value: playStats.totalClicks.toLocaleString(), icon: MousePointerClick, tone: "text-emerald-400" },
               { label: "Games played", value: playStats.games.length.toLocaleString(), icon: Gamepad2, tone: "text-amber-400" },
               { label: "Sessions", value: playStats.totalSessions.toLocaleString(), icon: Trophy, tone: "text-purple-400" },
@@ -1031,7 +1141,8 @@ export function SettingsModal({
             )}
 
             <p className="text-[10px] leading-relaxed text-zinc-500">
-              Play time is counted from opening a game until you come back to the hub. Statistics stay on this device.
+              Time counts every second while the hub is open or a game is running, and stops when Always count is off.
+              Statistics stay on this device.
             </p>
           </div>
         </section>

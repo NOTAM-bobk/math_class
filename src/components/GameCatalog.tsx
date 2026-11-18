@@ -7,6 +7,7 @@ import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } fr
 import { loadBlockedGameIds, onBlockedGamesChange, saveBlockedGameIds, getRandomBlockedEmoji } from "@/lib/blockedGames";
 import { loadGameStats, recordGameClick, loadGameFlags } from "@/lib/hubApi";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
+import { loadGameCardLayout, onGameCardLayoutChange, type GameCardLayout } from "@/lib/gameCardLayout";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { PanicButton } from "./PanicButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
@@ -66,6 +67,91 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   puzzle: "#06b6d4",
   casual: "#ec4899",
 };
+
+// The cover layout mixes wide, tall and square boxes; dense flow fills the gaps.
+const MOSAIC_SPAN_PATTERN = [
+  "col-span-2 row-span-2",
+  "col-span-1 row-span-1",
+  "col-span-1 row-span-1",
+  "col-span-1 row-span-2",
+  "col-span-1 row-span-1",
+  "col-span-1 row-span-1",
+  "col-span-1 row-span-1",
+];
+
+const MOSAIC_GRID_CLASS =
+  "grid grid-flow-row-dense auto-rows-[148px] grid-cols-2 gap-2.5 sm:auto-rows-[168px] sm:grid-cols-3 sm:gap-3 xl:grid-cols-4";
+const CLASSIC_GRID_CLASS = "grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3";
+
+function mosaicSpan(index: number) {
+  return MOSAIC_SPAN_PATTERN[index % MOSAIC_SPAN_PATTERN.length];
+}
+
+function gameInitials(name: string) {
+  return (
+    name
+      .split(/[^A-Za-z0-9]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("") || "🎮"
+  ).toUpperCase();
+}
+
+// A game on another origin has its own icon; same-origin pages would only show
+// the hub's icon, so those get the generated cover instead.
+function gameIconUrl(url: string) {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (parsed.origin === window.location.origin) return "";
+    return `${parsed.origin}/favicon.ico`;
+  } catch {
+    return "";
+  }
+}
+
+function GameCoverArt({ game, accent }: { game: GameItem; accent: string }) {
+  const [iconFailed, setIconFailed] = React.useState(false);
+  const iconUrl = React.useMemo(() => gameIconUrl(game.url), [game.url]);
+  const initials = React.useMemo(() => gameInitials(game.name), [game.name]);
+  const showIcon = !!iconUrl && !iconFailed;
+
+  return (
+    <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(125% 125% at 18% 6%, ${accent}66 0%, rgba(18, 18, 22, 0.96) 56%, #0c0c0f 100%)`,
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center pb-8">
+        {showIcon ? (
+          <img
+            src={iconUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={() => setIconFailed(true)}
+            className="h-12 w-12 rounded-xl object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          <span className="select-none text-4xl font-black tracking-tight text-white/90 drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-105">
+            {initials}
+          </span>
+        )}
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+    </div>
+  );
+}
 
 export type SpecialFilterId = "buggy" | "blocked";
 export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilterId;
@@ -920,7 +1006,9 @@ function GameCard({
   blockedEmoji,
   searchQuery,
   onPlay,
-  onToggleFavorite
+  onToggleFavorite,
+  variant = "classic",
+  sizeClass
 }: {
   game: GameItem;
   isRecent: boolean;
@@ -934,11 +1022,125 @@ function GameCard({
   searchQuery: string;
   onPlay: (game: GameItem, event?: React.MouseEvent) => void;
   onToggleFavorite: (id: string, event?: React.MouseEvent) => void;
+  variant?: GameCardLayout;
+  sizeClass?: string;
 }) {
   const opensInHub = !game.disabled && isSameOriginGame(game.url);
   const genreAccent = CATEGORY_FILTERS.map((cat) => cat.id)
     .filter((id) => CATEGORY_ACCENTS[id] && matchesCategory(game, id as CategoryId))
     .map((id) => CATEGORY_ACCENTS[id])[0];
+
+  if (variant === "mosaic") {
+    const compactChip = "inline-flex h-5 shrink-0 items-center gap-1 rounded-full bg-black/45 px-1.5 text-[9.5px] font-medium leading-none text-zinc-200 backdrop-blur-sm";
+    return (
+      <article
+        key={game.id}
+        className={`game-card group relative flex h-full w-full flex-col overflow-hidden ${sizeClass ?? ""} ${
+          game.disabled ? "opacity-80" : ""
+        }`}
+      >
+        <GameCoverArt game={game} accent={genreAccent ?? "#6366f1"} />
+
+        <div className="relative z-10 flex items-start justify-between gap-1.5 p-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-1">
+            {isVerified && <VerifiedBadge />}
+            {isPopular && (
+              <span title="Most played" className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+                <Flame aria-hidden="true" className="h-3 w-3 fill-orange-400/20 text-orange-400" />
+              </span>
+            )}
+            {game.editorsPick && (
+              <span title="Editor's Pick" className={compactChip}>
+                <span aria-hidden="true">✨</span> Pick
+              </span>
+            )}
+            {isRecent && (
+              <span title="Played in the last week" className={compactChip}>
+                Recent
+              </span>
+            )}
+            {isBuggy && (
+              <span title="Known bug or issue reported" className={`${compactChip} text-red-200`}>
+                <Bug aria-hidden="true" className="h-2.5 w-2.5 text-red-400" /> bug
+              </span>
+            )}
+            {isNotMobile && (
+              <span title="Best played on desktop" className={`${compactChip} text-amber-200`}>
+                <Smartphone aria-hidden="true" className="h-2.5 w-2.5 text-amber-400" />
+              </span>
+            )}
+            {isBlocked && (
+              <span title="Blocked site or game" className={`${compactChip} text-purple-200`}>
+                Blocked:{blockedEmoji}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite(game.id, e);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label={isFavorite ? `Remove ${game.name} from favorites` : `Add ${game.name} to favorites`}
+            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            className="relative z-20 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full bg-black/45 text-zinc-300 backdrop-blur-sm transition hover:bg-black/70 hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 active:scale-90"
+          >
+            <Star
+              aria-hidden="true"
+              className={`pointer-events-none h-3.5 w-3.5 ${
+                isFavorite
+                  ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
+                  : "stroke-[1.75]"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="relative z-10 mt-auto p-3">
+          <h4
+            className="line-clamp-2 min-w-0 text-sm font-semibold leading-snug text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-base"
+            title={game.name}
+          >
+            <HighlightText text={game.name} query={searchQuery} />
+          </h4>
+          <div className="mt-1.5 flex items-center justify-between gap-2">
+            <span className="truncate text-[10px] text-zinc-300/80">
+              {game.disabled ? "Coming soon" : game.tags[0] || (opensInHub ? "In the hub" : "New tab")}
+            </span>
+            {game.disabled ? (
+              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2 text-[10px] font-medium text-zinc-200 backdrop-blur-sm">
+                <Clock3 aria-hidden="true" className="h-2.5 w-2.5" /> Soon
+              </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white px-2.5 text-[10px] font-semibold text-zinc-950 shadow-sm transition-colors group-hover:bg-zinc-100"
+              >
+                <Play className="h-2.5 w-2.5 fill-current" />
+                Play
+              </span>
+            )}
+          </div>
+        </div>
+
+        {!game.disabled && (
+          <a
+            href={game.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => onPlay(game, event)}
+            title={game.name}
+            aria-label={`Open ${game.name} ${opensInHub ? "in the hub" : "in a new tab"}`}
+            className="game-card-link absolute inset-0 z-[15] rounded-[20px]"
+          />
+        )}
+      </article>
+    );
+  }
+
   return (
     <article
       key={game.id}
@@ -1138,6 +1340,8 @@ export function GameCatalog({
   const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryId>(initialCategory);
   const [sortOption, setSortOption] = React.useState<SortOption>(initialSortOption);
+  const [cardLayout, setCardLayout] = React.useState<GameCardLayout>(loadGameCardLayout);
+  React.useEffect(() => onGameCardLayoutChange(setCardLayout), []);
   const [filterOpen, setFilterOpen] = React.useState(false);
   const filterRef = React.useRef<HTMLDivElement>(null);
   const filterMenuRef = React.useRef<HTMLDivElement>(null);
@@ -1935,10 +2139,12 @@ export function GameCatalog({
                   {playableGames.length}
                 </span>
               </div>
-              <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
-              {sortedPlayableGames.map((game) => (
+              <div className={cardLayout === "mosaic" ? MOSAIC_GRID_CLASS : CLASSIC_GRID_CLASS}>
+              {sortedPlayableGames.map((game, index) => (
                 <GameCard
                   key={game.id}
+                  variant={cardLayout}
+                  sizeClass={cardLayout === "mosaic" ? mosaicSpan(index) : undefined}
                   game={game}
                   isRecent={recentIds.has(game.id)}
                   isPopular={popularGameIds.has(game.id)}
@@ -1968,10 +2174,12 @@ export function GameCatalog({
                   {comingSoonGames.length}
                 </span>
               </div>
-              <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
-              {comingSoonGames.map((game) => (
+              <div className={cardLayout === "mosaic" ? MOSAIC_GRID_CLASS : CLASSIC_GRID_CLASS}>
+              {comingSoonGames.map((game, index) => (
                 <GameCard
                   key={game.id}
+                  variant={cardLayout}
+                  sizeClass={cardLayout === "mosaic" ? mosaicSpan(index) : undefined}
                   game={game}
                   isRecent={recentIds.has(game.id)}
                   isPopular={popularGameIds.has(game.id)}

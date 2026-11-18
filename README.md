@@ -23,9 +23,11 @@ I haven't implemented buffer memory beaming yet
 
 Alongside the version archives this repository hosts the game hub in `src/` (React + esbuild). The hub is what has its own version number, release notes and settings.
 
-- Version: **v1.1.0** (see [`src/lib/changelog.ts`](src/lib/changelog.ts))
+- Version: **v1.3.0** (see [`src/lib/changelog.ts`](src/lib/changelog.ts))
 - Build: `npm install` then `npm run build` — writes `dist/styles.css` (prebuilt Tailwind) and `dist/home.bundle.js`, which `index.html` loads (with the root `home.bundle.js` as a fallback).
-- Settings live in the gear button in the top bar: Site Lock, background style, new game notifications, ad preference, tab cloaking, panic redirect, and the change log.
+- Settings live in the gear button in the top bar: Site Lock, background style, game card layout, new game notifications, ad preference, tab cloaking, panic redirect, and the change log.
+- Your stats count every second the hub or a game is open (the Always count switch pauses them).
+- Game card layout in Layout & startup switches the catalog between classic cards and a cover mosaic of different sized boxes with the game name on the art.
 
 ## Backend auth
 
@@ -56,6 +58,11 @@ For every major update:
 3. Mention the published version in this README.
 
 Recent releases:
+
+### v1.3.0 — Live stats and cover cards
+- Stats tick every second and count time on the hub as well as in games.
+- Always count in Your stats pauses or resumes the counter.
+- Game card layout: classic cards or a cover mosaic of different sized boxes named on the art.
 
 ### v1.1.0 — Notifications and the change log
 - Settings asks whether to allow notifications and sends a "new game dropped" alert once allowed.

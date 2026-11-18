@@ -26,7 +26,7 @@ import { LAST_UPDATED_ISO } from "./lib/lastUpdated";
 import { clearSiteMeta, loadSiteMeta, saveSiteMeta, type SiteMeta } from "./lib/siteMeta";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
-import { finalizePlaySession } from "./lib/playStats";
+import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
 
 const CHIP_STYLE: React.CSSProperties = {
@@ -207,6 +207,8 @@ export function App() {
   // Games open in a new tab, so finish timing the last one when the hub is
   // visible again (return, back navigation or a restored page).
   React.useEffect(() => {
+    // The stats clock counts every second the hub or a game is open.
+    const stopClock = startPlayStatsClock();
     // An in-page game keeps the hub visible while it runs, so only finish the
     // session once the launcher is gone and the hub is actually back.
     const hubIsActive = () => document.documentElement.dataset.gameLauncher !== "open";
@@ -220,6 +222,7 @@ export function App() {
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pageshow", handlePageShow);
     return () => {
+      stopClock();
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pageshow", handlePageShow);
     };

@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.2.0";
+export const SITE_VERSION = "1.3.0";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.3.0",
+    date: "November 2026",
+    title: "Live stats and cover cards",
+    changes: [
+      "Your stats now count every second, on the hub and while a game is open, and update live in Settings.",
+      "A new Always count switch in Your stats pauses or resumes counting.",
+      "Settings > Layout & startup gained a Game card layout choice: classic cards or a cover mosaic of different sized boxes with the game name on the art.",
+    ],
+  },
   {
     version: "1.2.0",
     date: "November 2026",

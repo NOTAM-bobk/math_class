@@ -14,7 +14,7 @@ import { AdsNudgeModal } from "./components/AdsNudgeModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
-import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
   backgroundIsLight,
@@ -70,7 +70,6 @@ function BackgroundWrapper({
 const INSTALL_NOTICE_SEEN_KEY = "polytrack_install_notice_seen";
 const SITE_VISITS_KEY = "polytrack_site_visits";
 const ADS_NUDGE_SEEN_KEY = "polytrack_ads_nudge_seen";
-const FOOTER_EXPANDED_KEY = "polytrack_footer_expanded";
 // The bug report has its own shareable address, so /bug can be sent to anyone.
 const BUG_REPORT_PATH = "/bug";
 
@@ -109,14 +108,6 @@ export function App() {
   const [bugModalOpen, setBugModalOpen] = React.useState(bugReportOpenFromUrl);
   // The page the report is about, captured before /bug takes over the address bar.
   const [bugReportSourcePath, setBugReportSourcePath] = React.useState("/");
-  // The footer starts collapsed; an explicit show/hide choice is remembered.
-  const [footerVisible, setFooterVisible] = React.useState(() => {
-    try {
-      return localStorage.getItem(FOOTER_EXPANDED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
   const [submitModalOpen, setSubmitModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
   // The nav starts closed; an explicit open/close choice is remembered.
@@ -127,6 +118,14 @@ export function App() {
     () => localStorage.getItem("polytrack_ad_spot_enabled") !== "false"
   );
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
+  // The footer starts hidden; Settings > Show footer turns it back on.
+  const [footerHidden, setFooterHidden] = React.useState(() => {
+    try {
+      return localStorage.getItem("polytrack_footer_hidden") !== "false";
+    } catch {
+      return true;
+    }
+  });
   // "Turn off ads" stops every slot (catalog and chat), not just the notification ads.
   const [adsBlocked, setAdsBlocked] = React.useState(areNotificationAdsBlocked);
   const adsVisible = adSpotEnabled && !adsBlocked;
@@ -274,16 +273,6 @@ export function App() {
   const isLocked = siteLockEnabled && siteLockPassword.trim().length > 0 && !isUnlocked;
 
   // Remember whether the nav options are open or closed between visits.
-  const toggleFooter = React.useCallback(() => {
-    setFooterVisible((visible) => {
-      const next = !visible;
-      try {
-        localStorage.setItem(FOOTER_EXPANDED_KEY, next ? "true" : "false");
-      } catch {}
-      return next;
-    });
-  }, []);
-
   const bugReturnUrlRef = React.useRef("/");
 
   const openBugReport = React.useCallback(() => {
@@ -580,26 +569,8 @@ export function App() {
           </div>
         </nav>
 
-        {/* Bottom Footer with Bug Report and Admin Panel; collapsed until asked for. */}
-        <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
-          <button
-            type="button"
-            onClick={toggleFooter}
-            aria-expanded={footerVisible}
-            aria-label={footerVisible ? "Hide footer" : "Show footer"}
-            title={footerVisible ? "Hide footer" : "Show footer, bug report and admin panel"}
-            style={footerChipStyle}
-            className={`inline-flex cursor-pointer items-center gap-1 px-2.5 py-1 text-[10.5px] font-medium transition-colors ${footerIsLight ? "text-black/70 hover:bg-black/[0.07] hover:text-black" : "text-zinc-400 hover:bg-white/[0.08] hover:text-white"}`}
-          >
-            {footerVisible ? (
-              <ChevronDown aria-hidden="true" className="h-3 w-3" />
-            ) : (
-              <ChevronUp aria-hidden="true" className="h-3 w-3" />
-            )}
-            <span>Footer</span>
-          </button>
-          {footerVisible && (
-          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        {/* Bottom Footer with Bug Report and Admin Panel; hidden until Settings shows it. */}
+        {!footerHidden && <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
             <span className={`hidden font-medium sm:inline ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>Built by SS</span>
             <span
@@ -651,9 +622,7 @@ export function App() {
               Submit a game
             </button>
           </nav>
-          </div>
-          )}
-        </footer>
+        </footer>}
       </div>
 
       <SettingsModal
@@ -687,6 +656,11 @@ export function App() {
         onAdSpotChange={handleAdSpotChange}
         onAdsBlockedChange={setAdsBlocked}
         sideChatEnabled={sideChatEnabled}
+        footerHidden={footerHidden}
+        onFooterHiddenChange={(hidden) => {
+          localStorage.setItem("polytrack_footer_hidden", hidden ? "true" : "false");
+          setFooterHidden(hidden);
+        }}
         onSideChatChange={(enabled) => {
           localStorage.setItem("polytrack_side_chat_enabled", enabled ? "true" : "false");
           setSideChatEnabled(enabled);

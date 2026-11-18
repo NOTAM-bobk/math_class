@@ -54,6 +54,8 @@ interface SettingsModalProps {
   onAdsBlockedChange?: (blocked: boolean) => void;
   loadingRevealEnabled?: boolean;
   onLoadingRevealChange?: (enabled: boolean) => void;
+  footerHidden?: boolean;
+  onFooterHiddenChange?: (hidden: boolean) => void;
 }
 
 const PANIC_PRESETS = [
@@ -175,7 +177,9 @@ export function SettingsModal({
   onAdSpotChange,
   onAdsBlockedChange,
   loadingRevealEnabled = true,
-  onLoadingRevealChange
+  onLoadingRevealChange,
+  footerHidden = false,
+  onFooterHiddenChange
 }: SettingsModalProps) {
   const [isDesktop, setIsDesktop] = React.useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   React.useEffect(() => {
@@ -328,7 +332,26 @@ export function SettingsModal({
 
   useDialogFocus({ active: isOpen, onClose, panelRef });
 
-  if (!isOpen) return null;
+  // Keep the modal mounted briefly after `isOpen` turns false so the close animation can play.
+  const [mounted, setMounted] = React.useState(isOpen);
+  const [closing, setClosing] = React.useState(false);
+  React.useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      setClosing(false);
+      return;
+    }
+    if (!mounted) return;
+    setClosing(true);
+    const timer = window.setTimeout(() => {
+      setMounted(false);
+      setClosing(false);
+    }, 180);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  if (!isOpen && !mounted) return null;
 
   const handleSaveLock = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -593,7 +616,7 @@ export function SettingsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-2 pt-[4.5rem] backdrop-blur-sm sm:items-center sm:p-4"
+      className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-2 pt-[4.5rem] backdrop-blur-sm sm:items-center sm:p-4 ${closing ? "settings-backdrop-exit pointer-events-none" : "settings-backdrop-enter"}`}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -604,7 +627,7 @@ export function SettingsModal({
         aria-modal="true"
         aria-labelledby="settings-title"
         tabIndex={-1}
-        className={isDesktop ? "sm-desk relative flex h-[85vh] w-full max-w-5xl flex-row overflow-hidden p-0 focus:outline-none" : "relative flex max-h-[calc(100dvh-5.25rem)] w-full max-w-lg flex-col gap-5 overflow-y-auto p-5 pt-6 text-zinc-100 focus:outline-none sm:my-auto sm:max-w-2xl sm:p-6 md:max-h-[88vh]"}
+        className={`${isDesktop ? "sm-desk relative flex h-[85vh] w-full max-w-5xl flex-row overflow-hidden p-0 focus:outline-none" : "relative flex max-h-[calc(100dvh-5.25rem)] w-full max-w-lg flex-col gap-5 overflow-y-auto p-5 pt-6 text-zinc-100 focus:outline-none sm:my-auto sm:max-w-2xl sm:p-6 md:max-h-[88vh]"} ${closing ? "settings-panel-exit" : "settings-panel-enter"}`}
         style={{
           background: "#1d1d1d",
           borderRadius: 20,
@@ -725,6 +748,15 @@ export function SettingsModal({
             </div>
             <button type="button" onClick={() => onSideChatChange(!sideChatEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${sideChatEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={sideChatEnabled} aria-label="Side chat and visitor counter">
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${sideChatEnabled ? "translate-x-5" : "translate-x-0"}`} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+            <div>
+              <div className="text-sm font-medium text-zinc-200">Show footer</div>
+              <div className="text-xs text-zinc-500">Show the footer links and report button at the bottom of the page</div>
+            </div>
+            <button type="button" onClick={() => onFooterHiddenChange?.(!footerHidden)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${!footerHidden ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={!footerHidden} aria-label="Show footer">
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${!footerHidden ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
           <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
@@ -1844,19 +1876,34 @@ export function SettingsModal({
           <p className="text-[10.5px] leading-relaxed text-zinc-500">
             See what changed in each site update.
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onOpenChangelog();
-            }}
-            style={CHIP_STYLE}
-            className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
-            aria-haspopup="dialog"
-          >
-            <History aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
-            <span>View change log</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onReportBug();
+              }}
+              style={CHIP_STYLE}
+              className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+              aria-haspopup="dialog"
+            >
+              <Bug aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+              <span>Report a bug</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenChangelog();
+              }}
+              style={CHIP_STYLE}
+              className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+              aria-haspopup="dialog"
+            >
+              <History aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
+              <span>View change log</span>
+            </button>
+          </div>
         </section>
         </div>
 

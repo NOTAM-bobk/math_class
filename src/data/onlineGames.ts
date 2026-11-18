@@ -1479,7 +1479,7 @@ export const ONLINE_GAMES: GameItem[] = [
   {
     id: "og-hover-racer",
     name: "Hover Racer",
-    url: "/api/proxy/og/games/2021/unity3/hover-racer/index.html ",
+    url: "/api/proxy/og/games/2021/unity3/hover-racer/index.html",
     description: "A free online 3D racing game that swaps traditional cars for futuristic hovercraft, dropping you into a sci-fi world of high-speed racing and combat.",
     tags: ["Driving", "3D", "Racing"],
   },

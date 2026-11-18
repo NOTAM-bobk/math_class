@@ -55,6 +55,17 @@ export const CATEGORY_FILTERS = [
   { id: "casual", label: "🎮 Casual" },
 ] as const;
 
+// Each genre gets its own accent colour so cards and chips read as distinct categories.
+const CATEGORY_ACCENTS: Record<string, string> = {
+  flash: "#f97316",
+  action: "#ef4444",
+  driving: "#eab308",
+  sports: "#22c55e",
+  arcade: "#a855f7",
+  puzzle: "#06b6d4",
+  casual: "#ec4899",
+};
+
 export type SpecialFilterId = "buggy" | "blocked";
 export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilterId;
 
@@ -924,12 +935,16 @@ function GameCard({
   onToggleFavorite: (id: string, event?: React.MouseEvent) => void;
 }) {
   const opensInHub = !game.disabled && isSameOriginGame(game.url);
+  const genreAccent = CATEGORY_FILTERS.map((cat) => cat.id)
+    .filter((id) => CATEGORY_ACCENTS[id] && matchesCategory(game, id as CategoryId))
+    .map((id) => CATEGORY_ACCENTS[id])[0];
   return (
     <article
       key={game.id}
       className={`game-card group relative flex w-full flex-col overflow-hidden ${
         game.disabled ? "opacity-80" : ""
       }`}
+      style={genreAccent ? { borderLeft: `3px solid ${genreAccent}` } : undefined}
     >
       <div className="flex flex-1 flex-col p-3 sm:p-5">
         <div className="mb-1.5 flex items-start justify-between gap-2 sm:mb-2">
@@ -1694,6 +1709,13 @@ export function GameCatalog({ showAdSpot = true }: { showAdSpot?: boolean }) {
                     }}
                     className="inline-flex shrink-0 items-center gap-1 px-3 py-1 text-[11px] transition hover:text-white active:scale-95"
                   >
+                    {CATEGORY_ACCENTS[cat.id] && (
+                      <span
+                        aria-hidden="true"
+                        className="h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{ background: CATEGORY_ACCENTS[cat.id] }}
+                      />
+                    )}
                     <span>{cat.label}</span>
                     {cat.id === "favorites" && favoriteIds.size > 0 && (
                       <span className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-mono leading-tight ${active ? "bg-zinc-900/10 text-zinc-900 font-bold" : "bg-amber-400/20 text-amber-300"}`}>

@@ -347,8 +347,6 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     []
   );
 
-  if (!isOpen) return null;
-
   const handleToggleBugTag = async (gameId: string) => {
     // Compute the next value before updating state: React applies updater functions
     // later, so reading the value inside one sends a stale request to the backend.
@@ -679,6 +677,10 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
       game.url.toLowerCase().includes(q)
     );
   });
+
+  // Bail out only after every hook has run: an early return above the useMemo
+  // calls below changed the hook order between renders, which crashed React.
+  if (!isOpen) return null;
 
   return (
     <div

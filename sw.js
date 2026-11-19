@@ -20,8 +20,11 @@ try {
 // Offline copy
 // ---------------------------------------------------------------------------
 
-const OFFLINE_CACHE = "polytrack-offline-v1.4.0";
+const OFFLINE_CACHE = "polytrack-offline-v1.5.0";
 const OFFLINE_META_CACHE = "polytrack-offline-meta-v1";
+// Per-game packs downloaded from Settings live in their own cache so one game
+// can be removed without touching the full offline copy.
+const GAME_PACK_CACHE = "polytrack-game-packs-v1";
 const OFFLINE_CONFIG_URL = "/__polytrack_offline_config__";
 const OFFLINE_MANIFEST_URL = "/offline-manifest.json";
 const REMOTE_CACHE_HOSTS = ["cdn.tailwindcss.com", "fonts.googleapis.com", "fonts.gstatic.com"];
@@ -29,7 +32,7 @@ const REMOTE_CACHE_HOSTS = ["cdn.tailwindcss.com", "fonts.googleapis.com", "font
 // The bundle changes on every deploy. Serving the cached copy first left
 // returning visitors on an old build until a second page load, so these go to
 // the network first and only fall back to the cached copy when it is offline.
-const NETWORK_FIRST_PATHS = ["/dist/home.bundle.js", "/home.bundle.js", "/dist/styles.css", "/", "/index.html"];
+const NETWORK_FIRST_PATHS = ["/dist/home.bundle.js", "/dist/styles.css", "/", "/index.html"];
 
 const DEFAULT_CONFIG = {
 	requested: false,
@@ -119,7 +122,13 @@ async function offlinePage() {
 async function handleSameOrigin(request) {
 	const cache = await caches.open(OFFLINE_CACHE);
 	const config = await getConfig();
-	const cached = request.cache === "reload" ? undefined : await cache.match(request);
+	// A downloaded game pack is stored separately from the full offline copy; a
+	// hit there must not be refreshed into the offline cache, or deleting the
+	// pack would leave its files behind.
+	const fromOfflineCache = request.cache === "reload" ? undefined : await cache.match(request);
+	const fromPack =
+		request.cache === "reload" ? undefined : await (await caches.open(GAME_PACK_CACHE)).match(request);
+	const cached = fromOfflineCache || fromPack;
 	const preferCache = config.requested && isInScheduleWindow(config);
 
 	const url = new URL(request.url);
@@ -154,7 +163,9 @@ async function handleSameOrigin(request) {
 				: `${pathname}/index.html`;
 			return (
 				(await cache.match(request)) ||
+				(await caches.match(request)) ||
 				(await cache.match(directoryIndex)) ||
+				(await caches.match(directoryIndex)) ||
 				(await cache.match("/index.html")) ||
 				(await cache.match("/")) ||
 				(await offlinePage())
@@ -163,7 +174,7 @@ async function handleSameOrigin(request) {
 	}
 
 	if (cached) {
-		void refresh(cache, request);
+		if (fromOfflineCache) void refresh(cache, request);
 		return cached;
 	}
 
@@ -172,7 +183,11 @@ async function handleSameOrigin(request) {
 		if (isCacheable(response)) void cache.put(request, response.clone());
 		return response;
 	} catch (error) {
-		return (await cache.match(request, { ignoreSearch: true })) || Response.error();
+		return (
+			(await cache.match(request, { ignoreSearch: true })) ||
+			(await caches.match(request, { ignoreSearch: true })) ||
+			Response.error()
+		);
 	}
 }
 
@@ -229,6 +244,12 @@ self.addEventListener("fetch", (event) => {
 	if (url.origin === self.location.origin) {
 		if (url.pathname === "/sw.js" || url.pathname === OFFLINE_MANIFEST_URL) return;
 		if (url.pathname.startsWith("/api/")) return;
+		// A per-game pack fetch is stored by the page in its own cache; caching
+		// it here too would keep it after the pack is removed.
+		if (request.headers.get("X-Polytrack-Pack")) {
+			event.respondWith(fetch(request));
+			return;
+		}
 		event.respondWith(handleSameOrigin(request));
 		return;
 	}

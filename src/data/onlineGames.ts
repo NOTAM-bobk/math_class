@@ -1,4 +1,4 @@
-import type { GameItem } from "@/components/GameCatalog";
+import type { GameItem } from "./gameItem";
 
 // Games from the OnlineGames.io embed feed
 // (https://www.onlinegames.io/media/plugins/genGames/embed.json), imported on

@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.4.0";
+export const SITE_VERSION = "1.5.0";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,18 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.5.0",
+    date: "November 2026",
+    title: "Offline game packs, faster startup and one-tap feedback",
+    changes: [
+      "Offline mode can now download one game at a time: search for a game in Settings and save just that pack.",
+      "While the browser has no connection, the catalog shows an Offline filter with the games you saved.",
+      "Settings, the admin panel and the change log now load on first open instead of shipping in the main bundle.",
+      "The game catalog is fetched as JSON, so the hub shell starts before the list of games arrives.",
+      "Games occasionally ask a one-tap \"Did this work?\"; answering No opens the bug report with the game name filled in.",
+    ],
+  },
   {
     version: "1.4.0",
     date: "November 2026",

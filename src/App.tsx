@@ -1,15 +1,12 @@
 import * as React from "react";
-import { DEFAULT_GAMES, GameCatalog } from "./components/GameCatalog";
+import { GameCatalog } from "./components/GameCatalog";
 import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
 import { ShareButton } from "./components/ShareButton";
-import { SettingsModal } from "./components/SettingsModal";
 import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
-import { AdminPanelModal } from "./components/AdminPanelModal";
-import { ChangelogModal } from "./components/ChangelogModal";
 import { AdsNudgeModal } from "./components/AdsNudgeModal";
 import { FeatureTooltips } from "./components/FeatureTooltips";
 import { BotChallengeGate } from "./components/BotChallengeGate";
@@ -30,6 +27,19 @@ import { initOfflineMode } from "./lib/offlineCache";
 import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
 import { hasPassedBotChallenge, startStartupBotCheck } from "./lib/botDetection";
+import { loadCatalog } from "./lib/catalog";
+
+// The settings, admin and change log dialogs are large and most visits never
+// open them, so each one is a separate chunk loaded on first use.
+const SettingsModal = React.lazy(() =>
+  import("./components/SettingsModal").then((module) => ({ default: module.SettingsModal }))
+);
+const AdminPanelModal = React.lazy(() =>
+  import("./components/AdminPanelModal").then((module) => ({ default: module.AdminPanelModal }))
+);
+const ChangelogModal = React.lazy(() =>
+  import("./components/ChangelogModal").then((module) => ({ default: module.ChangelogModal }))
+);
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -209,7 +219,9 @@ export function App() {
 
   // Visitors who allowed notifications hear about games that were actually added.
   React.useEffect(() => {
-    void maybeNotifyNewGames(DEFAULT_GAMES);
+    loadCatalog()
+      .then((games) => maybeNotifyNewGames(games))
+      .catch(() => {});
   }, []);
 
   // Re-send the offline schedule after a reload, when this device has an offline copy.
@@ -661,6 +673,8 @@ export function App() {
         </footer>}
       </div>
 
+      {settingsOpen && (
+        <React.Suspense fallback={null}>
       <SettingsModal
         isOpen={settingsOpen}
         loadingRevealEnabled={loadingRevealEnabled}
@@ -702,8 +716,14 @@ export function App() {
           if (!enabled) setMobilePanel("games");
         }}
       />
+        </React.Suspense>
+      )}
 
-      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
+      {changelogOpen && (
+        <React.Suspense fallback={null}>
+          <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
+        </React.Suspense>
+      )}
 
       <BugReportModal
         isOpen={bugModalOpen}
@@ -717,10 +737,14 @@ export function App() {
         onClose={() => setSubmitModalOpen(false)}
       />
 
-      <AdminPanelModal
-        isOpen={adminModalOpen}
-        onClose={() => setAdminModalOpen(false)}
-      />
+      {adminModalOpen && (
+        <React.Suspense fallback={null}>
+          <AdminPanelModal
+            isOpen={adminModalOpen}
+            onClose={() => setAdminModalOpen(false)}
+          />
+        </React.Suspense>
+      )}
 
       <AdsNudgeModal
         isOpen={adsNudgeOpen}

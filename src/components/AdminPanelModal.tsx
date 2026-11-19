@@ -22,7 +22,8 @@ import {
   Send,
   Gamepad2,
 } from "lucide-react";
-import { DEFAULT_GAMES, type GameItem } from "./GameCatalog";
+import type { GameItem } from "@/data/gameItem";
+import { loadCatalog } from "@/lib/catalog";
 import { loadBuggyGameIds, saveBuggyGameIds, onBuggyGamesChange } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, saveVerifiedGameIds, onVerifiedGamesChange } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, saveNotMobileGameIds, onNotMobileGamesChange } from "@/lib/notMobileGames";
@@ -134,7 +135,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [blockedIds, setBlockedIds] = React.useState<Set<string>>(loadBlockedGameIds);
   const [gameSearch, setGameSearch] = React.useState("");
   const [gameFilter, setGameFilter] = React.useState<"all" | "flagged" | "clean">("all");
-  const [gamesList, setGamesList] = React.useState<GameItem[]>(DEFAULT_GAMES);
+  const [gamesList, setGamesList] = React.useState<GameItem[]>([]);
 
   const panelRef = React.useRef<HTMLDivElement>(null);
   // Only the newest badge mutation may apply its response, so a slow earlier
@@ -170,7 +171,26 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     });
   }, []);
 
-  // Load games from config.json to complement DEFAULT_GAMES
+  // The catalog is a runtime JSON file; merge the config feed into it.
+  React.useEffect(() => {
+    let active = true;
+    loadCatalog()
+      .then((games) => {
+        if (!active) return;
+        setGamesList((prev) => {
+          const map = new Map<string, GameItem>();
+          for (const item of games) map.set(item.id, item);
+          for (const item of prev) if (!map.has(item.id)) map.set(item.id, item);
+          return Array.from(map.values());
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Load games from config.json to complement the catalog.
   React.useEffect(() => {
     fetch("/games/config.json", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))

@@ -114,7 +114,7 @@ function waitForActivation(worker: ServiceWorker, timeoutMs: number): Promise<vo
   });
 }
 
-async function ensureWorker(): Promise<ServiceWorker | null> {
+export async function ensureWorker(): Promise<ServiceWorker | null> {
   if (!offlineSupported()) return null;
   try {
     const registration = await withTimeout(

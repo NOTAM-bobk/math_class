@@ -1,5 +1,7 @@
-// Regenerates api/_catalog.json from the single source of truth (DEFAULT_GAMES in
-// GameCatalog) so the server-side search and the client show the same catalog.
+// Builds catalog.json, the single list the app fetches at runtime and the
+// server-side search route reads. The entries live in src/data/*, split into the
+// hand-maintained games and the two imported feeds, so keeping them out of the
+// client bundle does not make them harder to edit.
 import { build } from "esbuild";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -11,8 +13,12 @@ const outfile = path.join(os.tmpdir(), `polytrack-catalog-${Date.now()}.mjs`);
 
 const result = await build({
   stdin: {
-    contents:
-      'import { DEFAULT_GAMES } from "@/components/GameCatalog";\nprocess.stdout.write(JSON.stringify(DEFAULT_GAMES, null, 2));\n',
+    contents: [
+      'import { DEFAULT_GAMES } from "@/data/defaultGames";',
+      'import { ONLINE_GAMES } from "@/data/onlineGames";',
+      'import { HFMANOR_GAMES } from "@/data/hfmanorGames";',
+      "process.stdout.write(JSON.stringify([...DEFAULT_GAMES, ...ONLINE_GAMES, ...HFMANOR_GAMES]));",
+    ].join("\n"),
     resolveDir: root,
     loader: "tsx",
     sourcefile: "catalog-entry.tsx",
@@ -29,9 +35,13 @@ fs.writeFileSync(outfile, result.outputFiles[0].text);
 
 try {
   const json = execFileSync(process.execPath, [outfile], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
-  JSON.parse(json);
-  fs.writeFileSync(path.join(root, "api", "_catalog.json"), `${json}\n`);
-  console.log(`Wrote api/_catalog.json (${JSON.parse(json).length} games)`);
+  const games = JSON.parse(json);
+  if (!Array.isArray(games) || games.length === 0) throw new Error("Catalog is empty");
+
+  fs.writeFileSync(path.join(root, "catalog.json"), `${JSON.stringify(games)}\n`);
+  // The search route reads the same list, so client and server never drift.
+  fs.writeFileSync(path.join(root, "api", "_catalog.json"), `${JSON.stringify(games, null, 2)}\n`);
+  console.log(`Wrote catalog.json and api/_catalog.json (${games.length} games)`);
 } finally {
   fs.rmSync(outfile, { force: true });
 }

@@ -1,31 +1,67 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T21:47:20.979Z",
-  "totalBytes": 348116946,
+  "generatedAt": "2026-11-19T23:48:34.842Z",
+  "totalBytes": 346837001,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 14325
+      "bytes": 14387
     },
     {
       "url": "/manifest.json",
       "bytes": 754
     },
     {
-      "url": "/dist/styles.css",
-      "bytes": 61481
+      "url": "/catalog.json",
+      "bytes": 154226
     },
     {
-      "url": "/dist/home.bundle.js",
-      "bytes": 1323803
-    },
-    {
-      "url": "/home.bundle.js",
-      "bytes": 1323803
+      "url": "/offline-packs.json",
+      "bytes": 21004
     },
     {
       "url": "/games/config.json",
       "bytes": 14387
+    },
+    {
+      "url": "/dist/chunks/AdminPanelModal-COZOSLML.js",
+      "bytes": 47698
+    },
+    {
+      "url": "/dist/chunks/ChangelogModal-XUD56SAS.js",
+      "bytes": 3965
+    },
+    {
+      "url": "/dist/chunks/SettingsModal-TZEW235C.js",
+      "bytes": 83515
+    },
+    {
+      "url": "/dist/chunks/chunk-44T34U4P.js",
+      "bytes": 20188
+    },
+    {
+      "url": "/dist/chunks/chunk-6VRQ5RJS.js",
+      "bytes": 155113
+    },
+    {
+      "url": "/dist/chunks/chunk-EYIXOIZN.js",
+      "bytes": 23664
+    },
+    {
+      "url": "/dist/chunks/chunk-LTICMVAY.js",
+      "bytes": 41801
+    },
+    {
+      "url": "/dist/chunks/chunk-W5HTUNVE.js",
+      "bytes": 22216
+    },
+    {
+      "url": "/dist/home.bundle.js",
+      "bytes": 792923
+    },
+    {
+      "url": "/dist/styles.css",
+      "bytes": 62767
     },
     {
       "url": "/images/app-icon-192.png",

@@ -1,4 +1,4 @@
-import type { GameItem } from "@/components/GameCatalog";
+import type { GameItem } from "./gameItem";
 
 // Games from https://hfmanor.com (its pages only wrap the real game files that
 // live on games.mathpapers.org). Imported on 2026-11-18.

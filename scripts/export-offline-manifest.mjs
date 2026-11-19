@@ -40,14 +40,15 @@ function walk(relativeDir) {
 for (const file of [
   "index.html",
   "manifest.json",
-  "dist/styles.css",
-  "dist/home.bundle.js",
-  "home.bundle.js",
+  "catalog.json",
+  "offline-packs.json",
   "games/config.json",
 ]) {
   addFile(file);
 }
 
+// The whole dist directory, including the code-split chunks.
+walk("dist");
 walk("images");
 walk("games");
 

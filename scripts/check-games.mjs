@@ -53,8 +53,12 @@ async function collectCatalog() {
   const outfile = path.join(os.tmpdir(), `polytrack-check-catalog-${Date.now()}.mjs`);
   const result = await build({
     stdin: {
-      contents:
-        'import { DEFAULT_GAMES } from "@/components/GameCatalog";\nprocess.stdout.write(JSON.stringify(DEFAULT_GAMES));\n',
+      contents: [
+        'import { DEFAULT_GAMES } from "@/data/defaultGames";',
+        'import { ONLINE_GAMES } from "@/data/onlineGames";',
+        'import { HFMANOR_GAMES } from "@/data/hfmanorGames";',
+        "process.stdout.write(JSON.stringify([...DEFAULT_GAMES, ...ONLINE_GAMES, ...HFMANOR_GAMES]));",
+      ].join("\n"),
       resolveDir: root,
       loader: "tsx",
       sourcefile: "check-catalog-entry.tsx",

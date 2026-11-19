@@ -40,6 +40,17 @@ import {
   type OfflineStatus,
 } from "@/lib/offlineCache";
 import {
+  deleteAllGamePacks,
+  deleteGamePack,
+  downloadGamePack,
+  formatPackSize,
+  loadDownloadedPacks,
+  loadGamePacks,
+  onDownloadedPacksChange,
+  type GamePack,
+  type GamePackProgress,
+} from "@/lib/gamePacks";
+import {
   formatPlayTime,
   isPlayStatsEnabled,
   loadPlayStats,
@@ -285,6 +296,15 @@ export function SettingsModal({
   const [offlineNotice, setOfflineNotice] = React.useState("");
   const [offlineError, setOfflineError] = React.useState("");
 
+  // Per-game offline packs: searchable list, one download at a time.
+  const [gamePacks, setGamePacks] = React.useState<GamePack[]>([]);
+  const [downloadedPacks, setDownloadedPacks] = React.useState(loadDownloadedPacks);
+  const [packQuery, setPackQuery] = React.useState("");
+  const [packBusyId, setPackBusyId] = React.useState<string | null>(null);
+  const [packProgress, setPackProgress] = React.useState<GamePackProgress | null>(null);
+  const [packNotice, setPackNotice] = React.useState("");
+  const [packError, setPackError] = React.useState("");
+
   // Chat notifications
   const [chatNotificationsOn, setChatNotificationsOn] = React.useState(isChatNotificationsEnabled);
 
@@ -370,6 +390,24 @@ export function SettingsModal({
       cancelled = true;
       controller.abort();
       observer.disconnect();
+    };
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    setDownloadedPacks(loadDownloadedPacks());
+    loadGamePacks()
+      .then((packs) => {
+        if (active) setGamePacks(packs);
+      })
+      .catch(() => {
+        if (active) setPackError("The list of downloadable games could not be loaded.");
+      });
+    const stop = onDownloadedPacksChange(() => setDownloadedPacks(loadDownloadedPacks()));
+    return () => {
+      active = false;
+      stop();
     };
   }, [isOpen]);
 
@@ -550,6 +588,16 @@ export function SettingsModal({
     0
   );
 
+  const downloadedPackIds = React.useMemo(
+    () => new Set(downloadedPacks.map((pack) => pack.gameId)),
+    [downloadedPacks]
+  );
+  const filteredGamePacks = React.useMemo(() => {
+    const query = packQuery.trim().toLowerCase();
+    const list = query ? gamePacks.filter((pack) => pack.name.toLowerCase().includes(query)) : gamePacks;
+    return list.slice(0, 30);
+  }, [gamePacks, packQuery]);
+
   const offlinePercent = offlineProgress
     ? offlineProgress.total > 0
       ? Math.min(100, Math.round((offlineProgress.done / offlineProgress.total) * 100))
@@ -618,6 +666,57 @@ export function SettingsModal({
 
   const handleOfflineTimeChange = (field: "startTime" | "endTime", value: string) => {
     setOfflineSchedule(saveOfflineSchedule({ [field]: value }));
+  };
+
+  const handleDownloadPack = async (pack: GamePack) => {
+    if (packBusyId) return;
+    setPackBusyId(pack.gameId);
+    setPackError("");
+    setPackNotice("");
+    setPackProgress({ done: 0, total: pack.files.length, bytes: 0, failed: 0, name: pack.name });
+    try {
+      const result = await downloadGamePack(pack, setPackProgress);
+      setDownloadedPacks(loadDownloadedPacks());
+      setPackNotice(
+        result.failed > 0
+          ? `${pack.name} saved (${formatPackSize(result.bytes)}); ${result.failed} file${result.failed === 1 ? "" : "s"} could not be downloaded.`
+          : `${pack.name} is ready offline (${formatPackSize(result.bytes)}).`
+      );
+    } catch (error) {
+      setPackError(error instanceof Error ? error.message : `Could not download ${pack.name}.`);
+    } finally {
+      setPackBusyId(null);
+      setPackProgress(null);
+    }
+  };
+
+  const handleDeletePack = async (pack: GamePack) => {
+    setPackBusyId(pack.gameId);
+    setPackError("");
+    try {
+      await deleteGamePack(pack.gameId);
+      setDownloadedPacks(loadDownloadedPacks());
+      setPackNotice(`${pack.name} was removed from offline storage.`);
+    } catch {
+      setPackError(`Could not remove ${pack.name}.`);
+    } finally {
+      setPackBusyId(null);
+    }
+  };
+
+  const handleDeleteAllPacks = async () => {
+    if (!window.confirm("Remove every downloaded game pack from this browser?")) return;
+    setPackBusyId("all");
+    setPackError("");
+    try {
+      await deleteAllGamePacks();
+      setDownloadedPacks([]);
+      setPackNotice("All downloaded game packs were removed.");
+    } catch {
+      setPackError("The game packs could not be removed.");
+    } finally {
+      setPackBusyId(null);
+    }
   };
 
   const handleSaveTabCloak = (event: React.FormEvent) => {
@@ -1980,6 +2079,130 @@ export function SettingsModal({
                 <p className="text-[10.5px] leading-relaxed text-zinc-500">
                   Overnight windows work too, for example 22:00 to 07:00. The schedule only applies after the offline
                   copy has been downloaded.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-zinc-200">
+                      <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-emerald-400" />
+                      <span>Per-game offline packs</span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+                      Download only the games you want. They appear in the catalog&rsquo;s Offline filter when you have
+                      no connection.
+                    </p>
+                  </div>
+                  {downloadedPacks.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteAllPacks}
+                      disabled={packBusyId !== null}
+                      className="shrink-0 cursor-pointer rounded-lg px-2.5 py-1 text-[11px] font-medium text-red-300 transition-colors hover:bg-white/[0.06] hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Remove all
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <label htmlFor="offline-pack-search" className="sr-only">
+                    Search games you can download
+                  </label>
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500"
+                  />
+                  <input
+                    id="offline-pack-search"
+                    type="search"
+                    value={packQuery}
+                    onChange={(event) => setPackQuery(event.target.value)}
+                    placeholder="Search games to download…"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="w-full rounded-lg bg-white/[0.04] py-1.5 pl-8 pr-3 text-xs text-zinc-100 ring-1 ring-inset ring-white/[0.08] placeholder:text-zinc-500 focus:outline-none"
+                  />
+                </div>
+
+                {packProgress && (
+                  <div role="status" className="flex flex-col gap-1">
+                    <span className="text-[10.5px] text-zinc-400">
+                      Saving {packProgress.name}: {packProgress.done}/{packProgress.total} files ·{" "}
+                      {formatPackSize(packProgress.bytes)}
+                    </span>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
+                      <div
+                        className="h-full rounded-full bg-emerald-500 transition-[width] duration-200"
+                        style={{
+                          width: `${packProgress.total ? Math.round((packProgress.done / packProgress.total) * 100) : 0}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {packError && (
+                  <p role="alert" className="text-[11px] font-medium text-red-400">
+                    {packError}
+                  </p>
+                )}
+                {packNotice && (
+                  <p role="status" className="text-[11px] text-emerald-300">
+                    {packNotice}
+                  </p>
+                )}
+
+                <div className="flex max-h-64 flex-col divide-y divide-white/[0.05] overflow-y-auto">
+                  {filteredGamePacks.length === 0 ? (
+                    <p className="py-2 text-[11px] text-zinc-500">
+                      {gamePacks.length ? "No game matches that search." : "No downloadable games are listed yet."}
+                    </p>
+                  ) : (
+                    filteredGamePacks.map((pack) => {
+                      const installed = downloadedPackIds.has(pack.gameId);
+                      const busy = packBusyId === pack.gameId;
+                      return (
+                        <div key={pack.gameId} className="flex items-center gap-2 py-1.5">
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-xs text-zinc-200">{pack.name}</span>
+                            <span className="block text-[10px] text-zinc-500">
+                              {formatPackSize(pack.bytes)} · {pack.files.length}{" "}
+                              {pack.files.length === 1 ? "file" : "files"}
+                              {installed ? " · saved" : ""}
+                            </span>
+                          </span>
+                          {installed ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePack(pack)}
+                              disabled={busy}
+                              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium text-red-300 transition-colors hover:bg-white/[0.06] hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <Trash2 aria-hidden="true" className="h-3 w-3" />
+                              <span>{busy ? "Removing…" : "Remove"}</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadPack(pack)}
+                              disabled={packBusyId !== null}
+                              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-zinc-100 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <Download aria-hidden="true" className="h-3 w-3" />
+                              <span>{busy ? "Saving…" : "Download"}</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                <p className="text-[10.5px] leading-relaxed text-zinc-500">
+                  {downloadedPacks.length} game{downloadedPacks.length === 1 ? "" : "s"} saved for offline play on
+                  this device. Removing a pack only deletes its files, not your progress in the game.
                 </p>
               </div>
             </>

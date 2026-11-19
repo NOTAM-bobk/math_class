@@ -122,7 +122,7 @@
     </script>
 
     <!-- Prebuilt Tailwind CSS (npm run build:css) -->
-    <link rel="stylesheet" href="./dist/styles.css?v=1.4.0">
+    <link rel="stylesheet" href="./dist/styles.css?v=1.5.0">
 
     <style>
       * {
@@ -341,7 +341,8 @@
     <div id="boot-loader" aria-hidden="true" style="position:fixed;inset:0;z-index:999;background:#09090b;"></div>
     <div id="root"></div>
 
-    <!-- Pre-compiled application bundle -->
-    <script src="./dist/home.bundle.js?v=1.4.0" onerror="this.onerror=null;this.src='./home.bundle.js?v=1.4.0';"></script>
+    <!-- Pre-compiled application bundle. It is an ES module so the settings,
+         admin and change log dialogs load as separate chunks on first use. -->
+    <script type="module" src="./dist/home.bundle.js?v=1.5.0"></script>
 </body>
 </html>

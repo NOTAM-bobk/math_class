@@ -69,6 +69,25 @@ npm run build
 manifest and the bundled hub. Serve the repository root with any static file server
 (`npx serve .`, `python3 -m http.server`, or your host of choice) and open `index.html`.
 
+### PostHog analytics
+
+The hub uses `posthog-js` for pageviews, session replay, error capture and product
+events such as game launches, favourites, filters, shares, chat messages, bug reports
+and submissions. Because this is a static bundle, the public project token and ingestion
+host must be present when `npm run build` runs; they are injected into the bundle by
+`scripts/build-client.mjs` and must not be hard-coded in source files.
+
+Set these variables in the local shell or hosting provider for every build environment:
+
+```bash
+PUBLIC_POSTHOG_KEY=phc_...
+PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+The variable names are also listed in [`.env.example`](.env.example). Keep the real
+values in an ignored `.env`/`.env.local` file or in the deployment provider's encrypted
+environment settings; never commit them.
+
 | Script | What it does |
 | --- | --- |
 | `npm run build` | Full build: CSS, catalog, offline manifest and `dist/home.bundle.js`. |

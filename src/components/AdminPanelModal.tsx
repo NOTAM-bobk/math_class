@@ -20,6 +20,7 @@ import {
   Sparkles,
   Smartphone,
   Send,
+  Gamepad2,
 } from "lucide-react";
 import { DEFAULT_GAMES, type GameItem } from "./GameCatalog";
 import { loadBuggyGameIds, saveBuggyGameIds, onBuggyGamesChange } from "@/lib/buggyGames";
@@ -29,6 +30,8 @@ import { loadBlockedGameIds, saveBlockedGameIds, onBlockedGamesChange } from "@/
 import { loadGameFlags, updateAdminGameFlags, type GameFlagsData } from "@/lib/hubApi";
 import { Cloud, UploadCloud } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
+import { loadGameOfTheDay, saveGameOfTheDay, clearGameOfTheDay } from "@/lib/gameOfTheDay";
+import { gameCoverUrl } from "@/lib/gameCovers";
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -83,6 +86,20 @@ function parseSubmission(record: any): GameSubmission {
   };
 }
 
+// Bug reports carry the game URL, so match it against the catalog to show the
+// game's name in the report list.
+function normalizeGameUrl(url: string) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+  try {
+    const parsed = new URL(value, "https://hub.local");
+    const origin = parsed.origin === "https://hub.local" ? "" : parsed.origin;
+    return `${origin}${parsed.pathname.replace(/\/+$/, "").toLowerCase()}${parsed.search}`;
+  } catch {
+    return value.toLowerCase();
+  }
+}
+
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
   background: "rgba(255, 255, 255, 0.04)",
@@ -104,7 +121,9 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [rateLimitSeconds, setRateLimitSeconds] = React.useState<number | null>(null);
 
   // Admin tabs: "verified", "tags" (error:bug), "mobile" (not mobile optimized), or "bugs" (reports)
-  const [adminTab, setAdminTab] = React.useState<"verified" | "tags" | "mobile" | "blocked" | "bugs" | "submissions">("verified");
+  const [adminTab, setAdminTab] = React.useState<"verified" | "daily" | "tags" | "mobile" | "blocked" | "bugs" | "submissions">("verified");
+  const [dailyId, setDailyId] = React.useState<string>(() => loadGameOfTheDay()?.gameId || "");
+  const [dailySearch, setDailySearch] = React.useState("");
   const [verifiedIds, setVerifiedIds] = React.useState<Set<string>>(loadVerifiedGameIds);
   const [verifiedSearch, setVerifiedSearch] = React.useState("");
   const [verifiedFilter, setVerifiedFilter] = React.useState<"all" | "verified" | "unverified">("all");
@@ -579,6 +598,36 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const openCount = bugs.filter((b) => b.status === "open").length;
   const resolvedCount = bugs.filter((b) => b.status === "resolved").length;
 
+  const gameNameByUrl = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const game of gamesList) map.set(normalizeGameUrl(game.url), game.name);
+    return map;
+  }, [gamesList]);
+
+  const currentDailyGame = React.useMemo(
+    () => gamesList.find((game) => game.id === dailyId) || null,
+    [gamesList, dailyId]
+  );
+
+  const dailyGames = React.useMemo(() => {
+    const query = dailySearch.trim().toLowerCase();
+    return gamesList.filter(
+      (game) =>
+        !game.disabled &&
+        (!query || game.name.toLowerCase().includes(query) || game.url.toLowerCase().includes(query))
+    );
+  }, [gamesList, dailySearch]);
+
+  const handleSetGameOfTheDay = (gameId: string) => {
+    saveGameOfTheDay(gameId);
+    setDailyId(gameId);
+  };
+
+  const handleClearGameOfTheDay = () => {
+    clearGameOfTheDay();
+    setDailyId("");
+  };
+
   const filteredGames = gamesList.filter((game) => {
     const isFlagged = buggyIds.has(game.id);
     if (gameFilter === "flagged" && !isFlagged) return false;
@@ -816,6 +865,19 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
               </button>
               <button
                 type="button"
+                onClick={() => setAdminTab("daily")}
+                style={CHIP_STYLE}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                  adminTab === "daily"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Game of the Day</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setAdminTab("tags")}
                 style={CHIP_STYLE}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
@@ -931,6 +993,116 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 )}
               </div>
             </div>
+
+            {/* TAB: Game of the Day picker */}
+            {adminTab === "daily" && (
+              <div className="flex flex-col gap-3 min-h-0 flex-1">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-zinc-200">Choose the game of the day</span>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    The pick shows as a banner at the top of the catalog. Choosing another game replaces it.
+                  </p>
+                </div>
+
+                {currentDailyGame ? (
+                  <div
+                    style={{ background: "rgba(251, 191, 36, 0.08)", boxShadow: "inset 0 0 0 1px rgba(251, 191, 36, 0.25)", borderRadius: 12 }}
+                    className="flex items-center gap-2.5 p-2.5"
+                  >
+                    <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-800 ring-1 ring-inset ring-white/10">
+                      {gameCoverUrl(currentDailyGame.id) ? (
+                        <img src={gameCoverUrl(currentDailyGame.id)} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Sparkles className="h-4 w-4 text-amber-300" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-amber-300">Current pick</div>
+                      <div className="truncate text-xs font-semibold text-zinc-100">{currentDailyGame.name}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClearGameOfTheDay}
+                      className="shrink-0 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-red-300 transition-colors cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    style={{ background: "rgba(255, 255, 255, 0.03)", boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05)", borderRadius: 12 }}
+                    className="p-2.5 text-[11px] text-zinc-400"
+                  >
+                    No game of the day yet — pick one below.
+                  </div>
+                )}
+
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                  <input
+                    type="text"
+                    value={dailySearch}
+                    onChange={(e) => setDailySearch(e.target.value)}
+                    placeholder="Search games…"
+                    style={{
+                      borderRadius: 10,
+                      background: "rgba(255, 255, 255, 0.04)",
+                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                    }}
+                    className="w-full py-1.5 pl-8 pr-3 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="overflow-y-auto pr-1 space-y-1.5 max-h-[45vh]">
+                  {dailyGames.length === 0 ? (
+                    <div className="py-12 text-center text-zinc-500 text-xs">
+                      No games match &ldquo;{dailySearch}&rdquo;.
+                    </div>
+                  ) : (
+                    dailyGames.slice(0, 200).map((game) => {
+                      const isCurrent = game.id === dailyId;
+                      return (
+                        <div
+                          key={game.id}
+                          onClick={() => handleSetGameOfTheDay(game.id)}
+                          style={{
+                            borderRadius: 12,
+                            background: isCurrent ? "rgba(251, 191, 36, 0.1)" : "rgba(255, 255, 255, 0.03)",
+                            boxShadow: isCurrent
+                              ? "inset 0 0 0 1px rgba(251, 191, 36, 0.3)"
+                              : "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                          }}
+                          className="p-2.5 flex items-center justify-between gap-3 transition-colors hover:bg-white/[0.05] cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-800 ring-1 ring-inset ring-white/10">
+                              {gameCoverUrl(game.id) ? (
+                                <img src={gameCoverUrl(game.id)} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <Gamepad2 className="h-3.5 w-3.5 text-zinc-500" />
+                              )}
+                            </span>
+                            <div className="min-w-0">
+                              <div className={`truncate text-xs font-semibold ${isCurrent ? "text-amber-200" : "text-zinc-200"}`}>
+                                {game.name}
+                              </div>
+                              <div className="truncate text-[10px] text-zinc-500">{game.url}</div>
+                            </div>
+                          </div>
+                          <span
+                            className={`shrink-0 text-[10px] font-semibold ${
+                              isCurrent ? "text-amber-300" : "text-zinc-500"
+                            }`}
+                          >
+                            {isCurrent ? "Current" : "Set"}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* TAB 0: Verified Games Selector */}
             {adminTab === "verified" && (
@@ -1655,10 +1827,19 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                               >
                                 {isResolved ? "Resolved" : "Open"}
                               </span>
-                              {bug.game_url && (
-                                <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 font-mono truncate max-w-[200px]">
-                                  {bug.game_url}
+                              {gameNameByUrl.get(normalizeGameUrl(bug.game_url)) ? (
+                                <span
+                                  title={bug.game_url}
+                                  className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-100 font-semibold truncate max-w-[220px]"
+                                >
+                                  {gameNameByUrl.get(normalizeGameUrl(bug.game_url))}
                                 </span>
+                              ) : (
+                                bug.game_url && (
+                                  <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 font-mono truncate max-w-[200px]">
+                                    {bug.game_url}
+                                  </span>
+                                )
                               )}
                             </div>
 

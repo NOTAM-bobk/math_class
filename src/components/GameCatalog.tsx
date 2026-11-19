@@ -16,6 +16,7 @@ import {
 } from "@/lib/hiddenGames";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 import { loadGameCardLayout, onGameCardLayoutChange, type GameCardLayout } from "@/lib/gameCardLayout";
+import { loadGameOfTheDayId, onGameOfTheDayChange } from "@/lib/gameOfTheDay";
 import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { PanicButton } from "./PanicButton";
@@ -1404,6 +1405,13 @@ export function GameCatalog({
     return onHiddenGamesChange((updated) => setHiddenGames(updated));
   }, []);
 
+  // The admin picks this from the panel; it is stored on this device.
+  const [gameOfTheDayId, setGameOfTheDayId] = React.useState<string>(loadGameOfTheDayId);
+
+  React.useEffect(() => {
+    return onGameOfTheDayChange((entry) => setGameOfTheDayId(entry?.gameId || ""));
+  }, []);
+
   const catalogScrollRef = React.useRef<HTMLDivElement>(null);
   const savedCatalogScrollRef = React.useRef(0);
   const catalogScrollTouchedRef = React.useRef(false);
@@ -1896,6 +1904,13 @@ export function GameCatalog({
     searchRef.current?.focus();
   }, []);
 
+  const gameOfTheDay = React.useMemo(() => {
+    if (!gameOfTheDayId) return null;
+    const game = games.find((item) => item.id === gameOfTheDayId);
+    if (!game || game.disabled || hiddenGames[game.id]) return null;
+    return game;
+  }, [games, gameOfTheDayId, hiddenGames]);
+
   const recentGameItems = React.useMemo(() => {
     const byId = new Map(games.map((game) => [game.id, game]));
     return loadRecentGames()
@@ -2195,6 +2210,39 @@ export function GameCatalog({
                 <X aria-hidden="true" className="h-3 w-3" />
               </button>
             </div>
+          )}
+
+          {!isFiltered && gameOfTheDay && (
+            <section aria-labelledby="catalog-daily-heading" className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-2">
+                <h3 id="catalog-daily-heading" className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                  <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
+                  Game of the day
+                </h3>
+                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+                <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">Today&rsquo;s pick</span>
+              </div>
+              <a
+                href={gameOfTheDay.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => launchGame(gameOfTheDay, event)}
+                className="group relative flex min-h-[7.5rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[9rem] sm:p-4"
+              >
+                <GameCoverArt game={gameOfTheDay} accent={gameAccent(gameOfTheDay)} />
+                <div className="relative z-10 flex w-full items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">Game of the day</span>
+                    <p className="truncate text-lg font-bold tracking-tight text-white sm:text-xl">{gameOfTheDay.name}</p>
+                    <p className="line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">{gameOfTheDay.description}</p>
+                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
+                    <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
+                    Play
+                  </span>
+                </div>
+              </a>
+            </section>
           )}
 
           {!isFiltered && recentGameItems.length > 0 && (

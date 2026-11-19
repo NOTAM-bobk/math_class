@@ -6,6 +6,7 @@
     "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./dist/styles.css --minify",
     "build:catalog": "node scripts/export-catalog.mjs",
     "check:games": "node scripts/check-games.mjs",
+    "build:covers": "node scripts/build-game-covers.mjs",
     "build:offline-manifest": "node scripts/export-offline-manifest.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

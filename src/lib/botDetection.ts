@@ -29,10 +29,11 @@ export function startStartupBotCheck(): Promise<BotCheckResult> {
   return checkPromise;
 }
 
-/** A passed challenge is remembered for this tab, so reloads don't ask again. */
+/** A passed challenge is remembered for this tab for 30 minutes. */
 export function hasPassedBotChallenge(): boolean {
   try {
-    return sessionStorage.getItem(CHALLENGE_PASSED_KEY) !== null;
+    const passedAt = Number(sessionStorage.getItem(CHALLENGE_PASSED_KEY) || 0);
+    return passedAt > 0 && Date.now() - passedAt < 30 * 60 * 1000;
   } catch {
     return false;
   }

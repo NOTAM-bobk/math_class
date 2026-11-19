@@ -74,11 +74,11 @@ export function markChatVerified(): void {
   } catch {}
 }
 
-export async function verifyTurnstileToken(token: string): Promise<boolean> {
+export async function verifyTurnstileToken(token: string, action?: string): Promise<boolean> {
   const response = await fetch("/api/turnstile", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ token, ...(action ? { action } : {}) }),
   });
   const data = await response.json().catch(() => ({}));
   return response.ok && data.verified === true;

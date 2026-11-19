@@ -274,14 +274,15 @@ export function App() {
   };
 
   // The on-device bot check starts while the glass reveal plays; a suspicious
-  // result raises the Cloudflare check once that loading screen is gone.
-  const [botChallengeRequired, setBotChallengeRequired] = React.useState(false);
+  // result waits behind the reveal and raises the Cloudflare check only after
+  // the loading screen is gone.
+  const [botChallengePending, setBotChallengePending] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
     startStartupBotCheck().then((result) => {
       if (!cancelled && result.suspected && !hasPassedBotChallenge()) {
-        setBotChallengeRequired(true);
+        setBotChallengePending(true);
       }
     });
     return () => {
@@ -389,7 +390,9 @@ export function App() {
     <BackgroundWrapper config={bgConfig}>
       {loadingRevealEnabled && showLoadReveal && <GlassReveal21st onComplete={() => setShowLoadReveal(false)} />}
       {isLocked && <SiteLock onUnlock={() => setIsUnlocked(true)} />}
-      {botChallengeRequired && <BotChallengeGate onVerified={() => setBotChallengeRequired(false)} />}
+      {botChallengePending && !showLoadReveal && (
+        <BotChallengeGate onVerified={() => setBotChallengePending(false)} />
+      )}
 
       <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
         <a

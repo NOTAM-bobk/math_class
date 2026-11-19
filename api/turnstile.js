@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
       body = {};
     }
   }
-  const token = body && typeof body.token === "string" ? body.token.slice(0, 4096) : "";
+  const token = body && typeof body.token === "string" ? body.token.slice(0, 2048) : "";
   if (!token) {
     res.status(400).json({ verified: false, error: "Missing verification token" });
     return;
@@ -79,10 +79,23 @@ module.exports = async function handler(req, res) {
       body: params.toString(),
     });
     const data = await response.json().catch(() => ({}));
-    const verified = data.success === true;
+    const expectedAction = body && typeof body.action === "string" ? body.action : "";
+    const allowedHostnames = (process.env.TURNSTILE_ALLOWED_HOSTNAMES || "")
+      .split(",")
+      .map((hostname) => hostname.trim().toLowerCase())
+      .filter(Boolean);
+    const actionMatches = !expectedAction || data.action === expectedAction;
+    const hostnameMatches =
+      allowedHostnames.length === 0 ||
+      (typeof data.hostname === "string" && allowedHostnames.includes(data.hostname.toLowerCase()));
+    const verified = data.success === true && actionMatches && hostnameMatches;
     res.status(verified ? 200 : 403).json({
       verified,
-      errors: Array.isArray(data["error-codes"]) ? data["error-codes"] : [],
+      errors: [
+        ...(Array.isArray(data["error-codes"]) ? data["error-codes"] : []),
+        ...(actionMatches ? [] : ["action-mismatch"]),
+        ...(hostnameMatches ? [] : ["hostname-mismatch"]),
+      ],
     });
   } catch {
     res.status(502).json({ verified: false, error: "Verification service unavailable" });

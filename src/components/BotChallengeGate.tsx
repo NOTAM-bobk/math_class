@@ -39,12 +39,13 @@ export function BotChallengeGate({ onVerified }: { onVerified: () => void }) {
         setState("ready");
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
+          action: "startup-bot-check",
           theme: "dark",
           size: "flexible",
           callback: async (token: string) => {
             if (cancelled) return;
             setState("checking");
-            const verified = await verifyTurnstileToken(token);
+            const verified = await verifyTurnstileToken(token, "startup-bot-check");
             if (cancelled) return;
             if (verified) {
               markBotChallengePassed();

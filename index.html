@@ -56,6 +56,31 @@
     </script>
 
     <!-- Bidvertiser2108105 -->
+    <!-- BidVertiser XML feed ads (served by /api/bidvertiser). Respects the "Turn off ads" switch. -->
+    <script>
+      (function () {
+        try { if (localStorage.getItem('polytrack_notification_ads') === 'off') return; } catch (e) {}
+        function esc(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+        window.addEventListener('load', function () {
+          fetch('/api/bidvertiser?max=3&q=games&ref=' + encodeURIComponent(location.href))
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              if (!d || !d.ads || !d.ads.length) return;
+              var bar = document.createElement('div');
+              bar.id = 'bv-xml-ads';
+              bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:8px;overflow-x:auto;padding:8px;background:rgba(15,15,20,.92);font:13px system-ui,sans-serif';
+              bar.innerHTML = d.ads.map(function (a) {
+                return '<a href="' + esc(a.redirect) + '" target="_blank" rel="noopener sponsored" style="flex:1 0 220px;color:#fff;text-decoration:none;display:flex;gap:8px;align-items:center">' +
+                  (a.image ? '<img src="' + esc(a.image) + '" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:6px">' : '') +
+                  '<span><b>' + esc(a.title) + '</b><br><span style="opacity:.75">' + esc(a.description) + '</span><br><span style="color:#7dd3fc">' + esc(a.displayURL) + '</span></span></a>';
+              }).join('') + '<button aria-label="Close ads" style="background:none;border:0;color:#fff;font-size:18px;cursor:pointer">&times;</button>';
+              bar.querySelector('button').onclick = function () { bar.remove(); };
+              document.body.appendChild(bar);
+            })
+            .catch(function () {});
+        });
+      })();
+    </script>
 
     <!-- Umami Analytics -->
     <script defer src="https://cloud.umami.is/script.js" data-website-id="aa6aa18f-f2d9-4b7f-be91-9fffdc04d89f"></script>

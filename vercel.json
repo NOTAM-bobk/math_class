@@ -101,6 +101,14 @@
       "destination": "https://cdn.hyperpromote.com/bidvertiser/:path*"
     },
     {
+      "source": "/api/proxy/ads/bauval/:path*",
+      "destination": "https://bauval.org/:path*"
+    },
+    {
+      "source": "/api/proxy/ads/abscloud/:path*",
+      "destination": "https://abscloud.org/:path*"
+    },
+    {
       "source": "/api/avatar",
       "destination": "/api/avatar"
     },

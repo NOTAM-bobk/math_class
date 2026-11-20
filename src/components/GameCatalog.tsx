@@ -17,6 +17,7 @@ import {
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
 import { loadGameCardLayout, onGameCardLayoutChange, type GameCardLayout } from "@/lib/gameCardLayout";
 import { loadGameOfTheDayId, onGameOfTheDayChange } from "@/lib/gameOfTheDay";
+import { loadEditorPicks, onEditorPicksChange, fetchEditorPicks } from "@/lib/editorPicks";
 import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { PartnerBanner, PartnerNativeAd, pickPartnerBannerSize, type PartnerBannerSize } from "./NetworkAd";
@@ -540,6 +541,34 @@ function VerifiedBadge() {
   );
 }
 
+/** The larger native unit; it sits inside the game grid on the home view. */
+function CatalogNativeAd({ hidden }: { hidden: boolean }) {
+  return (
+    <div
+      aria-label="Advertisement"
+      style={{
+        borderRadius: 14,
+        background: "rgba(255, 255, 255, 0.015)",
+        boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
+      }}
+      className={`col-span-full flex-col gap-1.5 px-3 py-2 ${hidden ? "hidden" : "flex"}`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+          Ad
+        </span>
+        <a
+          href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
+          className="text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
+        >
+          Advertise
+        </a>
+      </div>
+      <PartnerNativeAd />
+    </div>
+  );
+}
+
 function GameCard({
   game,
   isRecent,
@@ -547,6 +576,7 @@ function GameCard({
   isFavorite,
   isBuggy,
   isVerified,
+  isEditorPick,
   isNotMobile,
   isBlocked,
   hiddenInfo,
@@ -564,6 +594,7 @@ function GameCard({
   isFavorite: boolean;
   isBuggy: boolean;
   isVerified: boolean;
+  isEditorPick: boolean;
   isNotMobile: boolean;
   isBlocked: boolean;
   hiddenInfo?: HiddenGameEntry | null;
@@ -597,7 +628,7 @@ function GameCard({
                 <Flame aria-hidden="true" className="h-3 w-3 fill-orange-400/20 text-orange-400" />
               </span>
             )}
-            {game.editorsPick && (
+            {isEditorPick && (
               <span title="Editor's Pick" className={compactChip}>
                 <span aria-hidden="true">✨</span> Pick
               </span>
@@ -737,7 +768,7 @@ function GameCard({
               </a>
             )}
             {isVerified && <VerifiedBadge />}
-            {game.editorsPick && (
+            {isEditorPick && (
               <span
                 title="Editor's Pick"
                 style={CHIP_STYLE}
@@ -994,6 +1025,23 @@ export function GameCatalog({
   React.useEffect(() => {
     return onVerifiedGamesChange((updated) => setVerifiedIds(updated));
   }, []);
+
+  // Editor's picks come from the admin-managed list once one has been saved;
+  // until then the catalog's own editorsPick fields decide.
+  const [editorPickIds, setEditorPickIds] = React.useState<Set<string> | null>(loadEditorPicks);
+
+  React.useEffect(() => {
+    return onEditorPicksChange((updated) => setEditorPickIds(updated));
+  }, []);
+
+  React.useEffect(() => {
+    fetchEditorPicks().catch(() => {});
+  }, []);
+
+  const isEditorPick = React.useCallback(
+    (game: GameItem) => (editorPickIds ? editorPickIds.has(game.id) : !!game.editorsPick),
+    [editorPickIds]
+  );
 
   const [notMobileIds, setNotMobileIds] = React.useState<Set<string>>(loadNotMobileGameIds);
 
@@ -1538,7 +1586,7 @@ export function GameCatalog({
     } else if (selectedCategory === "recent") {
       list = list.filter((game) => recentIds.has(game.id));
     } else if (selectedCategory === "editors") {
-      list = list.filter((game) => !!game.editorsPick);
+      list = list.filter((game) => isEditorPick(game));
     } else if (selectedCategory === "verified") {
       list = list.filter((game) => verifiedIds.has(game.id) || !!game.verified);
     } else if (selectedCategory === "hidden") {
@@ -1562,7 +1610,7 @@ export function GameCatalog({
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, trendingIds, hiddenGames, searchQuery, serverMatches, offlinePackIds, recentIds]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, trendingIds, hiddenGames, searchQuery, serverMatches, offlinePackIds, recentIds, isEditorPick]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1638,11 +1686,11 @@ export function GameCatalog({
   // card report and switch the active game.
   const heroGames = React.useMemo(() => {
     const picks = games.filter(
-      (game) => !!game.editorsPick && !game.disabled && !hiddenGames[game.id]
+      (game) => isEditorPick(game) && !game.disabled && !hiddenGames[game.id]
     );
     if (!topGameToday) return picks;
     return [topGameToday, ...picks.filter((game) => game.id !== topGameToday.id)];
-  }, [games, hiddenGames, topGameToday]);
+  }, [games, hiddenGames, topGameToday, isEditorPick]);
 
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [heroPaused, setHeroPaused] = React.useState(false);
@@ -1679,13 +1727,13 @@ export function GameCatalog({
   const searching = searchQuery.trim().length > 0;
   const tagCounts: Record<TagFilterId, number> = React.useMemo(
     () => ({
-      editors: games.filter((game) => !!game.editorsPick).length,
+      editors: games.filter((game) => isEditorPick(game)).length,
       verified: games.filter((game) => verifiedIds.has(game.id) || !!game.verified).length,
       hidden: Object.keys(hiddenGames).length,
       buggy: games.filter((game) => buggyIds.has(game.id) || !!game.errorBug).length,
       blocked: blockedIds.size,
     }),
-    [games, verifiedIds, buggyIds, blockedIds, hiddenGames]
+    [games, verifiedIds, buggyIds, blockedIds, hiddenGames, isEditorPick]
   );
 
   const isFiltered = searching || selectedCategory !== "all";
@@ -1891,7 +1939,7 @@ export function GameCatalog({
                         <div className="min-w-0">
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />
-                            {game.editorsPick ? "Editor’s pick" : "#1 game today"}
+                            {isEditorPick(game) ? "Editor’s pick" : "#1 game today"}
                           </span>
                           <h2
                             id={active ? "top-game-heading" : undefined}
@@ -2029,31 +2077,6 @@ export function GameCatalog({
             </section>
           )}
 
-          {showAdSpot && lowerAdVisible && (
-            <div
-              aria-label="Advertisement"
-              style={{
-                borderRadius: 14,
-                background: "rgba(255, 255, 255, 0.015)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
-              }}
-              className={`flex-col gap-1.5 px-3 py-2 ${adSpotHidden ? "hidden" : "flex"}`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-                  Ad
-                </span>
-                <a
-                  href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
-                  className="text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
-                >
-                  Advertise
-                </a>
-              </div>
-              <PartnerNativeAd />
-            </div>
-          )}
-
           {selectedCategory === "trending" && !searching && trendingGames.length > 0 && (
             <section aria-labelledby="top-ten-heading" className="flex flex-col gap-2.5">
               <div className="flex items-center gap-2">
@@ -2113,25 +2136,32 @@ export function GameCatalog({
               </div>
               <div className={cardLayout === "mosaic" ? MOSAIC_GRID_CLASS : CLASSIC_GRID_CLASS}>
               {sortedPlayableGames.map((game, index) => (
-                <GameCard
-                  key={game.id}
-                  variant={cardLayout}
-                  sizeClass={cardLayout === "mosaic" ? mosaicSpan(index) : undefined}
-                  game={game}
-                  isRecent={recentIds.has(game.id)}
-                  isPopular={popularGameIds.has(game.id)}
-                  isFavorite={favoriteIds.has(game.id)}
-                  isBuggy={buggyIds.has(game.id) || !!game.errorBug}
-                  isVerified={verifiedIds.has(game.id) || !!game.verified}
-                  isNotMobile={notMobileIds.has(game.id)}
-                  isBlocked={blockedIds.has(game.id)}
-                  hiddenInfo={hiddenGames[game.id] ?? null}
-                  blockedEmoji={blockedEmoji}
-                  searchQuery={searchQuery}
-                  onPlay={launchGame}
-                  onToggleFavorite={toggleFavorite}
-                  onRestoreHidden={restoreGame}
-                />
+                <React.Fragment key={game.id}>
+                  {/* The larger ad waits until a few rows of games have gone by,
+                      and only exists on the unfiltered home view. */}
+                  {index === 12 && showAdSpot && lowerAdVisible && !isFiltered && (
+                    <CatalogNativeAd hidden={adSpotHidden} />
+                  )}
+                  <GameCard
+                    variant={cardLayout}
+                    sizeClass={cardLayout === "mosaic" ? mosaicSpan(index) : undefined}
+                    game={game}
+                    isRecent={recentIds.has(game.id)}
+                    isPopular={popularGameIds.has(game.id)}
+                    isFavorite={favoriteIds.has(game.id)}
+                    isBuggy={buggyIds.has(game.id) || !!game.errorBug}
+                    isVerified={verifiedIds.has(game.id) || !!game.verified}
+                    isEditorPick={isEditorPick(game)}
+                    isNotMobile={notMobileIds.has(game.id)}
+                    isBlocked={blockedIds.has(game.id)}
+                    hiddenInfo={hiddenGames[game.id] ?? null}
+                    blockedEmoji={blockedEmoji}
+                    searchQuery={searchQuery}
+                    onPlay={launchGame}
+                    onToggleFavorite={toggleFavorite}
+                    onRestoreHidden={restoreGame}
+                  />
+                </React.Fragment>
               ))}
               </div>
             </section>
@@ -2160,6 +2190,7 @@ export function GameCatalog({
                   isFavorite={favoriteIds.has(game.id)}
                   isBuggy={buggyIds.has(game.id) || !!game.errorBug}
                   isVerified={verifiedIds.has(game.id) || !!game.verified}
+                  isEditorPick={isEditorPick(game)}
                   isNotMobile={notMobileIds.has(game.id)}
                   isBlocked={blockedIds.has(game.id)}
                   hiddenInfo={hiddenGames[game.id] ?? null}

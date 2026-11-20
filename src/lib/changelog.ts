@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.5";
+export const SITE_VERSION = "1.6.6";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.6",
+    date: "November 2026",
+    title: "Ads further down, proxied ad scripts and editable Editor's picks",
+    changes: [
+      "The larger ad unit now appears further down the home game grid instead of above it.",
+      "Opening a category from the side navigation only loads the top banner ad, not the larger unit.",
+      "Ad scripts load through the site's own proxy, so they also appear on networks that block the ad hosts.",
+      "Admins can change which games are Editor's picks, and the choice applies to every device.",
+    ],
+  },
   {
     version: "1.6.5",
     date: "November 2026",

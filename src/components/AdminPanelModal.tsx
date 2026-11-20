@@ -21,6 +21,7 @@ import {
   Smartphone,
   Send,
   Gamepad2,
+  Heart,
 } from "lucide-react";
 import type { GameItem } from "@/data/gameItem";
 import { loadCatalog } from "@/lib/catalog";
@@ -33,6 +34,13 @@ import { Cloud, UploadCloud } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { loadGameOfTheDay, saveGameOfTheDay, clearGameOfTheDay } from "@/lib/gameOfTheDay";
 import { gameCoverUrl } from "@/lib/gameCovers";
+import {
+  loadEditorPicks,
+  saveEditorPicks,
+  saveEditorPicksRemote,
+  fetchEditorPicks,
+  onEditorPicksChange,
+} from "@/lib/editorPicks";
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -122,9 +130,15 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [rateLimitSeconds, setRateLimitSeconds] = React.useState<number | null>(null);
 
   // Admin tabs: "verified", "tags" (error:bug), "mobile" (not mobile optimized), or "bugs" (reports)
-  const [adminTab, setAdminTab] = React.useState<"verified" | "daily" | "tags" | "mobile" | "blocked" | "bugs" | "submissions">("verified");
+  const [adminTab, setAdminTab] = React.useState<"verified" | "daily" | "editors" | "tags" | "mobile" | "blocked" | "bugs" | "submissions">("verified");
   const [dailyId, setDailyId] = React.useState<string>(() => loadGameOfTheDay()?.gameId || "");
   const [dailySearch, setDailySearch] = React.useState("");
+  // null means the catalog's own editorsPick fields are still the source.
+  const [editorIds, setEditorIds] = React.useState<Set<string> | null>(loadEditorPicks);
+  const [editorSearch, setEditorSearch] = React.useState("");
+  const [editorSaving, setEditorSaving] = React.useState(false);
+  const [editorNotice, setEditorNotice] = React.useState<string | null>(null);
+  const editorQueueRef = React.useRef<Promise<unknown>>(Promise.resolve());
   const [verifiedIds, setVerifiedIds] = React.useState<Set<string>>(loadVerifiedGameIds);
   const [verifiedSearch, setVerifiedSearch] = React.useState("");
   const [verifiedFilter, setVerifiedFilter] = React.useState<"all" | "verified" | "unverified">("all");
@@ -162,6 +176,15 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     return onNotMobileGamesChange((updated) => {
       setNotMobileIds(updated);
     });
+  }, []);
+
+  // Editor's picks are shared, so pull the saved list when the panel opens.
+  React.useEffect(() => {
+    return onEditorPicksChange((updated) => setEditorIds(updated));
+  }, []);
+
+  React.useEffect(() => {
+    fetchEditorPicks().catch(() => {});
   }, []);
 
   // Sync blocked game IDs with storage and other components
@@ -646,6 +669,48 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     setDailyId("");
   };
 
+  // Before the admin saves a list, the catalog's own picks are the starting point.
+  const editorPicks = React.useMemo(
+    () =>
+      editorIds ??
+      new Set(gamesList.filter((game) => !!game.editorsPick).map((game) => game.id)),
+    [editorIds, gamesList]
+  );
+
+  const filteredEditorGames = React.useMemo(() => {
+    const query = editorSearch.trim().toLowerCase();
+    return gamesList.filter(
+      (game) =>
+        !game.disabled &&
+        (!query ||
+          game.name.toLowerCase().includes(query) ||
+          game.url.toLowerCase().includes(query))
+    );
+  }, [gamesList, editorSearch]);
+
+  const handleToggleEditorPick = (gameId: string) => {
+    const next = new Set(editorPicks);
+    const added = !next.has(gameId);
+    if (added) next.add(gameId);
+    else next.delete(gameId);
+    setEditorIds(next);
+    saveEditorPicks(next);
+    setEditorNotice(null);
+    setEditorSaving(true);
+    // One save at a time, so a quick second click cannot overwrite the first
+    // list with a request that started earlier.
+    editorQueueRef.current = editorQueueRef.current
+      .catch(() => {})
+      .then(() => saveEditorPicksRemote(password, Array.from(next)))
+      .then(() => setEditorNotice(added ? "Added to Editor's picks." : "Removed from Editor's picks."))
+      .catch((error) =>
+        setErrorMessage(
+          error instanceof Error ? error.message : "Could not save Editor's picks."
+        )
+      )
+      .finally(() => setEditorSaving(false));
+  };
+
   const filteredGames = gamesList.filter((game) => {
     const isFlagged = buggyIds.has(game.id);
     if (gameFilter === "flagged" && !isFlagged) return false;
@@ -900,6 +965,24 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
               </button>
               <button
                 type="button"
+                onClick={() => setAdminTab("editors")}
+                style={CHIP_STYLE}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                  adminTab === "editors"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <Heart className="w-3.5 h-3.5 text-amber-300" />
+                <span>Editor's Picks</span>
+                {editorPicks.size > 0 && (
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/30 text-amber-200">
+                    {editorPicks.size}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={() => setAdminTab("tags")}
                 style={CHIP_STYLE}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
@@ -1117,6 +1200,105 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                             }`}
                           >
                             {isCurrent ? "Current" : "Set"}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Editor's picks selector */}
+            {adminTab === "editors" && (
+              <div className="flex flex-col gap-3 min-h-0 flex-1">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-zinc-200">
+                      Choose the Editor&rsquo;s picks
+                    </span>
+                    <span className="text-[11px] text-zinc-400">
+                      {editorPicks.size} picked
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Picked games fill the Editor&rsquo;s picks category and rotate through the
+                    hero at the top of the catalog. Changes apply to every device.
+                  </p>
+                  {editorSaving && (
+                    <p className="text-[11px] text-amber-300">Saving picks…</p>
+                  )}
+                  {editorNotice && (
+                    <p className="text-[11px] text-emerald-300">{editorNotice}</p>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                  <input
+                    type="text"
+                    value={editorSearch}
+                    onChange={(e) => setEditorSearch(e.target.value)}
+                    placeholder="Search games…"
+                    style={{
+                      borderRadius: 10,
+                      background: "rgba(255, 255, 255, 0.04)",
+                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                    }}
+                    className="w-full py-1.5 pl-8 pr-3 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="overflow-y-auto pr-1 space-y-1.5 max-h-[45vh]">
+                  {filteredEditorGames.length === 0 ? (
+                    <div className="py-12 text-center text-zinc-500 text-xs">
+                      No games match &ldquo;{editorSearch}&rdquo;.
+                    </div>
+                  ) : (
+                    filteredEditorGames.slice(0, 200).map((game) => {
+                      const picked = editorPicks.has(game.id);
+                      return (
+                        <div
+                          key={game.id}
+                          onClick={() => handleToggleEditorPick(game.id)}
+                          style={{
+                            borderRadius: 12,
+                            background: picked
+                              ? "rgba(251, 191, 36, 0.1)"
+                              : "rgba(255, 255, 255, 0.03)",
+                            boxShadow: picked
+                              ? "inset 0 0 0 1px rgba(251, 191, 36, 0.3)"
+                              : "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                          }}
+                          className="p-2.5 flex items-center justify-between gap-3 transition-colors hover:bg-white/[0.05] cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-800 ring-1 ring-inset ring-white/10">
+                              {gameCoverUrl(game.id) ? (
+                                <img src={gameCoverUrl(game.id)} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <Gamepad2 className="h-3.5 w-3.5 text-zinc-500" />
+                              )}
+                            </span>
+                            <div className="min-w-0">
+                              <div
+                                className={`truncate text-xs font-semibold ${picked ? "text-amber-200" : "text-zinc-200"}`}
+                              >
+                                {game.name}
+                              </div>
+                              <div className="truncate text-[10px] text-zinc-500">{game.url}</div>
+                            </div>
+                          </div>
+                          <span
+                            className={`inline-flex shrink-0 items-center gap-1.5 text-[10px] font-semibold ${
+                              picked ? "text-amber-300" : "text-zinc-500"
+                            }`}
+                          >
+                            <Heart
+                              aria-hidden="true"
+                              className={`h-3.5 w-3.5 ${picked ? "fill-amber-400 text-amber-400" : ""}`}
+                            />
+                            {picked ? "Picked" : "Pick"}
                           </span>
                         </div>
                       );

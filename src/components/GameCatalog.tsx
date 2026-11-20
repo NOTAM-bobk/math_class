@@ -1581,7 +1581,6 @@ export function GameCatalog({
       <div className="flex shrink-0 flex-col gap-2 border-b border-white/[0.06] p-2.5 sm:gap-2.5 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div className="flex min-w-0 items-center gap-2">
-            <h2 className="text-sm font-semibold tracking-tight text-zinc-100">Games</h2>
             <span
               role="status"
               aria-live="polite"

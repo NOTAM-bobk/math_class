@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.0";
+export const SITE_VERSION = "1.6.1";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.1",
+    date: "November 2026",
+    title: "Hover to open the side navigation",
+    changes: [
+      "The side navigation opens as you hover it and folds away when you leave.",
+      "It now floats over the games instead of shifting the grid when it opens.",
+      "Hold a rail icon to see its name in a small label.",
+      "The games panel no longer repeats \"Games\" above the count.",
+    ],
+  },
   {
     version: "1.6.0",
     date: "November 2026",

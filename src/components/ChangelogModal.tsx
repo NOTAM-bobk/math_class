@@ -1,5 +1,6 @@
 import * as React from "react";
-import { X, History, Sparkles } from "lucide-react";
+import { X, History, Sparkles, RefreshCw, CheckCircle2, Download } from "lucide-react";
+import { checkForUpdate, applyUpdate, type CheckUpdateResult } from "@/lib/updateChecker";
 import { CHANGELOG, SITE_VERSION } from "@/lib/changelog";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
@@ -22,6 +23,34 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
   useDialogFocus({ active: isOpen, onClose, panelRef });
 
   const activityDays = React.useMemo(() => getUpdateHistoryDays(), []);
+  const [checkingUpdate, setCheckingUpdate] = React.useState(false);
+  const [updateCheckResult, setUpdateCheckResult] = React.useState<CheckUpdateResult | null>(null);
+  const [updatingNow, setUpdatingNow] = React.useState(false);
+
+  const hasUpdate = Boolean(updateCheckResult?.hasUpdate);
+
+  const handleCheckForUpdates = async () => {
+    if (checkingUpdate) return;
+    setCheckingUpdate(true);
+    try {
+      const res = await checkForUpdate();
+      setUpdateCheckResult(res);
+    } catch (err) {
+      console.warn("Update check error:", err);
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const handleUpdateNow = async () => {
+    if (updatingNow) return;
+    setUpdatingNow(true);
+    try {
+      await applyUpdate();
+    } catch {
+      window.location.reload();
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -74,6 +103,60 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
         </div>
 
         <div className="flex min-h-0 flex-col gap-4 overflow-y-auto pr-1">
+          {/* Check for updates card */}
+          <div
+            style={{
+              borderRadius: 12,
+              background: "rgba(255, 255, 255, 0.025)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)",
+            }}
+            className="flex flex-col gap-2.5 p-3"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-zinc-200">System Updates</span>
+                <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-zinc-400">
+                  v{SITE_VERSION}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCheckForUpdates}
+                  disabled={checkingUpdate || updatingNow}
+                  style={CHIP_STYLE}
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] disabled:opacity-60"
+                >
+                  <RefreshCw aria-hidden="true" className={`h-3 w-3 ${checkingUpdate ? "animate-spin text-sky-400" : "text-zinc-400"}`} />
+                  <span>{checkingUpdate ? "Checking…" : updateCheckResult ? "Check again" : "Check for updates"}</span>
+                </button>
+                {hasUpdate && (
+                  <button
+                    type="button"
+                    onClick={handleUpdateNow}
+                    disabled={updatingNow}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow transition-colors hover:bg-emerald-500 active:scale-[0.98] disabled:cursor-wait"
+                  >
+                    <Download aria-hidden="true" className="h-3 w-3" />
+                    <span>{updatingNow ? "Updating…" : "Update now"}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {hasUpdate ? (
+              <div className="flex items-start gap-2 rounded-lg border border-sky-500/30 bg-sky-500/15 p-2 text-xs text-sky-200">
+                <Sparkles aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-400" />
+                <span>New update available {updateCheckResult?.latestVersion ? `(v${updateCheckResult.latestVersion})` : ""}. Click Update now to reload cleanly.</span>
+              </div>
+            ) : updateCheckResult ? (
+              <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1.5 text-xs text-emerald-300">
+                <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                <span>You're running the latest release (v{SITE_VERSION}).</span>
+              </div>
+            ) : null}
+          </div>
+
           <UptimeMonitor />
 
           {/* GitHub Activity Grid component */}

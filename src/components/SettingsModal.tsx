@@ -1,5 +1,6 @@
+import { checkForUpdate, applyUpdate, type CheckUpdateResult } from "@/lib/updateChecker";
 import * as React from "react";
-import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard } from "lucide-react";
+import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard, RefreshCw, CheckCircle2 } from "lucide-react";
 import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
@@ -103,6 +104,8 @@ interface SettingsModalProps {
   onFooterHiddenChange?: (hidden: boolean) => void;
   /** Opens the dialog straight to a pane, e.g. from the top-bar streak chip. */
   initialSection?: DesktopTab | null;
+  updateReady?: boolean;
+  onUpdateReadyChange?: (ready: boolean) => void;
 }
 
 const PANIC_PRESETS = [
@@ -129,7 +132,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
     { id: "account", label: "Account", icon: UserRound, keywords: "account sign in login sync save settings game data" },
   ] },
   { heading: "General", items: [
-    { id: "general", label: "Layout & startup", icon: LayoutGrid, keywords: "loading animation side chat visitor counter ad space layout startup" },
+    { id: "general", label: "Layout & startup", icon: LayoutGrid, keywords: "loading animation side chat visitor counter ad space layout startup updates version check for update update now" },
     { id: "install", label: "Install app", icon: Download, keywords: "install app pwa home screen desktop standalone add to home screen" },
     { id: "shortcuts", label: "Keyboard shortcuts", icon: Keyboard, keywords: "keyboard shortcuts hotkeys keys command palette ctrl k meta k search panic escape enter" },
     { id: "stats", label: "Your stats", icon: BarChart3, keywords: "play time clicks most played games stats" },
@@ -145,7 +148,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
   { heading: "Other", items: [
     { id: "offline", label: "Offline mode", icon: WifiOff, keywords: "offline download cache schedule" },
     { id: "proxies", label: "Proxies & source", icon: Link2, keywords: "source code github proxies mirrors" },
-    { id: "changelog", label: "Change log", icon: ScrollText, keywords: "change log updates history" },
+    { id: "changelog", label: "Change log", icon: ScrollText, keywords: "change log updates history check for update version update now" },
     { id: "ads", label: "Ad", icon: Megaphone, keywords: "ad ads notification ads block" },
     { id: "referrals", label: "Referrals", icon: Gift, keywords: "referral referrals reward rewards links partners support exclusive" },
   ] },
@@ -244,6 +247,38 @@ export function SettingsModal({
   // Phones get a menu of settings sections instead of one long scroll.
   const [mobileSection, setMobileSection] = React.useState<DesktopTab | null>(null);
   const [settingsSearch, setSettingsSearch] = React.useState("");
+  const [checkingUpdate, setCheckingUpdate] = React.useState(false);
+  const [updateCheckResult, setUpdateCheckResult] = React.useState<CheckUpdateResult | null>(null);
+  const [updatingNow, setUpdatingNow] = React.useState(false);
+
+  const hasUpdate = Boolean(updateReady || updateCheckResult?.hasUpdate);
+
+  const handleCheckForUpdates = async () => {
+    if (checkingUpdate) return;
+    setCheckingUpdate(true);
+    try {
+      const result = await checkForUpdate();
+      setUpdateCheckResult(result);
+      if (result.hasUpdate) {
+        onUpdateReadyChange?.(true);
+      }
+    } catch (err) {
+      console.warn("Update check failed:", err);
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const handleUpdateNow = async () => {
+    if (updatingNow) return;
+    setUpdatingNow(true);
+    try {
+      await applyUpdate();
+    } catch {
+      window.location.reload();
+    }
+  };
+
   const activeTab: DesktopTab | null = isDesktop ? desktopTab : mobileSection;
   const paneStyle = (tab: DesktopTab): React.CSSProperties => ({
     display: activeTab === tab ? "contents" : "none",
@@ -877,7 +912,7 @@ export function SettingsModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-2 pt-[4.5rem] backdrop-blur-sm sm:items-center sm:p-4 ${closing ? "settings-backdrop-exit pointer-events-none" : "settings-backdrop-enter"}`}
+      className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/70 p-2 pt-[4.5rem] sm:items-center sm:p-4 ${closing ? "settings-backdrop-exit pointer-events-none" : "settings-backdrop-enter"}`}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -1186,6 +1221,90 @@ export function SettingsModal({
               <span className="pointer-events-none inline-block h-5 w-5 translate-x-5 transform rounded-full bg-white shadow" />
             </button>
           </div>
+          {/* Check for updates card */}
+          <div
+            style={{
+              borderRadius: 12,
+              background: "rgba(255, 255, 255, 0.025)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)",
+            }}
+            className="flex flex-col gap-2.5 p-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <div
+                  style={{
+                    borderRadius: 36,
+                    background: "rgba(56, 189, 248, 0.12)",
+                    boxShadow: "inset 0 0 0 1px rgba(56, 189, 248, 0.2)",
+                  }}
+                  className="mt-0.5 shrink-0 p-1.5 text-sky-400"
+                >
+                  <RefreshCw aria-hidden="true" className={`h-4 w-4 ${checkingUpdate ? "animate-spin" : ""}`} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-zinc-100">Updates & Version</span>
+                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-zinc-400">
+                      v{SITE_VERSION}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-zinc-400">
+                    Check if a newer version of the site, games, or features is available.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {hasUpdate ? (
+              <div className="flex items-start gap-2.5 rounded-lg border border-sky-500/30 bg-sky-500/15 p-2.5 text-xs text-sky-200">
+                <Sparkles aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-white">
+                    New update available {updateCheckResult?.latestVersion ? `(v${updateCheckResult.latestVersion})` : ""}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-sky-300/80">
+                    A newer release is ready. Click Update now to reload without losing your progress or saves.
+                  </div>
+                </div>
+              </div>
+            ) : updateCheckResult ? (
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" />
+                <span>You're on the latest version (v{SITE_VERSION}).</span>
+              </div>
+            ) : null}
+
+            {updateCheckResult?.error && (
+              <p className="text-[11px] text-amber-400/90">{updateCheckResult.error}</p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+              <button
+                type="button"
+                onClick={handleCheckForUpdates}
+                disabled={checkingUpdate || updatingNow}
+                style={CHIP_STYLE}
+                className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] disabled:opacity-60"
+              >
+                <RefreshCw aria-hidden="true" className={`h-3.5 w-3.5 ${checkingUpdate ? "animate-spin text-sky-400" : "text-zinc-400"}`} />
+                <span>{checkingUpdate ? "Checking for updates…" : updateCheckResult ? "Check again" : "Check for updates"}</span>
+              </button>
+
+              {hasUpdate && (
+                <button
+                  type="button"
+                  onClick={handleUpdateNow}
+                  disabled={updatingNow}
+                  className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-emerald-500 active:scale-[0.98] disabled:cursor-wait"
+                >
+                  <Download aria-hidden="true" className="h-3.5 w-3.5" />
+                  <span>{updatingNow ? "Updating…" : "Update now"}</span>
+                </button>
+              )}
+            </div>
+          </div>
+
           <div
             style={{
               borderRadius: 12,
@@ -2948,6 +3067,90 @@ export function SettingsModal({
                 </button>
               </div>
             </div>
+
+          {/* Check for updates card */}
+          <div
+            style={{
+              borderRadius: 12,
+              background: "rgba(255, 255, 255, 0.025)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)",
+            }}
+            className="flex flex-col gap-2.5 p-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <div
+                  style={{
+                    borderRadius: 36,
+                    background: "rgba(56, 189, 248, 0.12)",
+                    boxShadow: "inset 0 0 0 1px rgba(56, 189, 248, 0.2)",
+                  }}
+                  className="mt-0.5 shrink-0 p-1.5 text-sky-400"
+                >
+                  <RefreshCw aria-hidden="true" className={`h-4 w-4 ${checkingUpdate ? "animate-spin" : ""}`} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-zinc-100">Updates & Version</span>
+                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-zinc-400">
+                      v{SITE_VERSION}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-zinc-400">
+                    Check if a newer version of the site, games, or features is available.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {hasUpdate ? (
+              <div className="flex items-start gap-2.5 rounded-lg border border-sky-500/30 bg-sky-500/15 p-2.5 text-xs text-sky-200">
+                <Sparkles aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-white">
+                    New update available {updateCheckResult?.latestVersion ? `(v${updateCheckResult.latestVersion})` : ""}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-sky-300/80">
+                    A newer release is ready. Click Update now to reload without losing your progress or saves.
+                  </div>
+                </div>
+              </div>
+            ) : updateCheckResult ? (
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" />
+                <span>You're on the latest version (v{SITE_VERSION}).</span>
+              </div>
+            ) : null}
+
+            {updateCheckResult?.error && (
+              <p className="text-[11px] text-amber-400/90">{updateCheckResult.error}</p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+              <button
+                type="button"
+                onClick={handleCheckForUpdates}
+                disabled={checkingUpdate || updatingNow}
+                style={CHIP_STYLE}
+                className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] disabled:opacity-60"
+              >
+                <RefreshCw aria-hidden="true" className={`h-3.5 w-3.5 ${checkingUpdate ? "animate-spin text-sky-400" : "text-zinc-400"}`} />
+                <span>{checkingUpdate ? "Checking for updates…" : updateCheckResult ? "Check again" : "Check for updates"}</span>
+              </button>
+
+              {hasUpdate && (
+                <button
+                  type="button"
+                  onClick={handleUpdateNow}
+                  disabled={updatingNow}
+                  className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-emerald-500 active:scale-[0.98] disabled:cursor-wait"
+                >
+                  <Download aria-hidden="true" className="h-3.5 w-3.5" />
+                  <span>{updatingNow ? "Updating…" : "Update now"}</span>
+                </button>
+              )}
+            </div>
+          </div>
 
             {/* GitHub Activity Grid Component following attached UI */}
             <GitHubActivityGrid

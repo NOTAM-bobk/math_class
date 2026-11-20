@@ -182,9 +182,20 @@ function NavList({
   );
 }
 
+const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
+
 /**
- * The desktop rail. It lives as a 56px strip in the layout and floats open over
- * the games when hovered or focused, so the grid never shifts under the pointer.
+ * Whether this device has a real pointer. Touch screens have no room for an
+ * open rail, so the walkthrough only expands it on a desktop pointer.
+ */
+export function canHoverPointer() {
+  if (typeof window === "undefined" || !window.matchMedia) return true;
+  return window.matchMedia(HOVER_QUERY).matches;
+}
+
+/**
+ * The desktop rail. Collapsed it is a strip of icons; the toggle at the bottom
+ * expands it in place so every icon is shown with its name.
  */
 export function SideNav({
   sections,
@@ -195,42 +206,31 @@ export function SideNav({
   expanded: boolean;
   onToggleExpanded: () => void;
 }) {
-  const [hovered, setHovered] = React.useState(false);
-  const open = expanded || hovered;
-
   return (
-    <div className="relative hidden w-14 shrink-0 md:block">
-      <nav
-        aria-label="Game navigation"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onFocusCapture={() => setHovered(true)}
-        onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHovered(false);
-        }}
-        className={`absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden transition-[width] duration-200 ease-out ${
-          open ? "w-[13rem]" : "w-14"
-        }`}
-        style={PANEL_STYLE}
-      >
-        <NavList sections={sections} expanded={open} withHoldTooltips />
-        <div className="shrink-0 border-t border-white/[0.07] p-2">
-          <button
-            type="button"
-            onClick={onToggleExpanded}
-            aria-expanded={expanded}
-            aria-label={expanded ? "Collapse navigation" : "Keep navigation open"}
-            title={expanded ? "Collapse navigation" : "Keep navigation open"}
-            className={`flex h-9 w-full items-center gap-2.5 rounded-xl text-[12.5px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 ${
-              open ? "px-2.5" : "justify-center px-0"
-            }`}
-          >
-            <PanelLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
-            {open && <span>{expanded ? "Collapse" : "Keep open"}</span>}
-          </button>
-        </div>
-      </nav>
-    </div>
+    <nav
+      aria-label="Game navigation"
+      className={`hidden shrink-0 flex-col overflow-hidden transition-[width] duration-200 ease-out md:flex ${
+        expanded ? "w-[13rem]" : "w-14"
+      }`}
+      style={PANEL_STYLE}
+    >
+      <NavList sections={sections} expanded={expanded} withHoldTooltips />
+      <div className="shrink-0 border-t border-white/[0.07] p-2">
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          aria-expanded={expanded}
+          aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
+          title={expanded ? "Collapse navigation" : "Expand navigation"}
+          className={`flex h-9 w-full items-center gap-2.5 rounded-xl text-[12.5px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 ${
+            expanded ? "px-2.5" : "justify-center px-0"
+          }`}
+        >
+          <PanelLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
+          {expanded && <span>Collapse</span>}
+        </button>
+      </div>
+    </nav>
   );
 }
 
@@ -249,8 +249,22 @@ export function SideNavDrawer({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
+    // The drawer is hidden from md up, so closing it there stops a phone that
+    // turns to landscape from finding it still open when it turns back.
+    const desktop = window.matchMedia?.("(min-width: 768px)");
+    if (desktop?.matches) {
+      onClose();
+      return;
+    }
+    const onBreakpoint = () => {
+      if (desktop?.matches) onClose();
+    };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    desktop?.addEventListener("change", onBreakpoint);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      desktop?.removeEventListener("change", onBreakpoint);
+    };
   }, [open, onClose]);
 
   if (!open) return null;

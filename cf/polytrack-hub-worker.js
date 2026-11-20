@@ -5,6 +5,11 @@ const ALLOWED = [
   "http://127.0.0.1:8080",
 ];
 const HUB = /^https:\/\/([a-z0-9-]+\.)?benlaunches\.icu$/;
+// The site's own mirrors and previews call the Worker directly when their host
+// has no /api/hub proxy, so chat and reactions keep saving to Cloudflare there.
+const MIRROR =
+  /^https:\/\/([a-z0-9-]+\.)*(workers\.dev|deno\.net|snapdeploy\.app|style\.dev)$/i;
+const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{2,5})?$/;
 const CHAT_IMAGE_PATH = /^\/api\/chat\/images\/([a-zA-Z0-9-]{8,64})$/;
 const CHAT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 // Chat photos are kept in D1 in fixed-size pieces: one phone photo is bigger
@@ -25,7 +30,7 @@ const cors = (r) => {
     "Access-Control-Allow-Headers": "content-type, x-admin-password, x-vercel-admin-verified, x-hub-internal-key",
     "Access-Control-Max-Age": "86400",
   };
-  if (ALLOWED.includes(o) || HUB.test(o)) {
+  if (ALLOWED.includes(o) || HUB.test(o) || MIRROR.test(o) || LOCAL.test(o)) {
     h["Access-Control-Allow-Origin"] = o;
   }
   return h;

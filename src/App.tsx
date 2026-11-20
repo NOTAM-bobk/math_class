@@ -1,7 +1,8 @@
+import { checkForUpdate, applyUpdate } from "./lib/updateChecker";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { GameCatalog, initialCategory, initialSearchQuery, type CategoryId } from "./components/GameCatalog";
-import { SideNav, SideNavDrawer, type SideNavSection } from "./components/SideNav";
+import { SideNav, SideNavDrawer, canHoverPointer, type SideNavSection } from "./components/SideNav";
 import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
@@ -74,6 +75,13 @@ import {
 const SettingsModal = React.lazy(() =>
   import("./components/SettingsModal").then((module) => ({ default: module.SettingsModal }))
 );
+// Warm the settings chunk once the page is idle, so opening settings doesn't wait on a download.
+if (typeof window !== "undefined") {
+  const warm = () => void import("./components/SettingsModal").catch(() => {});
+  const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  if (ric) ric(warm, { timeout: 6000 });
+  else window.setTimeout(warm, 4000);
+}
 const AdminPanelModal = React.lazy(() =>
   import("./components/AdminPanelModal").then((module) => ({ default: module.AdminPanelModal }))
 );
@@ -262,22 +270,48 @@ export function App() {
   }, []);
 
   React.useEffect(() => {
-    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
-    const handleControllerChange = () => {
-      setUpdateReady(true);
+    let isMounted = true;
+
+    const runCheck = async () => {
+      try {
+        const res = await checkForUpdate();
+        if (isMounted && res.hasUpdate) {
+          setUpdateReady(true);
+        }
+      } catch {}
     };
-    navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+
+    // Check shortly after boot once the catalog and UI are responsive
+    const initTimer = window.setTimeout(runCheck, 2500);
+    // Periodically poll for updates every 3 minutes
+    const intervalTimer = window.setInterval(runCheck, 180000);
 
     const handleFocus = () => {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        regs.forEach((r) => r.update().catch(() => {}));
-      }).catch(() => {});
+      runCheck();
+      if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.update().catch(() => {}));
+        }).catch(() => {});
+      }
     };
     window.addEventListener("focus", handleFocus);
 
+    let handleControllerChange: (() => void) | undefined;
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+      handleControllerChange = () => {
+        if (isMounted) setUpdateReady(true);
+      };
+      navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+    }
+
     return () => {
-      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+      isMounted = false;
+      window.clearTimeout(initTimer);
+      window.clearInterval(intervalTimer);
       window.removeEventListener("focus", handleFocus);
+      if (handleControllerChange && typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+      }
     };
   }, []);
 
@@ -467,11 +501,13 @@ export function App() {
     if (isLocked || showLoadReveal || botChallengePending || settingsOpen || onboarding.seen()) return;
     const timer = window.setTimeout(() => {
       // Expand the side rail so its labels are readable while it is highlighted.
-      setSideNavExpanded(true);
+      // Phones have no rail step and touch screens must not be left open, so
+      // only a desktop pointer expands it.
+      if (!isPhoneViewport && canHoverPointer()) setSideNavExpanded(true);
       onboarding.start();
     }, 1600);
     return () => window.clearTimeout(timer);
-  }, [isLocked, showLoadReveal, botChallengePending, settingsOpen, onboarding.seen, onboarding.start]);
+  }, [isLocked, showLoadReveal, botChallengePending, settingsOpen, onboarding.seen, onboarding.start, isPhoneViewport]);
 
   // Remember whether the nav options are open or closed between visits.
   const bugReturnUrlRef = React.useRef("/");
@@ -961,10 +997,12 @@ export function App() {
             <span className="whitespace-nowrap">New version is ready</span>
             <button
               type="button"
-              onClick={() => window.location.reload()}
-              className="rounded-full bg-white/10 px-3 py-1 font-medium text-zinc-100 transition-colors hover:bg-white/20"
+              onClick={() => {
+                applyUpdate().catch(() => window.location.reload());
+              }}
+              className="rounded-full bg-emerald-500/20 px-3 py-1 font-medium text-emerald-300 transition-colors hover:bg-emerald-500/30"
             >
-              Reload
+              Update now
             </button>
             <button
               type="button"
@@ -1159,6 +1197,8 @@ export function App() {
       <SettingsModal
         isOpen={settingsOpen}
         initialSection={settingsSection}
+        updateReady={updateReady}
+        onUpdateReadyChange={setUpdateReady}
         loadingRevealEnabled={loadingRevealEnabled}
         onLoadingRevealChange={(enabled) => {
           try {

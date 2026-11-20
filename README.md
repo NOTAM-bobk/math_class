@@ -4,7 +4,7 @@ A classroom-friendly browser game hub: hundreds of games in one place, plus Poly
 build archives, favourites, play stats, offline play and the settings a shared computer
 needs (site lock, panic redirect, tab disguise).
 
-**Current version: v1.7.2** — see [`src/lib/changelog.ts`](src/lib/changelog.ts).
+**Current version: v1.7.4** — see [`src/lib/changelog.ts`](src/lib/changelog.ts).
 
 ## Live mirrors
 

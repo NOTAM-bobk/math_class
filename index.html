@@ -116,7 +116,7 @@
     </script>
 
     <!-- Prebuilt Tailwind CSS (npm run build:css) -->
-    <link rel="stylesheet" href="./dist/styles.css?v=1.6.10">
+    <link rel="stylesheet" href="./dist/styles.css?v=1.7.4">
 
     <style>
       * {
@@ -146,7 +146,7 @@
         transform: perspective(1000px) translateZ(0);
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
-        will-change: transform, box-shadow;
+        contain: layout style;
         box-shadow:
           inset 0 0 0 1px rgba(44, 47, 54, 0.65),
           inset 0 0 50px 0 rgba(255, 255, 255, 0.02),
@@ -209,6 +209,7 @@
         }
       }
 
+      @media (hover: hover) and (pointer: fine) {
       .game-card:hover {
         transform: perspective(1000px) translateY(-3px) translateZ(6px);
         box-shadow:
@@ -216,6 +217,7 @@
           inset 0 0 50px 0 rgba(255, 255, 255, 0.035),
           0 20px 36px -10px rgba(0, 0, 0, 0.7),
           0 6px 14px rgba(0, 0, 0, 0.4) !important;
+      }
       }
 
       .game-card:focus-within {
@@ -258,6 +260,18 @@
         .game-card:hover { transform: none; }
         .animate-spin, .animate-pulse, .animate-bounce { animation: none; }
       }
+
+      /* Touch devices: backdrop blur re-samples everything behind it on every scroll frame. */
+      @media (pointer: coarse) {
+        .backdrop-blur-sm, .backdrop-blur, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl, .backdrop-blur-2xl {
+          -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
+        }
+      }
+
+      /* Keep the in-feed native ad compact. */
+      .catalog-native-ad img { max-height: 72px !important; width: auto !important; object-fit: cover; }
+      .catalog-native-ad iframe { max-height: 120px !important; }
 
       /* Clean subtle scrollbars */
       ::-webkit-scrollbar {
@@ -337,7 +351,7 @@
 
     <!-- Pre-compiled application bundle. It is an ES module so the settings,
          admin and change log dialogs load as separate chunks on first use. -->
-    <script type="module" src="./dist/home.bundle.js?v=1.6.10"></script>
+    <script type="module" src="./dist/home.bundle.js?v=1.7.4"></script>
 
     <!-- In-page display unit (abscloud). -->
     <script data-cfasync="false" src="/api/proxy/ads/abscloud/1/7a24be768e94c7e51a72294bbf330cb2"></script>

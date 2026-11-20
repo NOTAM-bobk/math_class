@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.2";
+export const SITE_VERSION = "1.7.4";
 
 export interface ChangelogEntry {
   version: string;
@@ -12,13 +12,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.7.2",
+    version: "1.7.4",
     date: "November 2026",
     title: "Genre shelves on the home page",
     changes: [
       "Games are grouped into genre shelves like Driving, Action and Puzzle instead of one long list.",
       "Each shelf scrolls sideways, with one row on phones and two rows on wide screens.",
       "Every shelf has a See all link that opens that genre's full list, and Browse all games opens the complete catalog.",
+    ],
+  },
+  {
+    version: "1.7.3",
+    date: "November 2026",
+    title: "Performance boost and instant update delivery",
+    changes: [
+      "Faster startup and smoother loading animation capped for phone and low-end devices.",
+      "Optimized scrolling, lightweight settings overlay with idle preloading, and refined card hover effects.",
+      "Automatic background update detection: notifies active visitors with an instant 'Update now' banner.",
+      "Safely updates without clearing your game saves, high scores, or custom settings.",
+    ],
+  },
+  {
+    version: "1.7.2",
+    date: "November 2026",
+    title: "Manual update checker and instant update controls",
+    changes: [
+      "Added a 'Check for updates' button in Settings to check for new releases and engine builds on demand.",
+      "Displays real-time update status with an 'Update now' button as soon as an update is detected.",
+      "Safely applies the newest release without clearing game progress, high scores, or custom tracks.",
     ],
   },
   {

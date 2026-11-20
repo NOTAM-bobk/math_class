@@ -92,10 +92,16 @@ function screenshotTarget(url: string) {
   }
 }
 
-function gameScreenshotUrl(url: string) {
+// Thum.io needs no key; it streams a capture of the page as an image. That host
+// is blocked on filtered networks, so the capture is fetched through the site's
+// own /api/cover proxy first and only falls back to the direct URL.
+function gameScreenshotUrls(url: string) {
   const target = screenshotTarget(url);
-  // Thum.io needs no key; it streams a capture of the page as an image.
-  return target ? `https://image.thum.io/get/width/800/crop/800/${target}` : "";
+  if (!target) return [];
+  return [
+    `/api/cover?url=${encodeURIComponent(target)}`,
+    `https://image.thum.io/get/width/800/crop/800/${target}`,
+  ];
 }
 
 export function GameCoverArt({
@@ -111,10 +117,11 @@ export function GameCoverArt({
 }) {
   const [iconFailed, setIconFailed] = React.useState(false);
   const [coverFailed, setCoverFailed] = React.useState(false);
-  const [shotFailed, setShotFailed] = React.useState(false);
+  const [shotIndex, setShotIndex] = React.useState(0);
   const [artFailed, setArtFailed] = React.useState(false);
   const iconUrl = React.useMemo(() => gameIconUrl(game.url), [game.url]);
-  const screenshotUrl = React.useMemo(() => gameScreenshotUrl(game.url), [game.url]);
+  const screenshotUrls = React.useMemo(() => gameScreenshotUrls(game.url), [game.url]);
+  const screenshotUrl = screenshotUrls[shotIndex] ?? "";
   const coverUrl = React.useMemo(
     () => gameCoverUrl(game.id) || LOCAL_GAME_COVERS[game.id] || "",
     [game.id]
@@ -122,7 +129,7 @@ export function GameCoverArt({
   const initials = React.useMemo(() => gameInitials(game.name), [game.name]);
   const artUrl = GENRE_ART[accent] ?? GENERIC_ART;
   const showCover = !!coverUrl && !coverFailed;
-  const showShot = !showCover && !!screenshotUrl && !shotFailed;
+  const showShot = !showCover && !!screenshotUrl;
   const showArt = !showCover && !showShot && !artFailed;
   const showIcon = !showCover && !showShot && !showArt && !!iconUrl && !iconFailed;
 
@@ -131,8 +138,8 @@ export function GameCoverArt({
   }, [coverUrl]);
 
   React.useEffect(() => {
-    setShotFailed(false);
-  }, [screenshotUrl]);
+    setShotIndex(0);
+  }, [game.url]);
 
   React.useEffect(() => {
     setArtFailed(false);
@@ -161,7 +168,7 @@ export function GameCoverArt({
           alt=""
           loading={eager ? "eager" : "lazy"}
           decoding="async"
-          onError={() => setShotFailed(true)}
+          onError={() => setShotIndex((index) => index + 1)}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
       ) : showArt ? (

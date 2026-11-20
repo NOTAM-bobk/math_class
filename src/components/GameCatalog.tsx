@@ -759,7 +759,7 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
         background: "rgba(255, 255, 255, 0.015)",
         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
       }}
-      className={`col-span-full flex-col gap-1.5 px-3 py-2 ${hidden ? "hidden" : "flex"}`}
+      className={`catalog-native-ad col-span-full mx-auto w-full max-w-sm flex-col gap-1 px-2.5 py-1.5 ${hidden ? "hidden" : "flex"}`}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
@@ -1236,6 +1236,14 @@ export function GameCatalog({
   const [launcherSlow, setLauncherSlow] = React.useState(false);
   const launcherIframeRef = React.useRef<HTMLIFrameElement>(null);
   const [launcherIssue, setLauncherIssue] = React.useState<{ reason: HiddenGameReason; detail: string } | null>(null);
+  // The launcher fades out before it unmounts, so leaving a game does not snap.
+  const [launcherClosing, setLauncherClosing] = React.useState(false);
+  const launcherCloseTimerRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    return () => {
+      if (launcherCloseTimerRef.current) window.clearTimeout(launcherCloseTimerRef.current);
+    };
+  }, []);
   // Occasional one-tap "Did this work?" after a game has actually loaded.
   const [feedbackPrompt, setFeedbackPrompt] = React.useState(false);
   // Closing the sponsor slot only pauses it; it comes back after 30 seconds.
@@ -1644,6 +1652,11 @@ export function GameCatalog({
   }, []);
 
   const openLauncher = React.useCallback((game: GameItem) => {
+    if (launcherCloseTimerRef.current) {
+      window.clearTimeout(launcherCloseTimerRef.current);
+      launcherCloseTimerRef.current = null;
+    }
+    setLauncherClosing(false);
     setLauncherGame(game);
     setLauncherNonce((value) => value + 1);
     setLauncherLoaded(false);
@@ -1687,9 +1700,15 @@ export function GameCatalog({
   );
 
   const dismissLauncher = React.useCallback(() => {
-    setLauncherGame(null);
-    setLauncherSlow(false);
     setFeedbackPrompt(false);
+    setLauncherClosing(true);
+    if (launcherCloseTimerRef.current) window.clearTimeout(launcherCloseTimerRef.current);
+    launcherCloseTimerRef.current = window.setTimeout(() => {
+      launcherCloseTimerRef.current = null;
+      setLauncherGame(null);
+      setLauncherSlow(false);
+      setLauncherClosing(false);
+    }, 180);
   }, []);
 
   // Ask only sometimes, only for games this device has not answered for, and
@@ -2683,7 +2702,9 @@ export function GameCatalog({
         ? createPortal(
             <div
               ref={launcherPanelRef}
-              className="fixed inset-0 z-[60] flex flex-col bg-[#09090b]"
+              className={`fixed inset-0 z-[60] flex flex-col bg-[#09090b] transition-[opacity,transform] duration-200 ease-out ${
+                launcherClosing ? "pointer-events-none scale-[0.99] opacity-0" : "opacity-100"
+              }`}
               role="dialog"
               aria-modal={bugReportOpen ? undefined : "true"}
               aria-hidden={bugReportOpen || undefined}
@@ -2701,7 +2722,7 @@ export function GameCatalog({
                   className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-[0.98]"
                 >
                   <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-                  <span>Back to hub</span>
+                  <span>Back to class</span>
                 </button>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-xs font-semibold text-zinc-100 sm:text-sm">

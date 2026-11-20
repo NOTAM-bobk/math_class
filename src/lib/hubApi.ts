@@ -15,6 +15,33 @@ function readBlockedFlags(data: any): string[] {
   return Array.isArray(data?.blocked) ? data.blocked : Array.from(loadBlockedGameIds());
 }
 
+/**
+ * The proxy answers a missing route with an empty 404, while the Worker's own
+ * 404s are JSON; that tells the two apart without reading the body.
+ */
+function isMissingProxyRoute(response: Response) {
+  if (response.status !== 404 && response.status !== 405) return false;
+  const type = response.headers.get("content-type") || "";
+  return !type.includes("json");
+}
+
+/**
+ * Calls the hub API through the site's own /api/hub proxy, which keeps chat on
+ * networks that block other hosts. Mirrors without that proxy (the Cloudflare
+ * and Deno builds) then talk to the Worker directly, so messages and reactions
+ * still land in Cloudflare instead of silently failing.
+ */
+async function hubRequest(path: string, init: RequestInit = {}): Promise<Response> {
+  let response: Response | null = null;
+  try {
+    response = await fetch(`${HUB_API}${path}`, init);
+  } catch {
+    response = null;
+  }
+  if (response && !isMissingProxyRoute(response)) return response;
+  return fetch(`${WORKER_ORIGIN}/api${path}`, init);
+}
+
 export interface HubMessage {
   id: string;
   createdAt: string;
@@ -40,14 +67,14 @@ export interface GameFlagsData {
 
 export async function loadMessages(limit = 50): Promise<HubMessage[]> {
   const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
-  const response = await fetch(`${HUB_API}/messages?limit=${safeLimit}`, { headers: { Accept: "application/json" } });
+  const response = await hubRequest(`/messages?limit=${safeLimit}`, { headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("Message service unavailable");
   const data = await response.json();
   return Array.isArray(data.messages) ? data.messages : [];
 }
 
 export async function sendMessage(author: string, text: string, image?: string): Promise<HubMessage> {
-  const response = await fetch(`${HUB_API}/messages`, {
+  const response = await hubRequest(`/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(image ? { author, text, image } : { author, text }),
@@ -62,7 +89,7 @@ export async function sendMessage(author: string, text: string, image?: string):
  * with the message.
  */
 export async function uploadChatImage(file: Blob): Promise<string> {
-  const response = await fetch(`${HUB_API}/chat/images`, {
+  const response = await hubRequest(`/chat/images`, {
     method: "POST",
     headers: { "Content-Type": file.type || "image/jpeg", Accept: "application/json" },
     body: file,
@@ -96,7 +123,7 @@ function readReactions(value: unknown): HubReactions {
 export async function loadReactions(ids: string[]): Promise<HubReactions> {
   const unique = [...new Set(ids.filter(Boolean))].slice(0, 100);
   if (unique.length === 0) return {};
-  const response = await fetch(`${HUB_API}/reactions?ids=${encodeURIComponent(unique.join(","))}`, {
+  const response = await hubRequest(`/reactions?ids=${encodeURIComponent(unique.join(","))}`, {
     headers: { Accept: "application/json" },
     cache: "no-store",
   });
@@ -111,7 +138,7 @@ export async function sendReaction(
   emoji: string,
   author: string
 ): Promise<Record<string, string[]>> {
-  const response = await fetch(`${HUB_API}/reactions`, {
+  const response = await hubRequest(`/reactions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ messageId, emoji, author }),
@@ -122,21 +149,21 @@ export async function sendReaction(
 }
 
 export async function recordPageView(): Promise<number> {
-  const response = await fetch(`${HUB_API}/views`, { method: "POST", headers: { Accept: "application/json" } });
+  const response = await hubRequest(`/views`, { method: "POST", headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("View counter unavailable");
   const data = await response.json();
   return Number(data.total || 0);
 }
 
 export async function loadGameStats(): Promise<GameStats[]> {
-  const response = await fetch(`${HUB_API}/games/stats`, { headers: { Accept: "application/json" } });
+  const response = await hubRequest(`/games/stats`, { headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("Game stats unavailable");
   const data = await response.json();
   return Array.isArray(data.games) ? data.games : [];
 }
 
 export async function recordGameClick(game: { id: string; name: string; url: string }): Promise<GameStats | null> {
-  const response = await fetch(`${HUB_API}/games/click`, {
+  const response = await hubRequest(`/games/click`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(game),

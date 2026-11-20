@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, Smile, Sparkles, X } from "lucide-react";
+import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, SmilePlus, Sparkles, X, CornerDownRight } from "lucide-react";
 import { HubMessage, loadMessages, sendMessage } from "@/lib/hubApi";
 import { notifyNewChatMessage } from "@/lib/chatNotifications";
 import { isChatVerified } from "@/lib/turnstile";
@@ -26,6 +26,31 @@ function toChatMessage(message: HubMessage, from: ChatMessage["from"] = "racer")
 }
 
 const LOCAL_SENT_MESSAGES_KEY = "polytrack_sent_messages";
+const CHAT_REACTIONS_KEY = "polytrack_chat_reactions";
+
+// message id -> emoji -> the names of everyone who picked it
+type ReactionsByMessage = Record<string, Record<string, string[]>>;
+
+function readStoredReactions(): ReactionsByMessage {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CHAT_REACTIONS_KEY) || "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const cleaned: ReactionsByMessage = {};
+    for (const [messageId, perEmoji] of Object.entries(parsed)) {
+      if (!perEmoji || typeof perEmoji !== "object" || Array.isArray(perEmoji)) continue;
+      const emojis: Record<string, string[]> = {};
+      for (const [emoji, authors] of Object.entries(perEmoji as Record<string, unknown>)) {
+        if (!Array.isArray(authors)) continue;
+        const names = authors.filter((author): author is string => typeof author === "string" && author.length > 0);
+        if (names.length > 0) emojis[emoji] = names;
+      }
+      if (Object.keys(emojis).length > 0) cleaned[messageId] = emojis;
+    }
+    return cleaned;
+  } catch {
+    return {};
+  }
+}
 
 function readStoredMessages(key: string): ChatMessage[] {
   try {
@@ -140,6 +165,8 @@ export function LiveMessageBoard({
   const [isScrolledUp, setIsScrolledUp] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [quickReactions] = React.useState(pickQuickReactions);
+  const [reactions, setReactions] = React.useState<ReactionsByMessage>(readStoredReactions);
+  const [reactionPickerFor, setReactionPickerFor] = React.useState<string | null>(null);
   const [visibleCount, setVisibleCount] = React.useState(INITIAL_VISIBLE_MESSAGES);
   const [chatVerified, setChatVerified] = React.useState(isChatVerified);
   // Mounted on the first showing and kept mounted: the tag loads exactly once.
@@ -329,6 +356,51 @@ export function LiveMessageBoard({
     setInputText((prev) => (prev ? `${prev} ${emoji}` : emoji));
   };
 
+  // Reactions are kept on this device, one per name per message, and tapping a
+  // chip again takes yours back off.
+  const toggleReaction = React.useCallback(
+    (messageId: string, emoji: string) => {
+      const name = nickname.trim() || "Guest";
+      setReactions((previous) => {
+        const perEmoji = { ...(previous[messageId] || {}) };
+        const authors = new Set(perEmoji[emoji] || []);
+        if (authors.has(name)) authors.delete(name);
+        else authors.add(name);
+        if (authors.size === 0) delete perEmoji[emoji];
+        else perEmoji[emoji] = [...authors];
+        const next = { ...previous };
+        if (Object.keys(perEmoji).length === 0) delete next[messageId];
+        else next[messageId] = perEmoji;
+        return next;
+      });
+    },
+    [nickname]
+  );
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(CHAT_REACTIONS_KEY, JSON.stringify(reactions));
+    } catch {}
+  }, [reactions]);
+
+  React.useEffect(() => {
+    if (!reactionPickerFor) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest("[data-reaction-picker]") || target?.closest("[data-reaction-toggle]")) return;
+      setReactionPickerFor(null);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setReactionPickerFor(null);
+    };
+    document.addEventListener("pointerdown", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [reactionPickerFor]);
+
   const handleNicknameChange = (value: string) => {
     setNickname(value);
     localStorage.setItem("polytrack_nickname", value);
@@ -467,6 +539,8 @@ export function LiveMessageBoard({
 
           {visibleMessages.map((message) => {
             const isUser = message.from === "user";
+            const myName = nickname.trim() || "Guest";
+            const reactionEntries = Object.entries(reactions[message.id] || {});
             return (
               <div
                 key={message.id}
@@ -501,6 +575,76 @@ export function LiveMessageBoard({
                 >
                   {formatChatText(message.text)}
                 </div>
+
+                <div className={`mt-1 flex flex-wrap items-center gap-1 ${isUser ? "justify-end" : "justify-start"}`}>
+                  {reactionEntries.map(([emoji, authors]) => {
+                    const mine = authors.includes(myName);
+                    return (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => toggleReaction(message.id, emoji)}
+                        aria-pressed={mine}
+                        title={`${emoji} from ${authors.join(", ")}`}
+                        aria-label={`${emoji} reaction from ${authors.join(", ")}. ${mine ? "Remove yours" : "Add yours"}.`}
+                        className={`inline-flex h-5 cursor-pointer items-center gap-1 rounded-full border px-1.5 text-[11px] leading-none transition active:scale-95 ${
+                          mine
+                            ? "border-amber-300/40 bg-amber-400/15 text-amber-100"
+                            : "border-white/[0.06] bg-white/[0.05] text-zinc-300 hover:border-white/15 hover:bg-white/[0.09] hover:text-white"
+                        }`}
+                      >
+                        <CornerDownRight aria-hidden="true" className="h-2.5 w-2.5 opacity-60" />
+                        <span>{emoji}</span>
+                        <span className="font-mono text-[9.5px] tabular-nums opacity-80">{authors.length}</span>
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    data-reaction-toggle
+                    aria-expanded={reactionPickerFor === message.id}
+                    onClick={() =>
+                      setReactionPickerFor((current) => (current === message.id ? null : message.id))
+                    }
+                    aria-label={
+                      reactionPickerFor === message.id
+                        ? "Close quick reactions"
+                        : `React to ${message.author}'s message`
+                    }
+                    title="Add a reaction"
+                    className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/[0.08] hover:text-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
+                  >
+                    <SmilePlus aria-hidden="true" className="h-3 w-3" />
+                  </button>
+                </div>
+
+                {reactionPickerFor === message.id && (
+                  <div
+                    role="group"
+                    aria-label={`Quick reactions for ${message.author}'s message`}
+                    data-reaction-picker
+                    className="mt-1 grid grid-cols-8 gap-0.5 rounded-xl border border-white/10 bg-[#242424] p-1 shadow-[0_10px_24px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-150"
+                  >
+                    {quickReactions.map((emoji) => {
+                      const chosen = (reactions[message.id]?.[emoji] || []).includes(myName);
+                      return (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => toggleReaction(message.id, emoji)}
+                          aria-pressed={chosen}
+                          aria-label={`React with ${emoji}`}
+                          title={`React with ${emoji}`}
+                          className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg px-1 text-[13px] transition-transform hover:bg-white/[0.1] active:scale-90 ${
+                            chosen ? "bg-amber-400/20" : ""
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}

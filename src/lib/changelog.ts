@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.7";
+export const SITE_VERSION = "1.6.9";
 
 export interface ChangelogEntry {
   version: string;
@@ -12,13 +12,33 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.6.7",
+    version: "1.6.9",
     date: "November 2026",
     title: "Install as an app and a keyboard command palette",
     changes: [
       "math_games can be installed as an app: look for the Install button in the first-visit notice or under Settings > Install app.",
       "Press ⌘ K or Ctrl K anywhere to open a command palette that searches games and runs hub actions.",
       "Settings > Keyboard shortcuts lists every shortcut, including search, the panic key and palette navigation.",
+    ],
+  },
+  {
+    version: "1.6.8",
+    date: "November 2026",
+    title: "Daily streaks with a flame in the top bar",
+    changes: [
+      "Every day you open math_games adds one day to your streak.",
+      "A flame and your day count now sit in the top bar; tap it to open your streak.",
+      "Settings has a Daily streak page with your best run, total days and a look at the last 30 days.",
+    ],
+  },
+  {
+    version: "1.6.7",
+    date: "November 2026",
+    title: "Message reactions and a full-screen phone chat",
+    changes: [
+      "Tap the smiley under any chat message to drop a quick reaction on it.",
+      "Reactions sit under the message as a little arrow and the emoji with a count, and tapping one adds or removes yours.",
+      "On phones, opening Chat now hides the search bar so the conversation gets the whole screen.",
     ],
   },
   {

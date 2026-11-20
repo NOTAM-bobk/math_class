@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff } from "lucide-react";
+import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
@@ -83,6 +83,11 @@ export const CATEGORY_FILTERS = [
   { id: "puzzle", label: "🧩 Puzzle" },
   { id: "casual", label: "🎮 Casual" },
 ] as const;
+
+// The home catalog is a stack of genre shelves. Each shelf shows one row on
+// phones and two rows on wide screens, and both rows scroll sideways together.
+const SHELF_GAME_LIMIT = 24;
+const GENRE_SHELVES = ["action", "driving", "sports", "arcade", "puzzle", "casual", "flash"] as const;
 
 // Each genre gets its own accent colour so cards and chips read as distinct categories.
 const CATEGORY_ACCENTS: Record<string, string> = {
@@ -172,6 +177,148 @@ function TopTenChart({
             </span>
           </a>
         ))}
+      </div>
+    </section>
+  );
+}
+
+/** One genre shelf: a heading, a See all link, and cards that scroll sideways. */
+function GameRail({
+  id,
+  title,
+  accent,
+  total,
+  games,
+  onSeeAll,
+  renderGame,
+}: {
+  id: string;
+  title: string;
+  accent?: string;
+  total: number;
+  games: GameItem[];
+  onSeeAll: () => void;
+  renderGame: (game: GameItem) => React.ReactNode;
+}) {
+  const scrollerRef = React.useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = React.useState({ left: false, right: false });
+
+  const updateEdges = React.useCallback(() => {
+    const element = scrollerRef.current;
+    if (!element) return;
+    setEdges({
+      left: element.scrollLeft > 4,
+      right: element.scrollLeft + element.clientWidth < element.scrollWidth - 4,
+    });
+  }, []);
+
+  React.useEffect(() => {
+    updateEdges();
+    const element = scrollerRef.current;
+    let observer: ResizeObserver | undefined;
+    if (element && typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(updateEdges);
+      observer.observe(element);
+    }
+    window.addEventListener("resize", updateEdges);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateEdges);
+    };
+  }, [updateEdges, games.length]);
+
+  const scrollShelf = (direction: 1 | -1) => {
+    const element = scrollerRef.current;
+    if (!element) return;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    element.scrollBy({
+      left: direction * Math.max(element.clientWidth * 0.8, 240),
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  };
+
+  const headingId = `catalog-shelf-${id}`;
+
+  return (
+    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <h3
+          id={headingId}
+          className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-zinc-200"
+        >
+          {accent && (
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ background: accent }}
+            />
+          )}
+          <span className="truncate">{title}</span>
+        </h3>
+        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+          {total}
+        </span>
+        <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+        <button
+          type="button"
+          onClick={onSeeAll}
+          aria-label={`See all ${total} ${title} games`}
+          className="inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+        >
+          See all
+          <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="relative">
+        <div
+          ref={scrollerRef}
+          role="region"
+          aria-label={`${title} games`}
+          tabIndex={0}
+          onScroll={updateEdges}
+          className="-mx-1 grid snap-x snap-mandatory auto-cols-[9.5rem] auto-rows-[13.5rem] grid-flow-col gap-2.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:auto-cols-[11rem] sm:auto-rows-[15rem] lg:auto-cols-[12rem] lg:auto-rows-[16rem] xl:auto-cols-[10.5rem] xl:grid-rows-[repeat(2,14rem)] 2xl:auto-cols-[11.5rem] 2xl:grid-rows-[repeat(2,15rem)] [&::-webkit-scrollbar]:hidden"
+        >
+          {games.map((game) => (
+            <div key={game.id} className="h-full min-w-0 snap-start">
+              {renderGame(game)}
+            </div>
+          ))}
+        </div>
+
+        {edges.left && (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 hidden w-8 bg-gradient-to-r from-black/50 to-transparent sm:block"
+            />
+            <button
+              type="button"
+              aria-label={`Scroll ${title} left`}
+              onClick={() => scrollShelf(-1)}
+              className="absolute left-1 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-zinc-900/95 text-zinc-200 shadow-lg backdrop-blur transition hover:bg-zinc-800 sm:flex"
+            >
+              <ChevronLeft aria-hidden="true" className="h-4 w-4" />
+            </button>
+          </>
+        )}
+
+        {edges.right && (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-black/50 to-transparent sm:block"
+            />
+            <button
+              type="button"
+              aria-label={`Scroll ${title} right`}
+              onClick={() => scrollShelf(1)}
+              className="absolute right-1 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-zinc-900/95 text-zinc-200 shadow-lg backdrop-blur transition hover:bg-zinc-800 sm:flex"
+            >
+              <ChevronRight aria-hidden="true" className="h-4 w-4" />
+            </button>
+          </>
+        )}
       </div>
     </section>
   );
@@ -1075,6 +1222,8 @@ export function GameCatalog({
   const [catalogLoading, setCatalogLoading] = React.useState(true);
   const [catalogError, setCatalogError] = React.useState("");
   const [sortOption, setSortOption] = React.useState<SortOption>(initialSortOption);
+  // The full grid is kept behind a Browse all button on the unfiltered home view.
+  const [showAllGames, setShowAllGames] = React.useState(false);
   const [cardLayout, setCardLayout] = React.useState<GameCardLayout>(loadGameCardLayout);
   React.useEffect(() => onGameCardLayoutChange(setCardLayout), []);
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -1304,6 +1453,7 @@ export function GameCatalog({
   }, []);
 
   const catalogScrollRef = React.useRef<HTMLDivElement>(null);
+  const allGamesSectionRef = React.useRef<HTMLElement>(null);
   const savedCatalogScrollRef = React.useRef(0);
   const catalogScrollTouchedRef = React.useRef(false);
 
@@ -1946,6 +2096,62 @@ export function GameCatalog({
 
   const isFiltered = searching || selectedCategory !== "all";
 
+  React.useEffect(() => {
+    // A new search or category always starts from the shelves again.
+    setShowAllGames(false);
+  }, [searchQuery, selectedCategory]);
+
+  React.useEffect(() => {
+    // Swapping the tall shelves for the grid must not leave the reader scrolled
+    // past the start of that grid.
+    if (showAllGames) allGamesSectionRef.current?.scrollIntoView({ block: "start" });
+  }, [showAllGames]);
+
+  const genreShelves = React.useMemo(() => {
+    if (isFiltered) return [];
+    return GENRE_SHELVES.map((id) => {
+      const matches = sortedPlayableGames.filter((game) => matchesCategory(game, id));
+      return {
+        id,
+        title: CATEGORY_NAMES[id],
+        accent: CATEGORY_ACCENTS[id],
+        total: matches.length,
+        games: matches.slice(0, SHELF_GAME_LIMIT),
+      };
+    }).filter((shelf) => shelf.games.length >= 3);
+  }, [isFiltered, sortedPlayableGames]);
+
+  const seeAllCategory = (id: CategoryId) => {
+    onSelectCategory(id);
+    catalogScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  };
+
+  const renderGameCard = (
+    game: GameItem,
+    options?: { layout?: GameCardLayout; sizeClass?: string }
+  ) => (
+    <GameCard
+      key={game.id}
+      variant={options?.layout ?? cardLayout}
+      sizeClass={options?.sizeClass}
+      game={game}
+      isRecent={recentIds.has(game.id)}
+      isPopular={popularGameIds.has(game.id)}
+      isFavorite={favoriteIds.has(game.id)}
+      isBuggy={buggyIds.has(game.id) || !!game.errorBug}
+      isVerified={verifiedIds.has(game.id) || !!game.verified}
+      isEditorPick={isEditorPick(game)}
+      isNotMobile={notMobileIds.has(game.id)}
+      isBlocked={blockedIds.has(game.id)}
+      hiddenInfo={hiddenGames[game.id] ?? null}
+      blockedEmoji={blockedEmoji}
+      searchQuery={searchQuery}
+      onPlay={launchGame}
+      onToggleFavorite={toggleFavorite}
+      onRestoreHidden={restoreGame}
+    />
+  );
+
   return (
     <div className="solid-3d-panel flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* Catalog top controls with search and category filters */}
@@ -2318,13 +2524,61 @@ export function GameCatalog({
             <TopTenChart games={trendingGames} onLaunch={launchGame} />
           )}
 
-          {playableGames.length > 0 && (
-            <section aria-labelledby="catalog-play-heading" className="flex flex-col gap-3">
+          {!isFiltered && genreShelves.length > 0 && (
+            <div className="flex flex-col gap-4">
+              {genreShelves.map((shelf, index) => (
+                <React.Fragment key={shelf.id}>
+                  <GameRail
+                    id={shelf.id}
+                    title={shelf.title}
+                    accent={shelf.accent}
+                    total={shelf.total}
+                    games={shelf.games}
+                    onSeeAll={() => seeAllCategory(shelf.id)}
+                    renderGame={(game) => renderGameCard(game, { layout: "mosaic" })}
+                  />
+                  {/* The larger ad follows the third shelf on the home view. */}
+                  {index === Math.min(2, genreShelves.length - 1) &&
+                    showAdSpot &&
+                    lowerAdVisible && <CatalogNativeAd hidden={adSpotHidden} />}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+
+          {!isFiltered && playableGames.length > 0 && !showAllGames && (
+            <div className="flex justify-center pt-1">
+              <button
+                type="button"
+                onClick={() => setShowAllGames(true)}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" />
+                Browse all {playableGames.length} games
+              </button>
+            </div>
+          )}
+
+          {playableGames.length > 0 && (isFiltered || showAllGames) && (
+            <section
+              ref={allGamesSectionRef}
+              aria-labelledby="catalog-play-heading"
+              className="flex flex-col gap-3"
+            >
               <div className="flex items-center gap-2">
                 <h3 id="catalog-play-heading" className="text-xs font-semibold text-zinc-200">
-                  {isFiltered ? "Filtered matches" : "Play now"}
+                  {isFiltered ? "Filtered matches" : "All games"}
                 </h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+                {!isFiltered && showAllGames && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllGames(false)}
+                    className="shrink-0 cursor-pointer rounded-full px-1.5 py-0.5 text-[11px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                  >
+                    Back to categories
+                  </button>
+                )}
                 <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
                   {playableGames.length}
                 </span>
@@ -2337,25 +2591,9 @@ export function GameCatalog({
                   {index === 12 && showAdSpot && lowerAdVisible && !isFiltered && (
                     <CatalogNativeAd hidden={adSpotHidden} />
                   )}
-                  <GameCard
-                    variant={cardLayout}
-                    sizeClass={cardLayout === "mosaic" ? mosaicSpan(index) : undefined}
-                    game={game}
-                    isRecent={recentIds.has(game.id)}
-                    isPopular={popularGameIds.has(game.id)}
-                    isFavorite={favoriteIds.has(game.id)}
-                    isBuggy={buggyIds.has(game.id) || !!game.errorBug}
-                    isVerified={verifiedIds.has(game.id) || !!game.verified}
-                    isEditorPick={isEditorPick(game)}
-                    isNotMobile={notMobileIds.has(game.id)}
-                    isBlocked={blockedIds.has(game.id)}
-                    hiddenInfo={hiddenGames[game.id] ?? null}
-                    blockedEmoji={blockedEmoji}
-                    searchQuery={searchQuery}
-                    onPlay={launchGame}
-                    onToggleFavorite={toggleFavorite}
-                    onRestoreHidden={restoreGame}
-                  />
+                  {renderGameCard(game, {
+                    sizeClass: cardLayout === "mosaic" ? mosaicSpan(index) : undefined,
+                  })}
                 </React.Fragment>
               ))}
               </div>
@@ -2374,28 +2612,11 @@ export function GameCatalog({
                 </span>
               </div>
               <div className={cardLayout === "mosaic" ? MOSAIC_GRID_CLASS : CLASSIC_GRID_CLASS}>
-              {comingSoonGames.map((game, index) => (
-                <GameCard
-                  key={game.id}
-                  variant={cardLayout}
-                  sizeClass={cardLayout === "mosaic" ? mosaicSpan(index) : undefined}
-                  game={game}
-                  isRecent={recentIds.has(game.id)}
-                  isPopular={popularGameIds.has(game.id)}
-                  isFavorite={favoriteIds.has(game.id)}
-                  isBuggy={buggyIds.has(game.id) || !!game.errorBug}
-                  isVerified={verifiedIds.has(game.id) || !!game.verified}
-                  isEditorPick={isEditorPick(game)}
-                  isNotMobile={notMobileIds.has(game.id)}
-                  isBlocked={blockedIds.has(game.id)}
-                  hiddenInfo={hiddenGames[game.id] ?? null}
-                  blockedEmoji={blockedEmoji}
-                  searchQuery={searchQuery}
-                  onPlay={launchGame}
-                  onToggleFavorite={toggleFavorite}
-                  onRestoreHidden={restoreGame}
-                />
-              ))}
+              {comingSoonGames.map((game, index) =>
+                renderGameCard(game, {
+                  sizeClass: cardLayout === "mosaic" ? mosaicSpan(index) : undefined,
+                })
+              )}
               </div>
             </section>
           )}

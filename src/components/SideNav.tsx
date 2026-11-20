@@ -185,34 +185,17 @@ function NavList({
 const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
 
 /**
- * Whether this device has a real pointer. Touch screens fire hover and focus
- * when tapped but never clear them, so auto-opening there leaves the rail
- * stuck over the games; those devices get the explicit toggle instead.
+ * Whether this device has a real pointer. Touch screens have no room for an
+ * open rail, so the walkthrough only expands it on a desktop pointer.
  */
 export function canHoverPointer() {
   if (typeof window === "undefined" || !window.matchMedia) return true;
   return window.matchMedia(HOVER_QUERY).matches;
 }
 
-function useCanHover() {
-  const [canHover, setCanHover] = React.useState(canHoverPointer);
-
-  React.useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const query = window.matchMedia(HOVER_QUERY);
-    const update = () => setCanHover(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-
-  return canHover;
-}
-
 /**
- * The desktop rail. It lives as a 56px strip in the layout and floats open over
- * the games when hovered or focused, so the grid never shifts under the pointer.
- * Touch devices skip that and only open it from the toggle.
+ * The desktop rail. Collapsed it is a strip of icons; the toggle at the bottom
+ * expands it in place so every icon is shown with its name.
  */
 export function SideNav({
   sections,
@@ -223,87 +206,31 @@ export function SideNav({
   expanded: boolean;
   onToggleExpanded: () => void;
 }) {
-  const canHover = useCanHover();
-  const [hovered, setHovered] = React.useState(false);
-  // A tablet has no hover to fall back on, so "Collapse" puts the whole rail
-  // away instead of leaving a strip of it over the games.
-  const [closed, setClosed] = React.useState(false);
-  const open = !closed && (expanded || (canHover && hovered));
-
-  React.useEffect(() => {
-    if (!canHover) setHovered(false);
-  }, [canHover]);
-
-  React.useEffect(() => {
-    if (canHover || expanded) setClosed(false);
-  }, [canHover, expanded]);
-
-  const handleToggle = () => {
-    if (!canHover && expanded) {
-      onToggleExpanded();
-      setClosed(true);
-      return;
-    }
-    onToggleExpanded();
-  };
-
   return (
-    <>
-    <div
-      className={`relative hidden shrink-0 overflow-hidden transition-[width] duration-200 ease-out md:block ${
-        closed ? "w-0" : "w-14"
+    <nav
+      aria-label="Game navigation"
+      className={`hidden shrink-0 flex-col overflow-hidden transition-[width] duration-200 ease-out md:flex ${
+        expanded ? "w-[13rem]" : "w-14"
       }`}
+      style={PANEL_STYLE}
     >
-      <nav
-        aria-label="Game navigation"
-        onMouseEnter={canHover ? () => setHovered(true) : undefined}
-        onMouseLeave={canHover ? () => setHovered(false) : undefined}
-        onFocusCapture={canHover ? () => setHovered(true) : undefined}
-        onBlurCapture={
-          canHover
-            ? (event) => {
-                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHovered(false);
-              }
-            : undefined
-        }
-        className={`absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden transition-[width,opacity] duration-200 ease-out ${
-          open ? "w-[13rem]" : "w-14"
-        } ${closed ? "pointer-events-none opacity-0" : "opacity-100"}`}
-        style={PANEL_STYLE}
-      >
-        <NavList sections={sections} expanded={open} withHoldTooltips />
-        <div className="shrink-0 border-t border-white/[0.07] p-2">
-          <button
-            type="button"
-            onClick={handleToggle}
-            aria-expanded={expanded && !closed}
-            aria-label={expanded && !closed ? "Collapse navigation" : "Keep navigation open"}
-            title={expanded && !closed ? "Collapse navigation" : "Keep navigation open"}
-            className={`flex h-9 w-full items-center gap-2.5 rounded-xl text-[12.5px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 ${
-              open ? "px-2.5" : "justify-center px-0"
-            }`}
-          >
-            <PanelLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
-            {open && <span>{expanded ? "Collapse" : "Keep open"}</span>}
-          </button>
-        </div>
-      </nav>
-    </div>
-      {closed && (
+      <NavList sections={sections} expanded={expanded} withHoldTooltips />
+      <div className="shrink-0 border-t border-white/[0.07] p-2">
         <button
           type="button"
-          onClick={() => {
-            setClosed(false);
-            if (!expanded) onToggleExpanded();
-          }}
-          aria-label="Open navigation"
-          title="Open navigation"
-          className="fixed left-2 top-1/2 z-40 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-[#1d1d1d] text-zinc-300 shadow-[0_8px_24px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-colors hover:bg-[#242424] hover:text-white md:flex"
+          onClick={onToggleExpanded}
+          aria-expanded={expanded}
+          aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
+          title={expanded ? "Collapse navigation" : "Expand navigation"}
+          className={`flex h-9 w-full items-center gap-2.5 rounded-xl text-[12.5px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 ${
+            expanded ? "px-2.5" : "justify-center px-0"
+          }`}
         >
-          <PanelLeft aria-hidden="true" className="h-4 w-4" />
+          <PanelLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
+          {expanded && <span>Collapse</span>}
         </button>
-      )}
-    </>
+      </div>
+    </nav>
   );
 }
 

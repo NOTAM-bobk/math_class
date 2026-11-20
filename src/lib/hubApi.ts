@@ -155,6 +155,22 @@ export async function recordPageView(): Promise<number> {
   return Number(data.total || 0);
 }
 
+/**
+ * Posts this tab's heartbeat and returns how many people are on the site now.
+ * The hub counts every session that pinged inside its presence window.
+ */
+export async function reportPresence(sessionId: string): Promise<number> {
+  const response = await hubRequest(`/presence`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ id: sessionId }),
+    cache: "no-store",
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error("Online counter unavailable");
+  return Number(data.online || 0);
+}
+
 export async function loadGameStats(): Promise<GameStats[]> {
   const response = await hubRequest(`/games/stats`, { headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("Game stats unavailable");

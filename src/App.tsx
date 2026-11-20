@@ -6,6 +6,7 @@ import { SideNav, SideNavDrawer, canHoverPointer, type SideNavSection } from "./
 import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
+import { usePresenceHeartbeat } from "./lib/presence";
 import { ShareButton } from "./components/ShareButton";
 import { RandomGameButton, RANDOM_GAME_EVENT } from "./components/RandomGameButton";
 import { CommandPalette, type CommandPaletteItem } from "./components/CommandPalette";
@@ -168,6 +169,8 @@ function settingsOpenFromUrl() {
 
 
 export function App() {
+  // Every visitor counts as online while the page is open, chat shown or not.
+  usePresenceHeartbeat();
   const [loadingRevealEnabled, setLoadingRevealEnabled] = React.useState(() => {
     try {
       return localStorage.getItem("polytrack_loading_reveal_enabled") !== "false";

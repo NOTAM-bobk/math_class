@@ -20,6 +20,10 @@ const CHAT_IMAGE_CHUNK_BYTES = 48 * 1024;
 // sweep runs when the chat is used, at most once an hour.
 const CHAT_IMAGE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const CHAT_IMAGE_SWEEP_MS = 60 * 60 * 1000;
+// "Online now" counts the browser tabs that sent a heartbeat in the last minute
+// and a half, so a closed tab drops out on its own without a sign-out call.
+const PRESENCE_TTL_MS = 90 * 1000;
+const PRESENCE_MAX_SESSIONS = 20_000;
 let ready;
 
 const cors = (r) => {
@@ -124,6 +128,12 @@ function schema(e) {
       ),
       e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS chat_maintenance(key TEXT PRIMARY KEY,ran_at TEXT NOT NULL)"
+      ),
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS presence_sessions(id TEXT PRIMARY KEY,last_seen INTEGER NOT NULL)"
+      ),
+      e.DB.prepare(
+        "CREATE INDEX IF NOT EXISTS idx_presence_last_seen ON presence_sessions(last_seen)"
       ),
     ])
       // Deployments created before the "not mobile optimized" tag have a game_flags
@@ -417,6 +427,45 @@ async function views(r, e) {
     .run();
   const q = await e.DB.prepare("SELECT total FROM page_views WHERE id=1").first();
   return json(r, { ok: true, total: Number(q?.total || 1) });
+}
+
+// ONLINE NOW (live presence)
+// A tab posts its session id every few seconds while it is open; the reply is
+// the number of sessions seen inside the presence window.
+async function presence(r, e) {
+  const now = Date.now();
+  const cutoff = now - PRESENCE_TTL_MS;
+
+  if (r.method === "POST") {
+    const b = await read(r);
+    const id = clean(b?.id, 64);
+    if (!id) return fail(r, "A session id is required.", 422);
+
+    const limit = await checkRateLimit(e.DB, "presence:" + (await digest(ip(r))), 40, 60);
+    if (!limit.allowed) return fail(r, "Slow down on heartbeats.", 429);
+
+    // Stale sessions are dropped on every heartbeat, but a runaway table gets a
+    // full sweep first so the delete always has something to reclaim.
+    const total = await e.DB.prepare("SELECT COUNT(*) AS n FROM presence_sessions").first();
+    if (Number(total?.n || 0) > PRESENCE_MAX_SESSIONS) {
+      await e.DB.prepare("DELETE FROM presence_sessions").run();
+    }
+    await e.DB.prepare(
+      "INSERT INTO presence_sessions(id,last_seen) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET last_seen=excluded.last_seen"
+    )
+      .bind(id, now)
+      .run();
+    await e.DB.prepare("DELETE FROM presence_sessions WHERE last_seen < ?").bind(cutoff).run();
+  } else if (r.method !== "GET") {
+    return fail(r, "Method not allowed.", 405);
+  }
+
+  const q = await e.DB.prepare(
+    "SELECT COUNT(*) AS n FROM presence_sessions WHERE last_seen >= ?"
+  )
+    .bind(cutoff)
+    .first();
+  return json(r, { ok: true, online: Number(q?.n || 0), windowSeconds: PRESENCE_TTL_MS / 1000 });
 }
 
 async function games(r, e) {
@@ -769,6 +818,7 @@ export default {
       if (chatImage) return serveChatImage(r, e, chatImage[1]);
       if (p === "/api/reactions") return reactions(r, e);
       if (p === "/api/views") return views(r, e);
+      if (p === "/api/presence") return presence(r, e);
       if (p === "/api/games/stats") return games(r, e);
       if (p === "/api/games/click") return games(r, e);
       if (p === "/api/submit") return submit(r, e);

@@ -7,6 +7,7 @@ import { isChatVerified } from "@/lib/turnstile";
 import { TurnstileGate } from "./TurnstileGate";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { formatChatText } from "@/lib/chatFormat";
+import { useOnlineCount } from "@/lib/presence";
 import { posthog } from "@/lib/posthog";
 
 export interface ChatMessage extends HubMessage {
@@ -156,6 +157,8 @@ export function LiveMessageBoard({
   onClose?: () => void;
 }) {
   const [messages, setMessages] = React.useState<ChatMessage[]>(fallbackMessages);
+  // How many people are on the site right now, straight from the hub.
+  const onlineCount = useOnlineCount();
   const [nickname, setNickname] = React.useState(() => localStorage.getItem("polytrack_nickname") || `Racer_${Math.floor(100 + Math.random() * 900)}`);
   const [inputText, setInputText] = React.useState("");
   // A picked photo is shown as a preview until it goes out with the message.
@@ -514,6 +517,24 @@ export function LiveMessageBoard({
           <h2 className={`font-semibold text-zinc-200 ${onClose ? "text-sm" : "text-xs"}`}>{title}</h2>
         </div>
         <div className="flex items-center gap-1.5">
+          <span
+            role="status"
+            aria-label={
+              onlineCount === null ? "Counting people online" : `${onlineCount} people online now`
+            }
+            title="People on the site right now"
+            style={CHIP_STYLE}
+            className="flex shrink-0 items-center gap-1 px-2 py-0.5"
+          >
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.85)]"
+            />
+            <span className="font-mono text-[10px] font-semibold tabular-nums text-emerald-200">
+              {onlineCount === null ? "–" : onlineCount}
+            </span>
+            <span className="text-[10px] text-zinc-400">online</span>
+          </span>
           <button
             type="button"
             onClick={() => void refreshMessages()}

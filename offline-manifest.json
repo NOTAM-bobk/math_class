@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T23:49:29.368Z",
-  "totalBytes": 346837073,
+  "generatedAt": "2026-11-20T00:09:06.893Z",
+  "totalBytes": 346845201,
   "files": [
     {
       "url": "/index.html",
@@ -24,32 +24,32 @@
       "bytes": 14387
     },
     {
-      "url": "/dist/chunks/AdminPanelModal-COZOSLML.js",
-      "bytes": 47698
+      "url": "/dist/chunks/AdminPanelModal-BJ4BBTPL.js",
+      "bytes": 47699
     },
     {
-      "url": "/dist/chunks/ChangelogModal-XUD56SAS.js",
+      "url": "/dist/chunks/ChangelogModal-BX64VGNY.js",
       "bytes": 3965
     },
     {
-      "url": "/dist/chunks/SettingsModal-3CPXB3H6.js",
-      "bytes": 83515
+      "url": "/dist/chunks/SettingsModal-KWUOIA3W.js",
+      "bytes": 83519
     },
     {
-      "url": "/dist/chunks/chunk-3FFFUFXD.js",
-      "bytes": 23664
+      "url": "/dist/chunks/chunk-22XLCQZQ.js",
+      "bytes": 45421
     },
     {
       "url": "/dist/chunks/chunk-44T34U4P.js",
       "bytes": 20188
     },
     {
-      "url": "/dist/chunks/chunk-6VRQ5RJS.js",
-      "bytes": 155113
+      "url": "/dist/chunks/chunk-5A4DB32G.js",
+      "bytes": 155767
     },
     {
-      "url": "/dist/chunks/chunk-LTICMVAY.js",
-      "bytes": 41801
+      "url": "/dist/chunks/chunk-QOHMFH7X.js",
+      "bytes": 23664
     },
     {
       "url": "/dist/chunks/chunk-W5HTUNVE.js",
@@ -57,11 +57,11 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 792995
+      "bytes": 795801
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 62767
+      "bytes": 63810
     },
     {
       "url": "/images/app-icon-192.png",

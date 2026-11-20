@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Search, Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Star, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff } from "lucide-react";
+import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Star, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
@@ -59,6 +59,7 @@ function loadFavorites(): string[] {
 
 export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
+  { id: "recent", label: "🕘 Recently played" },
   { id: "favorites", label: "⭐ Favorites" },
   { id: "editors", label: "✨ Editor’s Pick" },
   { id: "verified", label: "✅ Verified" },
@@ -170,7 +171,7 @@ function loadRecentGames(): RecentGame[] {
   }
 }
 
-function initialSearchQuery() {
+export function initialSearchQuery() {
   try {
     return new URLSearchParams(window.location.search).get(SEARCH_PARAM) ?? "";
   } catch {
@@ -178,7 +179,7 @@ function initialSearchQuery() {
   }
 }
 
-function initialCategory(): CategoryId {
+export function initialCategory(): CategoryId {
   try {
     const param = new URLSearchParams(window.location.search).get(CATEGORY_PARAM);
     if (param && (CATEGORY_FILTERS.some((c) => c.id === param) || param === "buggy" || param === "blocked")) {
@@ -902,17 +903,25 @@ export function GameCatalog({
   showAdSpot = true,
   onReportBug,
   bugReportOpen = false,
+  searchQuery,
+  onSearchQueryChange,
+  selectedCategory,
+  onSelectCategory,
 }: {
   showAdSpot?: boolean;
   onReportBug?: (gameName?: string) => void;
   // While the report form is up it owns focus, not the game launcher.
   bugReportOpen?: boolean;
+  // Search and the active filter live in the top nav and side nav, so they are
+  // owned by the app and passed down.
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  selectedCategory: CategoryId;
+  onSelectCategory: (category: CategoryId) => void;
 }) {
   const [games, setGames] = React.useState<GameItem[]>([]);
   const [catalogLoading, setCatalogLoading] = React.useState(true);
   const [catalogError, setCatalogError] = React.useState("");
-  const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
-  const [selectedCategory, setSelectedCategory] = React.useState<CategoryId>(initialCategory);
   const [sortOption, setSortOption] = React.useState<SortOption>(initialSortOption);
   const [cardLayout, setCardLayout] = React.useState<GameCardLayout>(loadGameCardLayout);
   React.useEffect(() => onGameCardLayoutChange(setCardLayout), []);
@@ -987,7 +996,7 @@ export function GameCatalog({
     const goOnline = () => {
       setOfflineNow(false);
       // The offline filter disappears with the connection; keep a valid filter.
-      setSelectedCategory((current) => (current === OFFLINE_CATEGORY ? "all" : current));
+      if (selectedCategory === OFFLINE_CATEGORY) onSelectCategory("all");
     };
     const goOffline = () => setOfflineNow(true);
     window.addEventListener("online", goOnline);
@@ -996,7 +1005,7 @@ export function GameCatalog({
       window.removeEventListener("online", goOnline);
       window.removeEventListener("offline", goOffline);
     };
-  }, []);
+  }, [selectedCategory, onSelectCategory]);
   // Broken games are hidden from the main list, but a scan cannot see a game
   // that dies after loading, so the launcher adds its own detections here.
   const [hiddenGames, setHiddenGames] = React.useState<Record<string, HiddenGameEntry>>(loadHiddenGames);
@@ -1098,8 +1107,6 @@ export function GameCatalog({
     });
     posthog.capture("game_favorite_toggled", { game_id: id, action });
   }, [favoriteIds]);
-  const searchRef = React.useRef<HTMLInputElement>(null);
-
   const markGamePlayed = React.useCallback((id: string) => {
     const next = [
       { id, playedAt: Date.now() },
@@ -1407,26 +1414,6 @@ export function GameCatalog({
     };
   }, [filterOpen]);
 
-  // "/" jumps to search from anywhere on the page, the usual shortcut in game libraries.
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target as HTMLElement | null;
-      if (
-        target &&
-        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
-      ) {
-        return;
-      }
-      if (document.querySelector('[role="dialog"]')) return;
-      if (!searchRef.current) return;
-      event.preventDefault();
-      searchRef.current.focus();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
   // Search runs on the server so the browser does not filter the whole catalog;
   // a failed request falls back to the local filter below.
   const [serverMatches, setServerMatches] = React.useState<GameItem[] | null>(null);
@@ -1476,6 +1463,8 @@ export function GameCatalog({
     }
     if (selectedCategory === "favorites") {
       list = list.filter((game) => favoriteIds.has(game.id));
+    } else if (selectedCategory === "recent") {
+      list = list.filter((game) => recentIds.has(game.id));
     } else if (selectedCategory === "editors") {
       list = list.filter((game) => !!game.editorsPick);
     } else if (selectedCategory === "verified") {
@@ -1501,7 +1490,7 @@ export function GameCatalog({
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameIds, hiddenGames, searchQuery, serverMatches, offlinePackIds]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameIds, hiddenGames, searchQuery, serverMatches, offlinePackIds, recentIds]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1543,16 +1532,16 @@ export function GameCatalog({
   );
 
   const clearSearch = React.useCallback(() => {
-    setSearchQuery("");
-    searchRef.current?.focus();
-  }, []);
+    onSearchQueryChange("");
+    document.getElementById("game-search")?.focus();
+  }, [onSearchQueryChange]);
 
   const resetAllFilters = React.useCallback(() => {
-    setSearchQuery("");
-    setSelectedCategory("all");
+    onSearchQueryChange("");
+    onSelectCategory("all");
     setSortOption(DEFAULT_SORT);
-    searchRef.current?.focus();
-  }, []);
+    document.getElementById("game-search")?.focus();
+  }, [onSearchQueryChange, onSelectCategory]);
 
   const gameOfTheDay = React.useMemo(() => {
     if (!gameOfTheDayId) return null;
@@ -1598,56 +1587,6 @@ export function GameCatalog({
               {serverSearching ? "Searching…" : `${filteredGames.length} ${filteredGames.length === 1 ? "game" : "games"}`}
             </span>
           </div>
-
-          <div className="relative w-full sm:w-[15rem]">
-            <label htmlFor="game-search" className="sr-only">
-              Search games
-            </label>
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400"
-            />
-            <input
-              id="game-search"
-              ref={searchRef}
-              type="search"
-              name="q"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Escape" && searchQuery) {
-                  event.preventDefault();
-                  setSearchQuery("");
-                }
-              }}
-              placeholder="Search games…"
-              autoComplete="off"
-              spellCheck={false}
-              style={{
-                ...CHIP_STYLE,
-                borderRadius: 14,
-                background: "rgba(255, 255, 255, 0.03)",
-              }}
-              className="w-full appearance-none py-1.5 pl-8 pr-12 text-xs text-zinc-100 transition-colors placeholder:text-zinc-500 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
-            />
-            {searching ? (
-              <button
-                type="button"
-                onClick={clearSearch}
-                aria-label="Clear search"
-                className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-zinc-100"
-              >
-                <X className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-            ) : (
-              <kbd
-                aria-hidden="true"
-                className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] leading-none text-zinc-500 sm:block"
-              >
-                /
-              </kbd>
-            )}
-          </div>
         </div>
 
         {/* Category Filter Chips Bar near search */}
@@ -1670,7 +1609,7 @@ export function GameCatalog({
                     type="button"
                     aria-pressed={active}
                     onClick={() => {
-                      setSelectedCategory(cat.id);
+                      onSelectCategory(cat.id);
                       posthog.capture("catalog_filter_applied", {
                         filter_type: "category",
                         filter_value: cat.id,
@@ -1787,7 +1726,7 @@ export function GameCatalog({
                         role="menuitemcheckbox"
                         aria-checked={active}
                         onClick={() => {
-                          setSelectedCategory((current) => (current === tag.id ? "all" : tag.id));
+                          onSelectCategory(selectedCategory === tag.id ? "all" : tag.id);
                           posthog.capture("catalog_filter_applied", {
                             filter_type: "tag",
                             filter_value: active ? "all" : tag.id,
@@ -2024,6 +1963,14 @@ export function GameCatalog({
                   <p className="text-sm font-medium text-zinc-300">No hidden games</p>
                   <p className="max-w-[20rem] text-xs leading-relaxed text-zinc-500">
                     Every game passed the broken-game check. Games are hidden when they 404, error out, load blank, or fail inside the launcher.
+                  </p>
+                </>
+              ) : selectedCategory === "recent" ? (
+                <>
+                  <Clock3 className="h-8 w-8 text-zinc-600" aria-hidden="true" />
+                  <p className="text-sm font-medium text-zinc-300">No recently played games yet</p>
+                  <p className="max-w-[18rem] text-xs leading-relaxed text-zinc-500">
+                    Games you open show up here for the next week, so you can jump back in.
                   </p>
                 </>
               ) : selectedCategory === "favorites" ? (

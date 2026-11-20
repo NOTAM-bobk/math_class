@@ -82,7 +82,7 @@ export function ShareButton() {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         style={ICON_BUTTON_STYLE}
-        className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.12] hover:text-white active:scale-[0.98]"
+        className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.12] hover:text-white active:scale-[0.98] sm:h-9 sm:w-9"
       >
         <Share2 aria-hidden="true" className="h-4 w-4" />
       </button>

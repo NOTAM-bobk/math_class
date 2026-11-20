@@ -20,6 +20,8 @@ export interface HubMessage {
   createdAt: string;
   author: string;
   text: string;
+  /** Hub path of the photo sent with the message, when there is one. */
+  image?: string;
 }
 
 export interface GameStats {
@@ -44,15 +46,30 @@ export async function loadMessages(limit = 50): Promise<HubMessage[]> {
   return Array.isArray(data.messages) ? data.messages : [];
 }
 
-export async function sendMessage(author: string, text: string): Promise<HubMessage> {
+export async function sendMessage(author: string, text: string, image?: string): Promise<HubMessage> {
   const response = await fetch(`${HUB_API}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ author, text }),
+    body: JSON.stringify(image ? { author, text, image } : { author, text }),
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.message) throw new Error(data.error || "Message could not be sent");
   return data.message;
+}
+
+/**
+ * Uploads a chat photo to the Cloudflare Worker and returns the path to send
+ * with the message.
+ */
+export async function uploadChatImage(file: Blob): Promise<string> {
+  const response = await fetch(`${HUB_API}/chat/images`, {
+    method: "POST",
+    headers: { "Content-Type": file.type || "image/jpeg", Accept: "application/json" },
+    body: file,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.path) throw new Error(data.error || "That photo could not be uploaded");
+  return data.path as string;
 }
 
 export async function recordPageView(): Promise<number> {

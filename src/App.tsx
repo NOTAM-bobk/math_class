@@ -789,9 +789,9 @@ export function App() {
         </a>
 
         {/* 3D Top Navigation Bar */}
-        <header className="px-2 pt-2 sm:px-4 sm:pt-3 shrink-0 z-20">
+        <header className="px-2 pt-1.5 sm:px-4 sm:pt-3 shrink-0 z-20">
           <div
-            className="solid-3d-panel relative flex w-full flex-wrap items-center gap-x-2 gap-y-1.5 px-2.5 py-1.5 sm:gap-x-3 sm:px-4 sm:py-2 lg:min-h-[3.5rem]"
+            className="solid-3d-panel relative flex w-full flex-wrap items-center gap-x-1.5 gap-y-1 px-2 py-1 sm:gap-x-3 sm:px-4 sm:py-2 lg:min-h-[3.5rem]"
             style={{
               background: "#1d1d1d",
               borderRadius: 20,
@@ -842,7 +842,7 @@ export function App() {
                 </label>
                 <Search
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                  className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400 sm:left-3 sm:h-4 sm:w-4"
                 />
                 <input
                   id="game-search"
@@ -865,7 +865,7 @@ export function App() {
                     borderRadius: 14,
                     background: "rgba(255, 255, 255, 0.03)",
                   }}
-                  className="h-10 w-full appearance-none pl-9 pr-16 text-[13px] text-zinc-100 transition-colors placeholder:text-zinc-500 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+                  className="h-8 w-full appearance-none pl-8 pr-11 text-xs text-zinc-100 transition-colors placeholder:text-zinc-500 focus:outline-none sm:h-10 sm:pl-9 sm:pr-16 sm:text-[13px] [&::-webkit-search-cancel-button]:appearance-none"
                 />
                 {searchQuery ? (
                   <button
@@ -875,7 +875,7 @@ export function App() {
                       searchRef.current?.focus();
                     }}
                     aria-label="Clear search"
-                    className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-zinc-100"
+                    className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-zinc-100 sm:right-2 sm:h-7 sm:w-7"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
@@ -899,7 +899,7 @@ export function App() {
                   aria-label={`${streak.current}-day streak. Open streak settings.`}
                   aria-haspopup="dialog"
                   style={ICON_BUTTON_STYLE}
-                  className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 text-amber-300 transition-colors hover:bg-white/[0.12] hover:text-amber-200 active:scale-[0.98]"
+                  className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 text-amber-300 transition-colors hover:bg-white/[0.12] hover:text-amber-200 active:scale-[0.98] sm:h-9"
                 >
                   <Flame
                     aria-hidden="true"
@@ -921,7 +921,7 @@ export function App() {
                 aria-haspopup="dialog"
                 aria-expanded={settingsOpen}
                 style={ICON_BUTTON_STYLE}
-                className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.12] hover:text-white active:scale-[0.98]"
+                className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.12] hover:text-white active:scale-[0.98] sm:h-9 sm:w-9"
               >
                 <Settings aria-hidden="true" className="h-4 w-4" />
               </button>

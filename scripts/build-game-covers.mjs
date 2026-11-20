@@ -49,7 +49,16 @@ async function main() {
   for (const game of catalog) {
     if (!game?.id) continue;
     if (!byName.has(normalize(game.name))) {
-      stats.unmatched++;
+      // Games the feed does not list (the Flash archive, for example) still get
+      // a cover when one has been captured into ./covers by hand.
+      const base = String(game.id).replace(/[^a-z0-9._-]/gi, "-");
+      const existing = existingFiles.find((file) => file.startsWith(`${base}.`));
+      if (existing) {
+        covers[game.id] = `/covers/${existing}`;
+        stats.reused++;
+      } else {
+        stats.unmatched++;
+      }
       continue;
     }
     queue.push(game);

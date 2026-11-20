@@ -297,9 +297,15 @@ export function App() {
     window.addEventListener("focus", handleFocus);
 
     let handleControllerChange: (() => void) | undefined;
+    // Losing a controller and gaining a new one is the first install taking
+    // over, not an update. Only a swap is worth the banner.
+    const hadController =
+      typeof navigator !== "undefined" &&
+      "serviceWorker" in navigator &&
+      !!navigator.serviceWorker.controller;
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
       handleControllerChange = () => {
-        if (isMounted) setUpdateReady(true);
+        if (isMounted && hadController) setUpdateReady(true);
       };
       navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
     }

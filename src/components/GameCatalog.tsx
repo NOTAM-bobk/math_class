@@ -20,7 +20,6 @@ import { loadGameOfTheDayId, onGameOfTheDayChange } from "@/lib/gameOfTheDay";
 import { loadEditorPicks, onEditorPicksChange, fetchEditorPicks } from "@/lib/editorPicks";
 import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
-import { PartnerBanner, PartnerNativeAd, pickPartnerBannerSize, type PartnerBannerSize } from "./NetworkAd";
 import { PanicButton } from "./PanicButton";
 import { RANDOM_GAME_EVENT } from "./RandomGameButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
@@ -772,7 +771,7 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
           Advertise
         </a>
       </div>
-      <PartnerNativeAd />
+      <BidvertiserAd slot="catalog-native" showClose={false} className="flex items-center justify-center" />
     </div>
   );
 }
@@ -1248,9 +1247,6 @@ export function GameCatalog({
   const [feedbackPrompt, setFeedbackPrompt] = React.useState(false);
   // Closing the sponsor slot only pauses it; it comes back after 30 seconds.
   const [adSpotHidden, setAdSpotHidden] = React.useState(false);
-  // One fixed-size banner fits the catalog at a time; smaller screens keep the
-  // responsive native unit instead of a clipped banner.
-  const [partnerBannerSize] = React.useState<PartnerBannerSize | null>(pickPartnerBannerSize);
   const adSpotTimerRef = React.useRef<number | null>(null);
   React.useEffect(() => {
     return () => {
@@ -2491,7 +2487,6 @@ export function GameCatalog({
                 Ad
               </span>
               <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
-              {partnerBannerSize && <PartnerBanner size={partnerBannerSize} />}
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
                 className="shrink-0 text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"

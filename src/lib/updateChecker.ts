@@ -11,6 +11,11 @@ export interface CheckUpdateResult {
   error?: string;
 }
 
+// The version files are written seconds apart by different build steps, so a
+// stamp a few seconds newer than this bundle's is not a new release. Only a
+// gap this large (or a different version string) means something shipped.
+const MIN_BUILD_GAP_MS = 60_000;
+
 type UpdateListener = (result: CheckUpdateResult) => void;
 const listeners = new Set<UpdateListener>();
 
@@ -45,13 +50,16 @@ export async function checkForUpdate(): Promise<CheckUpdateResult> {
   if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
     try {
       const registrations = await navigator.serviceWorker.getRegistrations();
+      // A worker installing on a page that is not controlled yet is the first
+      // install, not an update waiting for a reload.
+      const controlled = !!navigator.serviceWorker.controller;
       for (const reg of registrations) {
-        if (reg.waiting || reg.installing) {
+        if (reg.waiting || (controlled && reg.installing)) {
           hasUpdate = true;
           source = "service-worker";
         }
         await reg.update().catch(() => {});
-        if (reg.waiting || reg.installing) {
+        if (reg.waiting || (controlled && reg.installing)) {
           hasUpdate = true;
           source = "service-worker";
         }
@@ -84,7 +92,7 @@ export async function checkForUpdate(): Promise<CheckUpdateResult> {
           latestBuildIso = sIso;
           const sTime = new Date(sIso).getTime();
           const cTime = new Date(LAST_UPDATED_ISO).getTime();
-          if (!Number.isNaN(sTime) && !Number.isNaN(cTime) && sTime > cTime + 1000) {
+          if (!Number.isNaN(sTime) && !Number.isNaN(cTime) && sTime > cTime + MIN_BUILD_GAP_MS) {
             hasUpdate = true;
             source = "version-endpoint";
           }
@@ -115,7 +123,7 @@ export async function checkForUpdate(): Promise<CheckUpdateResult> {
         if (manifest?.generatedAt) {
           const mTime = new Date(manifest.generatedAt).getTime();
           const cTime = new Date(LAST_UPDATED_ISO).getTime();
-          if (!Number.isNaN(mTime) && !Number.isNaN(cTime) && mTime > cTime + 1000) {
+          if (!Number.isNaN(mTime) && !Number.isNaN(cTime) && mTime > cTime + MIN_BUILD_GAP_MS) {
             hasUpdate = true;
             latestBuildIso = manifest.generatedAt;
             source = "manifest";

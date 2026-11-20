@@ -1,5 +1,6 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type } from "lucide-react";
+import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink } from "lucide-react";
+import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
 import { SYSTEM_FONTS, getStoredSystemFont, applySystemFont } from "@/lib/systemFont";
@@ -150,7 +151,7 @@ function testMirrorFrame(
   });
 }
 
-type DesktopTab = "account" | "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "offline" | "proxies" | "changelog" | "admin";
+type DesktopTab = "account" | "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "offline" | "proxies" | "changelog" | "admin";
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
   { heading: "Account", items: [
@@ -172,6 +173,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
     { id: "proxies", label: "Proxies & source", icon: Link2, keywords: "source code github proxies mirrors" },
     { id: "changelog", label: "Change log", icon: ScrollText, keywords: "change log updates history" },
     { id: "ads", label: "Ad", icon: Megaphone, keywords: "ad ads notification ads block" },
+    { id: "referrals", label: "Referrals", icon: Gift, keywords: "referral referrals reward rewards links partners support exclusive" },
   ] },
   { heading: "Admin", items: [
     { id: "admin", label: "Admin", icon: Shield, keywords: "admin built by ss last updated time footer credit" },
@@ -228,6 +230,23 @@ export function SettingsModal({
   const [desktopTab, setDesktopTab] = React.useState<DesktopTab>("general");
   const [settingsSearch, setSettingsSearch] = React.useState("");
   const paneStyle = (tab: DesktopTab): React.CSSProperties => ({ display: isDesktop && desktopTab !== tab ? "none" : "contents" });
+
+  // Referral cards come from referrals.json; load them the first time the dialog
+  // opens instead of on every page load.
+  const [referrals, setReferrals] = React.useState<ReferralLink[]>([]);
+  const [referralsLoaded, setReferralsLoaded] = React.useState(false);
+  React.useEffect(() => {
+    if (!isOpen || referralsLoaded) return;
+    let cancelled = false;
+    void loadReferrals().then((links) => {
+      if (cancelled) return;
+      setReferrals(links);
+      setReferralsLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, referralsLoaded]);
 
   // Site Lock states
   const [siteLockEnabled, setSiteLockEnabled] = React.useState(() => {
@@ -2842,6 +2861,73 @@ export function SettingsModal({
               Checkout isn’t open yet. The button unlocks when Ultra launches.
             </p>
           </div>
+        </section>
+        </div>
+
+        {/* Referrals: add or edit links in referrals.json; this pane reads that file. */}
+        <div style={paneStyle("referrals")}>
+        <section
+          aria-labelledby="referrals-title"
+          className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+            <Gift aria-hidden="true" className="h-4 w-4 text-zinc-400" />
+            <h3 id="referrals-title">Referrals</h3>
+          </div>
+          <p className="text-xs leading-relaxed text-zinc-400">
+            Hand-picked links that can earn you a reward and help keep math_games free.
+          </p>
+
+          {!referralsLoaded && (
+            <p role="status" className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-[11px] text-zinc-500">
+              Loading links…
+            </p>
+          )}
+
+          {referralsLoaded && referrals.length === 0 && (
+            <p className="rounded-xl border border-dashed border-white/[0.12] bg-white/[0.015] px-3 py-2.5 text-[11px] leading-relaxed text-zinc-500">
+              No referral links yet. Add them to referrals.json and they will appear here.
+            </p>
+          )}
+
+          {referrals.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {referrals.map((referral) => (
+                <li key={referral.id}>
+                  <a
+                    href={referral.url}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className="group flex items-start justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 transition-colors hover:border-white/[0.16] hover:bg-white/[0.05]"
+                  >
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-zinc-100">{referral.title}</span>
+                        {referral.badge && (
+                          <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                            {referral.badge}
+                          </span>
+                        )}
+                      </span>
+                      {referral.description && (
+                        <span className="mt-1 block text-xs leading-relaxed text-zinc-400">
+                          {referral.description}
+                        </span>
+                      )}
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/[0.06] px-2.5 py-1 text-[11px] font-semibold text-zinc-200 transition-colors group-hover:bg-white/[0.12] group-hover:text-white">
+                      {referral.cta || "Open"}
+                      <ExternalLink aria-hidden="true" className="h-3 w-3" />
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <p className="text-[10.5px] leading-relaxed text-zinc-500">
+            Some links are referrals: using them may earn math_games a reward at no extra cost to you.
+          </p>
         </section>
         </div>
         </div>

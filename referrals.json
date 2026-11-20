@@ -1,0 +1,12 @@
+{
+  "_readme": "Referral links for Settings > Referrals. Add one object per link to the referrals array. id, title and url are required; description, badge and cta are optional. These are read at runtime, so you can edit this file without rebuilding the site.",
+  "_example": {
+    "id": "example-reward",
+    "title": "Get an exclusive reward",
+    "description": "One line telling players what they get and why the link is worth clicking.",
+    "url": "https://example.com/?ref=math_games",
+    "badge": "Reward",
+    "cta": "Claim now"
+  },
+  "referrals": []
+}

@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, SmilePlus, Sparkles, X, CornerDownRight } from "lucide-react";
-import { HubMessage, loadMessages, sendMessage } from "@/lib/hubApi";
+import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, SmilePlus, Sparkles, X, CornerDownRight, ImagePlus, Loader2 } from "lucide-react";
+import { HubMessage, loadMessages, loadReactions, sendMessage, sendReaction, uploadChatImage } from "@/lib/hubApi";
+import { CHAT_IMAGE_ACCEPT, prepareChatImage } from "@/lib/chatImages";
 import { notifyNewChatMessage } from "@/lib/chatNotifications";
 import { isChatVerified } from "@/lib/turnstile";
 import { TurnstileGate } from "./TurnstileGate";
@@ -157,6 +158,10 @@ export function LiveMessageBoard({
   const [messages, setMessages] = React.useState<ChatMessage[]>(fallbackMessages);
   const [nickname, setNickname] = React.useState(() => localStorage.getItem("polytrack_nickname") || `Racer_${Math.floor(100 + Math.random() * 900)}`);
   const [inputText, setInputText] = React.useState("");
+  // A picked photo is shown as a preview until it goes out with the message.
+  const [pendingImage, setPendingImage] = React.useState<{ blob: Blob; url: string } | null>(null);
+  const [preparingImage, setPreparingImage] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [loading, setLoading] = React.useState(true);
   const [sending, setSending] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -211,6 +216,14 @@ export function LiveMessageBoard({
     return () => window.clearTimeout(timer);
   }, [showAds]);
 
+  // The preview belongs to the current selection; replacing or clearing it
+  // releases the object URL instead of leaving it alive for the whole visit.
+  React.useEffect(() => {
+    return () => {
+      if (pendingImage) URL.revokeObjectURL(pendingImage.url);
+    };
+  }, [pendingImage]);
+
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const onSendCallbackRef = React.useRef<((msg: ChatMessage) => void) | null>(null);
@@ -255,11 +268,28 @@ export function LiveMessageBoard({
         // Notify only about messages this tab has not seen before.
         if (incoming.length > 0) {
           const newest = incoming[incoming.length - 1];
-          notifyNewChatMessage(newest.author, newest.text);
+          notifyNewChatMessage(newest.author, newest.text || "Sent a photo");
           if (isScrolledUp) setUnreadCount((count) => count + incoming.length);
         }
         return next;
       });
+      // Reactions come from the hub with every refresh, so chips match on every
+      // device. A hub without the endpoint leaves the local copy alone.
+      const reactionIds = loaded.map((message) => message.id);
+      if (reactionIds.length > 0) {
+        void loadReactions(reactionIds)
+          .then((serverReactions) => {
+            setReactions((previous) => {
+              const next = { ...previous };
+              for (const id of reactionIds) delete next[id];
+              for (const [id, perEmoji] of Object.entries(serverReactions)) {
+                next[id] = perEmoji;
+              }
+              return next;
+            });
+          })
+          .catch(() => {});
+      }
       setError("");
     } catch {
       setError("Chat is offline. Check your connection, then retry.");
@@ -313,10 +343,28 @@ export function LiveMessageBoard({
     };
   }, [messages, isScrolledUp, scrollToBottom]);
 
+  const handleImagePicked = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Let the same photo be picked again after it has been removed.
+    event.target.value = "";
+    if (!file) return;
+    setPreparingImage(true);
+    setError("");
+    try {
+      const prepared = await prepareChatImage(file);
+      setPendingImage({ blob: prepared, url: URL.createObjectURL(prepared) });
+    } catch (pickError) {
+      setError(pickError instanceof Error ? pickError.message : "That photo could not be added.");
+    } finally {
+      setPreparingImage(false);
+    }
+  };
+
   const handleSendMessage = async (event?: React.FormEvent) => {
     event?.preventDefault();
     const cleanText = inputText.trim();
-    if (!cleanText || sending) return;
+    const photo = pendingImage;
+    if ((!cleanText && !photo) || sending) return;
     if (!chatVerified) {
       setError("Verify you're human before sending messages.");
       return;
@@ -335,7 +383,9 @@ export function LiveMessageBoard({
     setSending(true);
     setError("");
     try {
-      const saved = await sendMessage(nickname.trim() || "Guest", cleanText);
+      // The photo goes up first; the message then stores the hub's path for it.
+      const imagePath = photo ? await uploadChatImage(photo.blob) : undefined;
+      const saved = await sendMessage(nickname.trim() || "Guest", cleanText, imagePath);
       lastSendAtRef.current = Date.now();
       sendTimesRef.current = [...sendTimesRef.current, Date.now()];
       const message = toChatMessage(saved, "user");
@@ -343,6 +393,7 @@ export function LiveMessageBoard({
       persistSentMessage(message);
       setMessages((current) => mergeMessages(current, [message]));
       setInputText("");
+      setPendingImage(null);
       onSendCallbackRef.current?.(message);
       setTimeout(() => scrollToBottom(true), 60);
     } catch (sendError) {
@@ -356,8 +407,9 @@ export function LiveMessageBoard({
     setInputText((prev) => (prev ? `${prev} ${emoji}` : emoji));
   };
 
-  // Reactions are kept on this device, one per name per message, and tapping a
-  // chip again takes yours back off.
+  // One reaction per name per message. The chip updates immediately, then the
+  // hub toggle replaces it with the shared list; when the hub is unreachable the
+  // local copy still works for this device.
   const toggleReaction = React.useCallback(
     (messageId: string, emoji: string) => {
       const name = nickname.trim() || "Guest";
@@ -373,6 +425,13 @@ export function LiveMessageBoard({
         else next[messageId] = perEmoji;
         return next;
       });
+      void sendReaction(messageId, emoji, name)
+        .then((shared) => {
+          setReactions((current) => ({ ...current, [messageId]: shared }));
+        })
+        .catch(() => {
+          setError("Reactions are saved on this device until chat sync comes back.");
+        });
     },
     [nickname]
   );
@@ -573,7 +632,23 @@ export function LiveMessageBoard({
                         }
                   }
                 >
-                  {formatChatText(message.text)}
+                  {message.image && (
+                    <a
+                      href={message.image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open photo"
+                      className="block"
+                    >
+                      <img
+                        src={message.image}
+                        alt={`Photo from ${message.author}`}
+                        loading="lazy"
+                        className={`max-h-52 w-auto max-w-full rounded-xl object-cover ${message.text ? "mb-1.5" : ""}`}
+                      />
+                    </a>
+                  )}
+                  {message.text ? formatChatText(message.text) : null}
                 </div>
 
                 <div className={`mt-1 flex flex-wrap items-center gap-1 ${isUser ? "justify-end" : "justify-start"}`}>
@@ -732,6 +807,28 @@ export function LiveMessageBoard({
         </span>
       </div>
 
+      {pendingImage && (
+        <div className="flex shrink-0 items-center gap-2.5 border-t border-white/[0.04] bg-[#191919] px-3 pt-2">
+          <div className="relative">
+            <img
+              src={pendingImage.url}
+              alt="Photo ready to send"
+              className="h-12 w-12 rounded-lg object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => setPendingImage(null)}
+              aria-label="Remove photo"
+              title="Remove photo"
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-zinc-800 text-zinc-300 ring-1 ring-white/15 transition-colors hover:bg-zinc-700 hover:text-white"
+            >
+              <X aria-hidden="true" className="h-3 w-3" />
+            </button>
+          </div>
+          <span className="text-[11px] text-zinc-400">Photo ready to send</span>
+        </div>
+      )}
+
       {/* Input Form with Enter-to-send */}
       <form
         data-tour-target="chat-composer"
@@ -775,7 +872,13 @@ export function LiveMessageBoard({
               void handleSendMessage();
             }
           }}
-          placeholder={chatVerified ? "Send a message (Press Enter)…" : "Verify you're human to chat…"}
+          placeholder={
+            !chatVerified
+              ? "Verify you're human to chat…"
+              : pendingImage
+                ? "Add a caption (Press Enter)…"
+                : "Send a message (Press Enter)…"
+          }
           maxLength={280}
           enterKeyHint="send"
           autoComplete="off"
@@ -787,9 +890,35 @@ export function LiveMessageBoard({
           className="flex-1 min-w-0 px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/20"
         />
 
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={CHAT_IMAGE_ACCEPT}
+          className="hidden"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => void handleImagePicked(event)}
+        />
+
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={!chatVerified || sending || preparingImage}
+          aria-label="Send a photo"
+          title="Send a photo"
+          style={{ borderRadius: 12 }}
+          className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          {preparingImage ? (
+            <Loader2 aria-hidden="true" className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <ImagePlus aria-hidden="true" className="w-3.5 h-3.5" />
+          )}
+        </button>
+
         <button
           type="submit"
-          disabled={!inputText.trim() || sending || !chatVerified}
+          disabled={(!inputText.trim() && !pendingImage) || sending || !chatVerified}
           aria-label={sending ? "Sending message" : chatVerified ? "Send message" : "Verify to send messages"}
           style={{
             borderRadius: 12,

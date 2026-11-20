@@ -122,6 +122,61 @@ function gameAccent(game: GameItem) {
   );
 }
 
+// The same ranked row backs the Trending page and the home-page chart.
+function TopTenChart({
+  games,
+  onLaunch,
+}: {
+  games: GameItem[];
+  onLaunch: (game: GameItem, event: React.MouseEvent) => void;
+}) {
+  return (
+    <section aria-labelledby="top-ten-heading" className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2">
+        <h3
+          id="top-ten-heading"
+          className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200"
+        >
+          <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
+          Top 10 <span aria-hidden="true">🔥</span> today
+        </h3>
+        <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+        <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+          Most played
+        </span>
+      </div>
+      <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {games.map((game, index) => (
+          <a
+            key={game.id}
+            href={game.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => onLaunch(game, event)}
+            aria-label={`Number ${index + 1}: ${game.name}`}
+            className="group flex shrink-0 snap-start items-stretch gap-1 rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <span
+              aria-hidden="true"
+              className="flex w-11 items-end justify-center pb-6 text-4xl font-black leading-none tabular-nums text-white/20 transition-colors group-hover:text-amber-300/80"
+            >
+              {index + 1}
+            </span>
+            <span className="relative block aspect-[3/4] w-24 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition-colors group-hover:border-amber-300/40">
+              <GameCoverArt game={game} accent={gameAccent(game)} compact />
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/75 to-transparent px-1.5 pb-1.5 pt-5">
+                <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-white">
+                  {game.name}
+                </span>
+              </span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export type SpecialFilterId = "buggy" | "blocked";
 export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilterId;
 
@@ -2255,50 +2310,12 @@ export function GameCatalog({
             </section>
           )}
 
+          {!isFiltered && trendingGames.length > 0 && (
+            <TopTenChart games={trendingGames} onLaunch={launchGame} />
+          )}
+
           {selectedCategory === "trending" && !searching && trendingGames.length > 0 && (
-            <section aria-labelledby="top-ten-heading" className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-2">
-                <h3
-                  id="top-ten-heading"
-                  className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200"
-                >
-                  <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
-                  Top 10 <span aria-hidden="true">🔥</span> today
-                </h3>
-                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
-                  Most played
-                </span>
-              </div>
-              <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {trendingGames.map((game, index) => (
-                  <a
-                    key={game.id}
-                    href={game.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(event) => launchGame(game, event)}
-                    aria-label={`Number ${index + 1}: ${game.name}`}
-                    className="group flex shrink-0 snap-start items-stretch gap-1 rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="flex w-11 items-end justify-center pb-6 text-4xl font-black leading-none tabular-nums text-white/20 transition-colors group-hover:text-amber-300/80"
-                    >
-                      {index + 1}
-                    </span>
-                    <span className="relative block aspect-[3/4] w-24 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition-colors group-hover:border-amber-300/40">
-                      <GameCoverArt game={game} accent={gameAccent(game)} compact />
-                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/75 to-transparent px-1.5 pb-1.5 pt-5">
-                        <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-white">
-                          {game.name}
-                        </span>
-                      </span>
-                    </span>
-                  </a>
-                ))}
-              </div>
-            </section>
+            <TopTenChart games={trendingGames} onLaunch={launchGame} />
           )}
 
           {playableGames.length > 0 && (

@@ -45,7 +45,7 @@ export function PanicButton({ className = "" }: { className?: string }) {
       title="Panic: press ] anywhere to leave this site instantly"
       aria-keyshortcuts="]"
       aria-label="Panic: leave this site"
-      className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-red-600/90 text-white shadow-sm transition-colors hover:bg-red-500 active:scale-[0.98] ${className}`}
+      className={`inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-red-600/90 text-white shadow-sm transition-colors hover:bg-red-500 active:scale-[0.98] sm:h-9 sm:w-9 ${className}`}
     >
       <ShieldAlert aria-hidden="true" className="h-4 w-4" />
     </button>

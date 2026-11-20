@@ -5,6 +5,16 @@ const ALLOWED = [
   "http://127.0.0.1:8080",
 ];
 const HUB = /^https:\/\/([a-z0-9-]+\.)?benlaunches\.icu$/;
+const CHAT_IMAGE_PATH = /^\/api\/chat\/images\/([a-zA-Z0-9-]{8,64})$/;
+const CHAT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+// Chat photos are kept in D1 in fixed-size pieces: one phone photo is bigger
+// than a single bound value, and the worker only has a database binding.
+const CHAT_IMAGE_MAX_BYTES = 500 * 1024;
+const CHAT_IMAGE_CHUNK_BYTES = 48 * 1024;
+// Photos are kept for a month. The deployment has no scheduled trigger, so the
+// sweep runs when the chat is used, at most once an hour.
+const CHAT_IMAGE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const CHAT_IMAGE_SWEEP_MS = 60 * 60 * 1000;
 let ready;
 
 const cors = (r) => {
@@ -75,6 +85,12 @@ function schema(e) {
         "CREATE TABLE IF NOT EXISTS chat_messages(id TEXT PRIMARY KEY,created_at TEXT NOT NULL,author TEXT NOT NULL,text TEXT NOT NULL,ip_hash TEXT NOT NULL DEFAULT '')"
       ),
       e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS chat_reactions(message_id TEXT NOT NULL,emoji TEXT NOT NULL,author TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(message_id,emoji,author))"
+      ),
+      e.DB.prepare(
+        "CREATE INDEX IF NOT EXISTS idx_chat_reactions_message ON chat_reactions(message_id)"
+      ),
+      e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS page_views(id INTEGER PRIMARY KEY CHECK(id=1),total INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL)"
       ),
       e.DB.prepare(
@@ -84,7 +100,7 @@ function schema(e) {
         "CREATE TABLE IF NOT EXISTS game_clicks(game_id TEXT PRIMARY KEY,game_name TEXT NOT NULL,game_url TEXT NOT NULL DEFAULT '',clicks INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL)"
       ),
       e.DB.prepare(
-        "CREATE TABLE IF NOT EXISTS bug_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,created_at TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',description TEXT NOT NULL,game_url TEXT NOT NULL DEFAULT '',page_url TEXT NOT NULL DEFAULT '',browser_info TEXT NOT NULL DEFAULT '',ip_hash TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'open')"
+        "CREATE TABLE IF NOT EXISTS bug_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,created_at TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',description TEXT NOT NULL,game_url TEXT NOT NULL DEFAULT '',page_url TEXT NOT NULL DEFAULT '',browser_info TEXT NOT NULL DEFAULT '',ip_hash TEXT NOT NULL DEFAULT '',ip TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'open')"
       ),
       e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY,count INTEGER NOT NULL DEFAULT 1,first_seen INTEGER NOT NULL,last_seen INTEGER NOT NULL)"
@@ -95,12 +111,30 @@ function schema(e) {
       e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS admin_settings(key TEXT PRIMARY KEY,value TEXT NOT NULL,updated_at TEXT NOT NULL)"
       ),
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS chat_images(id TEXT PRIMARY KEY,content_type TEXT NOT NULL,size INTEGER NOT NULL,created_at TEXT NOT NULL,ip_hash TEXT NOT NULL DEFAULT '')"
+      ),
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS chat_image_chunks(image_id TEXT NOT NULL,idx INTEGER NOT NULL,data BLOB NOT NULL,PRIMARY KEY(image_id,idx))"
+      ),
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS chat_maintenance(key TEXT PRIMARY KEY,ran_at TEXT NOT NULL)"
+      ),
     ])
       // Deployments created before the "not mobile optimized" tag have a game_flags
       // table without its column, so add it once instead of failing every flag read.
       .then(async () => {
         try {
           await e.DB.prepare("ALTER TABLE game_flags ADD COLUMN not_mobile INTEGER NOT NULL DEFAULT 0").run();
+        } catch {}
+        // Chats created before photos existed have no image column either.
+        try {
+          await e.DB.prepare("ALTER TABLE chat_messages ADD COLUMN image_url TEXT NOT NULL DEFAULT ''").run();
+        } catch {}
+        // Reports used to keep only a hash of the address, so add the column the
+        // admin panel reads once instead of failing every report read.
+        try {
+          await e.DB.prepare("ALTER TABLE bug_reports ADD COLUMN ip TEXT NOT NULL DEFAULT ''").run();
         } catch {}
       })
       .catch((x) => {
@@ -141,27 +175,229 @@ async function checkRateLimit(db, key, maxRequests, windowSeconds) {
   }
 }
 
+// Expired photos are dropped before the chat reads or writes, throttled through
+// the maintenance row so a busy chat still only sweeps once an hour.
+async function sweepChatImages(e) {
+  try {
+    const now = Date.now();
+    const last = await e.DB.prepare("SELECT ran_at FROM chat_maintenance WHERE key = 'image_sweep'").first();
+    const lastRun = last ? Date.parse(last.ran_at) : 0;
+    if (Number.isFinite(lastRun) && now - lastRun < CHAT_IMAGE_SWEEP_MS) return;
+
+    const cutoff = new Date(now - CHAT_IMAGE_TTL_MS).toISOString();
+    await e.DB.batch([
+      // Chunks first, then the messages pointing at the photo, then the photo
+      // row itself; the subquery still sees the expired rows at that point.
+      e.DB.prepare(
+        "DELETE FROM chat_image_chunks WHERE image_id IN (SELECT id FROM chat_images WHERE created_at < ?)"
+      ).bind(cutoff),
+      e.DB.prepare(
+        "UPDATE chat_messages SET image_url = '' WHERE image_url IN (SELECT '/api/chat/images/' || id FROM chat_images WHERE created_at < ?)"
+      ).bind(cutoff),
+      e.DB.prepare("DELETE FROM chat_images WHERE created_at < ?").bind(cutoff),
+      e.DB.prepare(
+        "INSERT INTO chat_maintenance (key,ran_at) VALUES('image_sweep',?) ON CONFLICT(key) DO UPDATE SET ran_at = excluded.ran_at"
+      ).bind(new Date(now).toISOString()),
+    ]);
+  } catch {
+    // A failed sweep must never break the chat; the next visit tries again.
+  }
+}
+
 async function messages(r, e) {
   if (r.method === "GET") {
-    const q = await e.DB.prepare("SELECT id,created_at,author,text FROM chat_messages ORDER BY created_at DESC LIMIT 100").all();
+    await sweepChatImages(e);
+    const q = await e.DB.prepare(
+      "SELECT id,created_at,author,text,image_url FROM chat_messages ORDER BY created_at DESC LIMIT 100"
+    ).all();
     return json(r, {
       ok: true,
-      messages: (q.results || []).reverse().map((x) => ({
-        id: x.id,
-        createdAt: x.created_at,
-        author: x.author,
-        text: x.text,
-      })),
+      messages: (q.results || []).reverse().map((x) => {
+        const message = { id: x.id, createdAt: x.created_at, author: x.author, text: x.text };
+        // Older rows have no photo, so only send the field when there is one.
+        return x.image_url ? { ...message, image: x.image_url } : message;
+      }),
     });
   }
   const b = await read(r);
   const text = clean(b?.text, 280);
   const author = clean(b?.author, 32, "Guest");
-  if (!text) return fail(r, "Write a message first.", 422);
+  const image = await resolveChatImage(e, b?.image);
+  if (!text && !image) return fail(r, "Write a message or add a photo first.", 422);
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
-  await e.DB.prepare("INSERT INTO chat_messages VALUES(?,?,?,?,?)").bind(id, createdAt, author, text, await digest(ip(r))).run();
-  return json(r, { ok: true, message: { id, createdAt, author, text } }, 201);
+  await e.DB.prepare(
+    "INSERT INTO chat_messages (id,created_at,author,text,ip_hash,image_url) VALUES(?,?,?,?,?,?)"
+  )
+    .bind(id, createdAt, author, text, await digest(ip(r)), image)
+    .run();
+  return json(r, { ok: true, message: { id, createdAt, author, text, ...(image ? { image } : {}) } }, 201);
+}
+
+// A message may only point at a photo this hub already stored, so nobody can
+// paste an off-site picture into the chat.
+async function resolveChatImage(e, value) {
+  const raw = clean(value, 300);
+  if (!raw) return "";
+  let pathname = raw;
+  try {
+    pathname = new URL(raw, "https://hub.invalid").pathname;
+  } catch {
+    return "";
+  }
+  const match = pathname.match(CHAT_IMAGE_PATH);
+  if (!match) return "";
+  const found = await e.DB.prepare("SELECT id FROM chat_images WHERE id = ?").bind(match[1]).first();
+  return found ? `/api/chat/images/${found.id}` : "";
+}
+
+async function uploadChatImage(r, e) {
+  if (r.method !== "POST") return fail(r, "Use POST to upload a chat photo.", 405);
+  await sweepChatImages(e);
+  const ipHash = await digest(ip(r));
+  const rl = await checkRateLimit(e.DB, "chat_image:" + ipHash, 8, 600);
+  if (!rl.allowed) {
+    return fail(r, `Too many photos. Try again in ${Math.ceil(rl.resetIn / 60)} minute(s).`, 429, {
+      resetIn: rl.resetIn,
+    });
+  }
+  const type = (r.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+  if (!CHAT_IMAGE_TYPES.includes(type)) {
+    return fail(r, "Only JPG, PNG, WebP or GIF photos can be sent.", 415);
+  }
+  const bytes = new Uint8Array(await r.arrayBuffer());
+  if (bytes.byteLength === 0) return fail(r, "That photo is empty.", 422);
+  if (bytes.byteLength > CHAT_IMAGE_MAX_BYTES) {
+    return fail(r, "That photo is too large — keep it under 500 KB.", 413);
+  }
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  const statements = [
+    e.DB.prepare("INSERT INTO chat_images (id,content_type,size,created_at,ip_hash) VALUES(?,?,?,?,?)").bind(
+      id,
+      type,
+      bytes.byteLength,
+      createdAt,
+      ipHash
+    ),
+  ];
+  for (let offset = 0, index = 0; offset < bytes.byteLength; offset += CHAT_IMAGE_CHUNK_BYTES, index += 1) {
+    statements.push(
+      e.DB.prepare("INSERT INTO chat_image_chunks (image_id,idx,data) VALUES(?,?,?)").bind(
+        id,
+        index,
+        bytes.slice(offset, offset + CHAT_IMAGE_CHUNK_BYTES)
+      )
+    );
+  }
+  await e.DB.batch(statements);
+  return json(r, { ok: true, id, path: `/api/chat/images/${id}` }, 201);
+}
+
+async function serveChatImage(r, e, id) {
+  if (r.method !== "GET" && r.method !== "HEAD") return fail(r, "Use GET for chat photos.", 405);
+  const meta = await e.DB.prepare("SELECT content_type FROM chat_images WHERE id = ?").bind(id).first();
+  if (!meta) return fail(r, "That photo is gone.", 404);
+  const q = await e.DB.prepare(
+    "SELECT data FROM chat_image_chunks WHERE image_id = ? ORDER BY idx ASC"
+  )
+    .bind(id)
+    .all();
+  const parts = (q.results || []).map((row) => new Uint8Array(row.data));
+  const body = new Uint8Array(parts.reduce((total, part) => total + part.byteLength, 0));
+  let at = 0;
+  for (const part of parts) {
+    body.set(part, at);
+    at += part.byteLength;
+  }
+  const headers = cors(r);
+  headers["content-type"] = meta.content_type;
+  headers["cache-control"] = "public, max-age=31536000, immutable";
+  return new Response(body, { status: 200, headers });
+}
+
+function groupReactions(rows) {
+  const grouped = {};
+  for (const row of rows || []) {
+    if (!grouped[row.message_id]) grouped[row.message_id] = {};
+    if (!grouped[row.message_id][row.emoji]) grouped[row.message_id][row.emoji] = [];
+    grouped[row.message_id][row.emoji].push(row.author);
+  }
+  return grouped;
+}
+
+async function reactions(r, e) {
+  if (r.method === "GET") {
+    const ids = clean(new URL(r.url).searchParams.get("ids"), 2000)
+      .split(",")
+      .map((id) => clean(id, 64))
+      .filter(Boolean)
+      .slice(0, 100);
+    if (ids.length === 0) return json(r, { ok: true, reactions: {} });
+    const marks = ids.map(() => "?").join(",");
+    const q = await e.DB.prepare(
+      `SELECT message_id,emoji,author FROM chat_reactions WHERE message_id IN (${marks}) ORDER BY created_at ASC LIMIT 2000`
+    )
+      .bind(...ids)
+      .all();
+    return json(r, { ok: true, reactions: groupReactions(q.results) });
+  }
+
+  if (r.method !== "POST") return fail(r, "Method not allowed.", 405);
+
+  const b = await read(r);
+  const messageId = clean(b?.messageId, 64);
+  const emoji = clean(b?.emoji, 16);
+  const author = clean(b?.author, 32, "Guest");
+  if (!messageId || !emoji) return fail(r, "Pick a reaction first.", 422);
+
+  const limit = await checkRateLimit(e.DB, `reaction:${await digest(ip(r))}`, 90, 60);
+  if (!limit.allowed) return fail(r, "Slow down on reactions.", 429);
+
+  // Reactions only attach to real messages, so a stale id cannot grow the table.
+  const message = await e.DB.prepare("SELECT id FROM chat_messages WHERE id = ?")
+    .bind(messageId)
+    .first();
+  if (!message) return fail(r, "That message is gone.", 404);
+
+  const existing = await e.DB.prepare(
+    "SELECT author FROM chat_reactions WHERE message_id = ? AND emoji = ? AND author = ?"
+  )
+    .bind(messageId, emoji, author)
+    .first();
+
+  if (existing) {
+    await e.DB.prepare(
+      "DELETE FROM chat_reactions WHERE message_id = ? AND emoji = ? AND author = ?"
+    )
+      .bind(messageId, emoji, author)
+      .run();
+  } else {
+    const count = await e.DB.prepare(
+      "SELECT COUNT(*) AS total FROM chat_reactions WHERE message_id = ?"
+    )
+      .bind(messageId)
+      .first();
+    if (Number(count?.total || 0) >= 400) {
+      return fail(r, "This message has enough reactions.", 429);
+    }
+    await e.DB.prepare("INSERT INTO chat_reactions VALUES(?,?,?,?)")
+      .bind(messageId, emoji, author, new Date().toISOString())
+      .run();
+  }
+
+  const q = await e.DB.prepare(
+    "SELECT emoji,author FROM chat_reactions WHERE message_id = ? ORDER BY created_at ASC LIMIT 500"
+  )
+    .bind(messageId)
+    .all();
+  const perEmoji = {};
+  for (const row of q.results || []) {
+    if (!perEmoji[row.emoji]) perEmoji[row.emoji] = [];
+    perEmoji[row.emoji].push(row.author);
+  }
+  return json(r, { ok: true, messageId, reactions: perEmoji });
 }
 
 async function views(r, e) {
@@ -275,10 +511,11 @@ async function bugs(r, e) {
   const browserInfo = clean(b?.browserInfo || b?.browser_info, 300);
 
   const createdAt = new Date().toISOString();
+  const ipAddress = clean(clientIp, 100, "unknown");
   const q = await e.DB.prepare(
-    "INSERT INTO bug_reports (created_at, title, description, game_url, page_url, browser_info, ip_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'open')"
+    "INSERT INTO bug_reports (created_at, title, description, game_url, page_url, browser_info, ip_hash, ip, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open')"
   )
-    .bind(createdAt, title, description, gameUrl, pageUrl, browserInfo, ipHash)
+    .bind(createdAt, title, description, gameUrl, pageUrl, browserInfo, ipHash, ipAddress)
     .run();
 
   return json(
@@ -337,7 +574,7 @@ async function adminBugs(r, e) {
 
   // Fetch bugs
   const q = await e.DB.prepare(
-    "SELECT id, created_at, title, description, game_url, page_url, browser_info, status FROM bug_reports ORDER BY id DESC LIMIT 200"
+    "SELECT id, created_at, title, description, game_url, page_url, browser_info, ip, status FROM bug_reports ORDER BY id DESC LIMIT 200"
   ).all();
   const t = await e.DB.prepare("SELECT COUNT(*) as total FROM bug_reports").first();
 
@@ -352,6 +589,7 @@ async function adminBugs(r, e) {
       gameUrl: x.game_url,
       pageUrl: x.page_url,
       browserInfo: x.browser_info,
+      ip: x.ip || "",
       status: x.status,
     })),
   });
@@ -521,6 +759,10 @@ export default {
       }
       await schema(e);
       if (p === "/api/messages") return messages(r, e);
+      if (p === "/api/chat/images") return uploadChatImage(r, e);
+      const chatImage = p.match(CHAT_IMAGE_PATH);
+      if (chatImage) return serveChatImage(r, e, chatImage[1]);
+      if (p === "/api/reactions") return reactions(r, e);
       if (p === "/api/views") return views(r, e);
       if (p === "/api/games/stats") return games(r, e);
       if (p === "/api/games/click") return games(r, e);

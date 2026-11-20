@@ -149,6 +149,37 @@ export function recordVisit(now: Date = new Date()): StreakData {
   return next;
 }
 
+export interface StreakMilestone {
+  days: number;
+  name: string;
+  blurb: string;
+}
+
+// Milestones are tied to the current run, so missing a day starts them over.
+export const STREAK_MILESTONES: StreakMilestone[] = [
+  { days: 3, name: "Spark", blurb: "Three days in a row" },
+  { days: 7, name: "One week", blurb: "Seven straight days" },
+  { days: 14, name: "Fortnight", blurb: "Two weeks running" },
+  { days: 30, name: "Month club", blurb: "Thirty days without a gap" },
+  { days: 60, name: "Two months", blurb: "Sixty days in a row" },
+  { days: 100, name: "Century", blurb: "One hundred straight days" },
+  { days: 365, name: "Full year", blurb: "Every day for a year" },
+];
+
+/** Highest milestone reached by a run, or null before the first one. */
+export function currentStreakMilestone(days: number): StreakMilestone | null {
+  let reached: StreakMilestone | null = null;
+  for (const milestone of STREAK_MILESTONES) {
+    if (days >= milestone.days) reached = milestone;
+  }
+  return reached;
+}
+
+/** Next milestone still ahead of a run, or null once all are unlocked. */
+export function nextStreakMilestone(days: number): StreakMilestone | null {
+  return STREAK_MILESTONES.find((milestone) => milestone.days > days) ?? null;
+}
+
 export function subscribeStreak(listener: (data: StreakData) => void): () => void {
   listeners.add(listener);
   return () => {

@@ -1,6 +1,8 @@
 {
+  "id": "/",
   "name": "math_games",
   "short_name": "math_games",
+  "lang": "en",
   "description": "math_games is a free browser game hub: quick games for a study break, no sign-in and no downloads.",
   "start_url": "/",
   "scope": "/",

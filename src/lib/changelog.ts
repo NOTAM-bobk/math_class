@@ -23,6 +23,16 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
+    version: "1.6.10",
+    date: "November 2026",
+    title: "Install as an app and a keyboard command palette",
+    changes: [
+      "math_games can be installed as an app: look for the Install button in the first-visit notice or under Settings > Install app.",
+      "Press ⌘ K or Ctrl K anywhere to open a command palette that searches games and runs hub actions.",
+      "Settings > Keyboard shortcuts lists every shortcut, including search, the panic key and palette navigation.",
+    ],
+  },
+  {
     version: "1.6.9",
     date: "November 2026",
     title: "A taller hero, faster chat and a /settings address",

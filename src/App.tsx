@@ -6,7 +6,8 @@ import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
 import { ShareButton } from "./components/ShareButton";
-import { RandomGameButton } from "./components/RandomGameButton";
+import { RandomGameButton, RANDOM_GAME_EVENT } from "./components/RandomGameButton";
+import { CommandPalette, type CommandPaletteItem } from "./components/CommandPalette";
 import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
@@ -20,6 +21,7 @@ import {
   Car,
   CheckCircle2,
   Compass,
+  Download,
   Flame,
   Gamepad2,
   Ghost,
@@ -27,13 +29,16 @@ import {
   History,
   Home,
   Infinity as InfinityIcon,
+  Link2,
   Menu,
   MessageCircle,
   Puzzle,
+  ScrollText,
   Search,
   Send,
   Settings,
   Shield,
+  Shuffle,
   Sparkles,
   Star,
   Trophy,
@@ -51,6 +56,7 @@ import { LAST_UPDATED_ISO } from "./lib/lastUpdated";
 import { loadSiteMeta, type SiteMeta } from "./lib/siteMeta";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
+import { canInstall, onInstallAvailabilityChange, promptInstall } from "./lib/pwaInstall";
 import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { loadStreak, recordVisit, subscribeStreak, type StreakData } from "./lib/streak";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
@@ -166,6 +172,8 @@ export function App() {
     return typeof performance !== "undefined" && performance.now() > 250;
   });
   const [settingsOpen, setSettingsOpen] = React.useState(settingsOpenFromUrl);
+  const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
+  const [installAvailable, setInstallAvailable] = React.useState(canInstall);
   // The flame opens Settings straight on the streak pane; the gear opens General.
   const [settingsSection, setSettingsSection] = React.useState<"streak" | null>(null);
   const [streak, setStreak] = React.useState<StreakData>(loadStreak);
@@ -320,6 +328,20 @@ export function App() {
     const timer = window.setTimeout(() => setInstallNoticeVisible(false), 5000);
     return () => window.clearTimeout(timer);
   }, [installNoticeVisible]);
+
+  // The browser can hand over its install prompt at any time; the notice and
+  // the command palette both follow its availability.
+  React.useEffect(() => onInstallAvailabilityChange(() => setInstallAvailable(canInstall())), []);
+
+  const handleInstallApp = React.useCallback(async () => {
+    const outcome = await promptInstall();
+    if (outcome === "accepted") {
+      setInstallNoticeVisible(false);
+      try {
+        localStorage.setItem(INSTALL_NOTICE_SEEN_KEY, "true");
+      } catch {}
+    }
+  }, []);
 
   // Visitors who allowed notifications hear about games that were actually added.
   React.useEffect(() => {
@@ -535,6 +557,22 @@ export function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // ⌘K / Ctrl+K is the command palette everywhere except inside another dialog.
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+      if (event.key.toLowerCase() !== "k") return;
+      event.preventDefault();
+      setCommandPaletteOpen((open) => {
+        if (open) return false;
+        if (document.querySelector('[role="dialog"]')) return false;
+        return true;
+      });
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const toggleSideNav = React.useCallback(() => {
     setSideNavExpanded((expanded) => {
       const next = !expanded;
@@ -551,6 +589,92 @@ export function App() {
     setChatFocusOpen(false);
     setMobilePanel("games");
   }, []);
+
+  const commandPaletteCommands = React.useMemo<CommandPaletteItem[]>(() => {
+    const categoryCommand = (
+      id: CategoryId,
+      label: string,
+      icon: CommandPaletteItem["icon"]
+    ): CommandPaletteItem => ({
+      id: `category-${id}`,
+      label,
+      group: "Browse games",
+      icon,
+      run: () => selectCategory(id),
+    });
+
+    const commands: CommandPaletteItem[] = [
+      {
+        id: "search",
+        label: "Search games",
+        hint: "/",
+        group: "Play",
+        icon: Search,
+        run: () => window.setTimeout(() => searchRef.current?.focus(), 80),
+      },
+      {
+        id: "random",
+        label: "Play a random game",
+        hint: "Shuffle",
+        group: "Play",
+        icon: Shuffle,
+        run: () => window.dispatchEvent(new CustomEvent(RANDOM_GAME_EVENT)),
+      },
+      categoryCommand("all", "Home", Home),
+      categoryCommand("recent", "Recently played", History),
+      categoryCommand("favorites", "Favorites", Heart),
+      categoryCommand("trending", "Trending", Flame),
+      categoryCommand("action", "Action", Zap),
+      categoryCommand("driving", "Driving", Car),
+      categoryCommand("sports", "Sports", Trophy),
+      categoryCommand("arcade", "Arcade", Gamepad2),
+      categoryCommand("puzzle", "Puzzle", Puzzle),
+      categoryCommand("casual", "Casual", InfinityIcon),
+      categoryCommand("flash", "Flash", Ghost),
+      {
+        id: "settings",
+        label: "Open settings",
+        group: "Site",
+        icon: Settings,
+        run: () => openSettings(null),
+      },
+      {
+        id: "changelog",
+        label: "What's new",
+        group: "Site",
+        icon: ScrollText,
+        run: () => setChangelogOpen(true),
+      },
+      {
+        id: "bug",
+        label: "Report a bug",
+        group: "Site",
+        icon: Bug,
+        run: () => openBugReport(),
+      },
+      {
+        id: "copy-link",
+        label: "Copy link to this page",
+        group: "Site",
+        icon: Link2,
+        run: () => {
+          void navigator.clipboard?.writeText(window.location.href).catch(() => {});
+        },
+      },
+    ];
+
+    if (installAvailable) {
+      commands.push({
+        id: "install",
+        label: "Install math_games as an app",
+        group: "Site",
+        icon: Download,
+        run: () => void handleInstallApp(),
+      });
+    }
+
+    return commands;
+  }, [selectCategory, installAvailable, handleInstallApp]);
 
   // The side navigation mirrors the catalog's filters plus the hub's actions,
   // grouped the same way in both the rail and the phone drawer.
@@ -808,7 +932,19 @@ export function App() {
 
         {installNoticeVisible && (
           <div className="fixed right-3 top-3 z-50 flex max-w-[min(24rem,calc(100vw-1.5rem))] items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 pr-2.5 text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300" role="status">
-            <p className="text-xs leading-relaxed">Add math_games to your home screen to use it like an app and unlock the advanced features.</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs leading-relaxed">Install math_games to use it like an app: its own window, home-screen icon and faster launches.</p>
+              {installAvailable && (
+                <button
+                  type="button"
+                  onClick={() => void handleInstallApp()}
+                  className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 active:scale-[0.98]"
+                >
+                  <Download aria-hidden="true" className="h-3 w-3" />
+                  Install app
+                </button>
+              )}
+            </div>
             <button type="button" aria-label="Close install notice" onClick={() => {
               setInstallNoticeVisible(false);
               try {
@@ -1098,6 +1234,13 @@ export function App() {
       <AdsNudgeModal
         isOpen={adsNudgeOpen}
         onClose={() => setAdsNudgeOpen(false)}
+      />
+
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        commands={commandPaletteCommands}
+        shortcutLabel={typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K"}
       />
 
       <Tour

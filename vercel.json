@@ -93,6 +93,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/settings",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/settings/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/api/mp/:path*",
       "destination": "/api/mp/[...path]"
     },

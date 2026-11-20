@@ -276,7 +276,7 @@ export function LiveMessageBoard({
   React.useEffect(() => {
     const interval = window.setInterval(() => {
       void refreshMessages("poll");
-    }, 35_000);
+    }, 30_000);
     return () => window.clearInterval(interval);
   }, [refreshMessages]);
 

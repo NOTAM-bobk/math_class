@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.4";
+export const SITE_VERSION = "1.6.5";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.5",
+    date: "November 2026",
+    title: "Real screenshots for games without cover art",
+    changes: [
+      "Games that ship no cover art now show a live screenshot of their game page.",
+      "Games that already have real cover art keep using it.",
+      "If a screenshot cannot be captured, the genre artwork still fills in.",
+    ],
+  },
   {
     version: "1.6.4",
     date: "November 2026",

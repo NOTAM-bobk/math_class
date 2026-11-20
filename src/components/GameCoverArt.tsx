@@ -3,7 +3,8 @@ import { gameCoverUrl } from "@/lib/gameCovers";
 
 // The same cover is used by the mosaic catalog cards, the recently played row
 // and the game of the day banner: the game's own artwork where it ships one,
-// then a genre-tinted backdrop with the game's icon, and finally its initials.
+// then a live screenshot of the game page, then a genre-tinted backdrop with
+// the game's icon, and finally its initials.
 
 export interface CoverGame {
   id: string;
@@ -53,6 +54,50 @@ const GENRE_ART: Record<string, string> = {
 };
 const GENERIC_ART = "/covers/genre-generic.jpg";
 
+// The screenshot service fetches pages from its own network, so it cannot see
+// localhost or a password-protected preview host. Games the hub serves itself
+// are captured from the public deployment instead.
+const PUBLIC_GAME_ORIGIN = "https://polytrack.sawyerbobk563.workers.dev";
+const PROXY_HOSTS: Record<string, string> = {
+  og: "https://www.onlinegames.io/",
+  ogc: "https://cloud.onlinegames.io/",
+};
+
+function isLocalHost(hostname: string) {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".localhost") ||
+    hostname.endsWith(".style.dev")
+  );
+}
+
+/** The public page a screenshot should capture, or "" when there is none. */
+function screenshotTarget(url: string) {
+  try {
+    const resolved = new URL(url, window.location.origin);
+    // Proxied games are captured at their own host, not through /api/proxy.
+    const proxy = resolved.pathname.match(/^\/api\/proxy\/(og|ogc)\/(.*)$/);
+    const target = proxy
+      ? `${PROXY_HOSTS[proxy[1]]}${proxy[2]}${resolved.search}`
+      : resolved.origin === window.location.origin
+        ? new URL(
+            `${resolved.pathname}${resolved.search}`,
+            isLocalHost(window.location.hostname) ? PUBLIC_GAME_ORIGIN : window.location.origin
+          ).href
+        : resolved.href;
+    return /^https?:/i.test(target) ? target : "";
+  } catch {
+    return "";
+  }
+}
+
+function gameScreenshotUrl(url: string) {
+  const target = screenshotTarget(url);
+  // Thum.io needs no key; it streams a capture of the page as an image.
+  return target ? `https://image.thum.io/get/width/800/crop/800/${target}` : "";
+}
+
 export function GameCoverArt({
   game,
   accent,
@@ -66,8 +111,10 @@ export function GameCoverArt({
 }) {
   const [iconFailed, setIconFailed] = React.useState(false);
   const [coverFailed, setCoverFailed] = React.useState(false);
+  const [shotFailed, setShotFailed] = React.useState(false);
   const [artFailed, setArtFailed] = React.useState(false);
   const iconUrl = React.useMemo(() => gameIconUrl(game.url), [game.url]);
+  const screenshotUrl = React.useMemo(() => gameScreenshotUrl(game.url), [game.url]);
   const coverUrl = React.useMemo(
     () => gameCoverUrl(game.id) || LOCAL_GAME_COVERS[game.id] || "",
     [game.id]
@@ -75,12 +122,17 @@ export function GameCoverArt({
   const initials = React.useMemo(() => gameInitials(game.name), [game.name]);
   const artUrl = GENRE_ART[accent] ?? GENERIC_ART;
   const showCover = !!coverUrl && !coverFailed;
-  const showArt = !showCover && !artFailed;
-  const showIcon = !showCover && !showArt && !!iconUrl && !iconFailed;
+  const showShot = !showCover && !!screenshotUrl && !shotFailed;
+  const showArt = !showCover && !showShot && !artFailed;
+  const showIcon = !showCover && !showShot && !showArt && !!iconUrl && !iconFailed;
 
   React.useEffect(() => {
     setCoverFailed(false);
   }, [coverUrl]);
+
+  React.useEffect(() => {
+    setShotFailed(false);
+  }, [screenshotUrl]);
 
   React.useEffect(() => {
     setArtFailed(false);
@@ -101,6 +153,15 @@ export function GameCoverArt({
           loading={eager ? "eager" : "lazy"}
           decoding="async"
           onError={() => setCoverFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+      ) : showShot ? (
+        <img
+          src={screenshotUrl}
+          alt=""
+          loading={eager ? "eager" : "lazy"}
+          decoding="async"
+          onError={() => setShotFailed(true)}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
       ) : showArt ? (

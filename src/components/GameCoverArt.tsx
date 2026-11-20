@@ -39,6 +39,20 @@ const LOCAL_GAME_COVERS: Record<string, string> = {
   "polytrack-050": "/0.5.0/images/official_tracks.jpg",
 };
 
+// Most imported games ship no artwork of their own, so each genre has a
+// painted backdrop. It keeps the hero and the cards looking like game art
+// instead of an empty gradient with initials.
+const GENRE_ART: Record<string, string> = {
+  "#ef4444": "/covers/genre-action.jpg",
+  "#eab308": "/covers/genre-driving.jpg",
+  "#22c55e": "/covers/genre-sports.jpg",
+  "#a855f7": "/covers/genre-arcade.jpg",
+  "#06b6d4": "/covers/genre-puzzle.jpg",
+  "#ec4899": "/covers/genre-casual.jpg",
+  "#f97316": "/covers/genre-flash.jpg",
+};
+const GENERIC_ART = "/covers/genre-generic.jpg";
+
 export function GameCoverArt({
   game,
   accent,
@@ -52,18 +66,25 @@ export function GameCoverArt({
 }) {
   const [iconFailed, setIconFailed] = React.useState(false);
   const [coverFailed, setCoverFailed] = React.useState(false);
+  const [artFailed, setArtFailed] = React.useState(false);
   const iconUrl = React.useMemo(() => gameIconUrl(game.url), [game.url]);
   const coverUrl = React.useMemo(
     () => gameCoverUrl(game.id) || LOCAL_GAME_COVERS[game.id] || "",
     [game.id]
   );
   const initials = React.useMemo(() => gameInitials(game.name), [game.name]);
+  const artUrl = GENRE_ART[accent] ?? GENERIC_ART;
   const showCover = !!coverUrl && !coverFailed;
-  const showIcon = !showCover && !!iconUrl && !iconFailed;
+  const showArt = !showCover && !artFailed;
+  const showIcon = !showCover && !showArt && !!iconUrl && !iconFailed;
 
   React.useEffect(() => {
     setCoverFailed(false);
   }, [coverUrl]);
+
+  React.useEffect(() => {
+    setArtFailed(false);
+  }, [artUrl]);
 
   return (
     <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
@@ -80,6 +101,15 @@ export function GameCoverArt({
           loading={eager ? "eager" : "lazy"}
           decoding="async"
           onError={() => setCoverFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+      ) : showArt ? (
+        <img
+          src={artUrl}
+          alt=""
+          loading={eager ? "eager" : "lazy"}
+          decoding="async"
+          onError={() => setArtFailed(true)}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
       ) : (

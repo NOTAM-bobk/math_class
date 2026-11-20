@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Star, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff } from "lucide-react";
+import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
@@ -62,7 +62,7 @@ function loadFavorites(): string[] {
 export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
   { id: "recent", label: "🕘 Recently played" },
-  { id: "favorites", label: "⭐ Favorites" },
+  { id: "favorites", label: "❤️ Favorites" },
   { id: "editors", label: "✨ Editor’s Pick" },
   { id: "verified", label: "✅ Verified" },
   { id: "hidden", label: "🙈 Hidden" },
@@ -117,6 +117,27 @@ function gameAccent(game: GameItem) {
 
 export type SpecialFilterId = "buggy" | "blocked";
 export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilterId;
+
+// Readable names for the catalog heading, e.g. "82 games in Driving".
+const CATEGORY_NAMES: Record<CategoryId, string> = {
+  all: "All Games",
+  recent: "Recently played",
+  favorites: "Favorites",
+  editors: "Editor’s picks",
+  verified: "Verified",
+  hidden: "Hidden games",
+  trending: "Trending",
+  offline: "Offline",
+  flash: "Flash",
+  action: "Action",
+  driving: "Driving",
+  sports: "Sports",
+  arcade: "Arcade",
+  puzzle: "Puzzle",
+  casual: "Casual",
+  buggy: "Error: bug",
+  blocked: "Blocked",
+};
 
 type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 
@@ -620,7 +641,7 @@ function GameCard({
             title={isFavorite ? "Remove from favorites" : "Add to favorites"}
             className="relative z-20 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full bg-black/45 text-zinc-300 backdrop-blur-sm transition hover:bg-black/70 hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 active:scale-90"
           >
-            <Star
+            <Heart
               aria-hidden="true"
               className={`pointer-events-none h-3.5 w-3.5 ${
                 isFavorite
@@ -825,7 +846,7 @@ function GameCard({
               title={isFavorite ? "Remove from favorites" : "Add to favorites"}
               className="relative z-20 group/fav inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.12] hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 active:scale-90"
             >
-              <Star
+              <Heart
                 aria-hidden="true"
                 className={`h-4 w-4 pointer-events-none transition-colors ${
                   isFavorite
@@ -1490,6 +1511,21 @@ export function GameCatalog({
     };
   }, [searchQuery, games]);
 
+  // The ten most played games drive both the Trending view and its Top 10
+  // chart, ranked like a streaming service.
+  const trendingGames = React.useMemo(
+    () =>
+      games
+        .filter((game) => !game.disabled && !hiddenGames[game.id])
+        .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
+        .slice(0, 10),
+    [games, hiddenGames]
+  );
+  const trendingIds = React.useMemo(
+    () => new Set(trendingGames.map((game) => game.id)),
+    [trendingGames]
+  );
+
   const filteredGames = React.useMemo(() => {
     const trimmedQuery = searchQuery.trim();
     const usingServer = trimmedQuery.length >= 2 && serverMatches !== null;
@@ -1508,7 +1544,7 @@ export function GameCatalog({
     } else if (selectedCategory === "hidden") {
       list = list.filter((game) => !!hiddenGames[game.id]);
     } else if (selectedCategory === "trending") {
-      list = list.filter((game) => popularGameIds.has(game.id));
+      list = list.filter((game) => trendingIds.has(game.id));
     } else if (selectedCategory === "buggy") {
       list = list.filter((game) => buggyIds.has(game.id) || !!game.errorBug);
     } else if (selectedCategory === "blocked") {
@@ -1526,7 +1562,7 @@ export function GameCatalog({
         .toLowerCase();
       return terms.every((term) => searchableText.includes(term));
     });
-  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, popularGameIds, hiddenGames, searchQuery, serverMatches, offlinePackIds, recentIds]);
+  }, [games, selectedCategory, favoriteIds, buggyIds, blockedIds, verifiedIds, trendingIds, hiddenGames, searchQuery, serverMatches, offlinePackIds, recentIds]);
 
   const playableGames = React.useMemo(
     () => filteredGames.filter((game) => !game.disabled),
@@ -1586,20 +1622,27 @@ export function GameCatalog({
     return game;
   }, [games, gameOfTheDayId, hiddenGames]);
 
-  // The hero cycles through the admin's pick for today plus the most-played
-  // games. The dots under the card report and switch the active game.
-  const heroGames = React.useMemo(() => {
-    const picks = gameOfTheDay ? [gameOfTheDay] : [];
-    const candidates = games
-      .filter(
-        (game) =>
-          !game.disabled &&
-          !hiddenGames[game.id] &&
-          !picks.some((pick) => pick.id === game.id)
-      )
-      .sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
-    return [...picks, ...candidates].slice(0, 5);
+  // The hero always has a base game: the admin's pick for today, or the
+  // most-played game in the catalog when no pick has been set.
+  const topGameToday = React.useMemo(() => {
+    if (gameOfTheDay) return gameOfTheDay;
+    const candidates = games.filter((game) => !game.disabled && !hiddenGames[game.id]);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, game) =>
+      (game.clicks || 0) > (best.clicks || 0) ? game : best
+    );
   }, [gameOfTheDay, games, hiddenGames]);
+
+  // The hero rotates through the editor's picks, starting with today's pick
+  // (or the most played game when no pick has been set). The dots below the
+  // card report and switch the active game.
+  const heroGames = React.useMemo(() => {
+    const picks = games.filter(
+      (game) => !!game.editorsPick && !game.disabled && !hiddenGames[game.id]
+    );
+    if (!topGameToday) return picks;
+    return [topGameToday, ...picks.filter((game) => game.id !== topGameToday.id)];
+  }, [games, hiddenGames, topGameToday]);
 
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [heroPaused, setHeroPaused] = React.useState(false);
@@ -1616,7 +1659,7 @@ export function GameCatalog({
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const timer = window.setInterval(() => {
       setHeroIndex((index) => (index + 1) % heroGames.length);
-    }, 6000);
+    }, 5000);
     return () => window.clearInterval(timer);
   }, [heroGames.length, heroPaused, heroCycle]);
 
@@ -1651,71 +1694,41 @@ export function GameCatalog({
     <div className="solid-3d-panel flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* Catalog top controls with search and category filters */}
       <div className="flex shrink-0 flex-col gap-2 border-b border-white/[0.06] p-2.5 sm:gap-2.5 sm:p-4">
-        <span role="status" aria-live="polite" className="sr-only">
-          {serverSearching ? "Searching…" : ""}
-        </span>
-
-        {/* Category Filter Chips Bar near search */}
-        <div className="flex min-w-0 items-center gap-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            <div className="relative min-w-0 flex-1">
-            <div
-              data-tour-target="game-categories"
-              role="group"
-              aria-label="Filter games by category"
-              className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pt-0.5 pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        <div
+          data-tour-target="game-categories"
+          className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <h2
+              aria-live="polite"
+              className="flex min-w-0 items-baseline gap-1.5 truncate text-sm font-semibold text-zinc-100 sm:text-[15px]"
             >
-              {CATEGORY_FILTERS.map((cat) => {
-                // Downloaded games are only useful with no connection, so the
-                // filter only exists while the browser is offline.
-                if (cat.id === OFFLINE_CATEGORY && !offlineNow) return null;
-                const active = selectedCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => {
-                      onSelectCategory(cat.id);
-                      posthog.capture("catalog_filter_applied", {
-                        filter_type: "category",
-                        filter_value: cat.id,
-                      });
-                    }}
-                    style={{
-                      ...CHIP_STYLE,
-                      borderRadius: 20,
-                      background: active ? "#ffffff" : "rgba(255, 255, 255, 0.04)",
-                      color: active ? "#09090b" : cat.id === "favorites" && favoriteIds.size > 0 ? "#fbbf24" : "#d4d4d8",
-                      fontWeight: active ? 600 : 500,
-                      boxShadow: active
-                        ? "0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
-                        : "inset 0 0 0 1px rgba(255, 255, 255, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
-                    }}
-                    className="inline-flex shrink-0 items-center gap-1 px-3 py-1 text-[11px] transition hover:text-white active:scale-95"
-                  >
-                    {CATEGORY_ACCENTS[cat.id] && (
-                      <span
-                        aria-hidden="true"
-                        className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ background: CATEGORY_ACCENTS[cat.id] }}
-                      />
-                    )}
-                    <span>{cat.label}</span>
-                    {cat.id === "favorites" && favoriteIds.size > 0 && (
-                      <span className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-mono leading-tight ${active ? "bg-zinc-900/10 text-zinc-900 font-bold" : "bg-amber-400/20 text-amber-300"}`}>
-                        {favoriteIds.size}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Soft blur over the clipped edges of the scrolling chip row. */}
-            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,transparent)] [-webkit-mask-image:linear-gradient(to_right,black,transparent)]" />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_left,black,transparent)] [-webkit-mask-image:linear-gradient(to_left,black,transparent)]" />
-            </div>
-
+              {CATEGORY_ACCENTS[selectedCategory] && (
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 shrink-0 self-center rounded-full"
+                  style={{ background: CATEGORY_ACCENTS[selectedCategory] }}
+                />
+              )}
+              {serverSearching ? (
+                <span className="font-normal text-zinc-400">Searching…</span>
+              ) : (
+                <>
+                  <span className="tabular-nums">{filteredGames.length}</span>
+                  <span className="font-normal text-zinc-400">
+                    {filteredGames.length === 1 ? "game" : "games"} in
+                  </span>
+                  <span className="truncate">{CATEGORY_NAMES[selectedCategory]}</span>
+                </>
+              )}
+              {!serverSearching && searchQuery.trim() && (
+                <span className="truncate text-[12px] font-normal text-zinc-500">
+                  for “{searchQuery.trim()}”
+                </span>
+              )}
+            </h2>
+          </div>
+          <div className="flex min-w-0 items-center gap-1.5">
             <div className="relative shrink-0" ref={filterRef}>
               <button
                 ref={filterButtonRef}
@@ -1841,7 +1854,7 @@ export function GameCatalog({
         <div className="flex flex-col gap-4">
           {/* The top games carousel scrolls with the catalog, just below the filters. */}
           {!isFiltered && heroGames.length > 0 && (
-            <section aria-label="Top game today" className="flex flex-col gap-2">
+            <section aria-labelledby="top-game-heading" className="flex flex-col gap-2">
               <div
                 role="group"
                 aria-roledescription="carousel"
@@ -1849,10 +1862,10 @@ export function GameCatalog({
                 onMouseLeave={() => setHeroPaused(false)}
                 onFocusCapture={() => setHeroPaused(true)}
                 onBlurCapture={() => setHeroPaused(false)}
-                className="relative h-[8.75rem] overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] sm:h-[10.5rem]"
+                className="relative h-[9rem] overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] sm:h-[10.5rem]"
               >
                 {heroGames.map((game, index) => {
-                  const active = index === heroIndex;
+                  const active = index === heroIndex % heroGames.length;
                   return (
                     <a
                       key={game.id}
@@ -1878,9 +1891,12 @@ export function GameCatalog({
                         <div className="min-w-0">
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />
-                            {index === 0 ? "#1 game today" : "Popular right now"}
+                            {game.editorsPick ? "Editor’s pick" : "#1 game today"}
                           </span>
-                          <h2 className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
+                          <h2
+                            id={active ? "top-game-heading" : undefined}
+                            className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl"
+                          >
                             {game.name}
                           </h2>
                           <p className="mt-0.5 line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">
@@ -1909,7 +1925,7 @@ export function GameCatalog({
                   className="flex items-center justify-center gap-1"
                 >
                   {heroGames.map((game, index) => {
-                    const active = index === heroIndex;
+                    const active = index === heroIndex % heroGames.length;
                     return (
                       <button
                         key={game.id}
@@ -2038,6 +2054,52 @@ export function GameCatalog({
             </div>
           )}
 
+          {selectedCategory === "trending" && !searching && trendingGames.length > 0 && (
+            <section aria-labelledby="top-ten-heading" className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-2">
+                <h3
+                  id="top-ten-heading"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200"
+                >
+                  <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
+                  Top 10 <span aria-hidden="true">🔥</span> today
+                </h3>
+                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+                <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                  Most played
+                </span>
+              </div>
+              <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                {trendingGames.map((game, index) => (
+                  <a
+                    key={game.id}
+                    href={game.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(event) => launchGame(game, event)}
+                    aria-label={`Number ${index + 1}: ${game.name}`}
+                    className="group flex shrink-0 snap-start items-stretch gap-1 rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="flex w-11 items-end justify-center pb-6 text-4xl font-black leading-none tabular-nums text-white/20 transition-colors group-hover:text-amber-300/80"
+                    >
+                      {index + 1}
+                    </span>
+                    <span className="relative block aspect-[3/4] w-24 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition-colors group-hover:border-amber-300/40">
+                      <GameCoverArt game={game} accent={gameAccent(game)} compact />
+                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/75 to-transparent px-1.5 pb-1.5 pt-5">
+                        <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-white">
+                          {game.name}
+                        </span>
+                      </span>
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
           {playableGames.length > 0 && (
             <section aria-labelledby="catalog-play-heading" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
@@ -2132,12 +2194,12 @@ export function GameCatalog({
                 </>
               ) : selectedCategory === "favorites" ? (
                 <>
-                  <Star className="h-8 w-8 text-amber-400/50" aria-hidden="true" />
+                  <Heart className="h-8 w-8 text-amber-400/50" aria-hidden="true" />
                   <p className="text-sm font-medium text-zinc-300">
                     No favorite games yet
                   </p>
                   <p className="max-w-[18rem] text-xs leading-relaxed text-zinc-500">
-                    Click the star on any game card to bookmark your favorites for quick access!
+                    Click the heart on any game card to bookmark your favorites for quick access!
                   </p>
                 </>
               ) : (
@@ -2214,7 +2276,7 @@ export function GameCatalog({
                   title={favoriteIds.has(launcherGame.id) ? "Remove from favorites" : "Add to favorites"}
                   className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-amber-300 active:scale-95"
                 >
-                  <Star
+                  <Heart
                     aria-hidden="true"
                     className={`h-4 w-4 ${
                       favoriteIds.has(launcherGame.id)

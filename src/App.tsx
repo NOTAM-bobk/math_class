@@ -1,4 +1,5 @@
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { GameCatalog, initialCategory, initialSearchQuery, type CategoryId } from "./components/GameCatalog";
 import { SideNav, SideNavDrawer, type SideNavSection } from "./components/SideNav";
 import { PanicButton } from "./components/PanicButton";
@@ -54,6 +55,7 @@ import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
 import { hasPassedBotChallenge, startStartupBotCheck } from "./lib/botDetection";
 import { loadCatalog } from "./lib/catalog";
+import { useDialogFocus } from "./lib/dialogFocus";
 import {
   CHAT_COMPOSER_TARGET,
   getOnboardingSteps,
@@ -200,7 +202,17 @@ export function App() {
     }
   });
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
+  // Chat opened from the side navigation takes over the middle of the screen,
+  // instead of living in its usual narrow column.
+  const [chatFocusOpen, setChatFocusOpen] = React.useState(false);
+  const chatDialogRef = React.useRef<HTMLDivElement>(null);
   const searchRef = React.useRef<HTMLInputElement>(null);
+
+  useDialogFocus({
+    active: chatFocusOpen,
+    onClose: () => setChatFocusOpen(false),
+    panelRef: chatDialogRef,
+  });
 
   // First-visit walkthrough; the storage flag keeps it to one showing.
   const onboarding = useTour(ONBOARDING_STORAGE_KEY);
@@ -470,6 +482,8 @@ export function App() {
   const selectCategory = React.useCallback((category: CategoryId) => {
     setSelectedCategory(category);
     setMobileNavOpen(false);
+    setChatFocusOpen(false);
+    setMobilePanel("games");
   }, []);
 
   // The side navigation mirrors the catalog's filters plus the hub's actions,
@@ -517,10 +531,10 @@ export function App() {
                   id: "chat",
                   label: "Community chat",
                   icon: MessageCircle,
+                  active: chatFocusOpen,
                   onSelect: () => {
                     setMobileNavOpen(false);
-                    setMobilePanel("chat");
-                    document.getElementById("chat-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    setChatFocusOpen(true);
                   },
                 },
               ]
@@ -531,7 +545,7 @@ export function App() {
             icon: Sparkles,
             onSelect: () => {
               setMobileNavOpen(false);
-              window.open("/ai/", "_blank", "noopener,noreferrer");
+              window.location.assign("/ai/");
             },
           },
           {
@@ -540,7 +554,7 @@ export function App() {
             icon: Compass,
             onSelect: () => {
               setMobileNavOpen(false);
-              window.open("/outside/", "_blank", "noopener,noreferrer");
+              window.location.assign("/outside/");
             },
           },
           {
@@ -564,7 +578,7 @@ export function App() {
         ],
       },
     ];
-  }, [selectedCategory, selectCategory, sideChatEnabled, openBugReport]);
+  }, [selectedCategory, selectCategory, sideChatEnabled, chatFocusOpen, openBugReport]);
 
   // Animate the collapse over the links' real width: transitioning a fixed max-width
   // leaves dead time before the links start to shrink, which reads as a snap.
@@ -792,6 +806,33 @@ export function App() {
           onClose={() => setMobileNavOpen(false)}
         />
 
+        {/* The community chat on its own, centred and much wider than its column. */}
+        {chatFocusOpen && sideChatEnabled &&
+          createPortal(
+            <div className="fixed inset-0 z-[80] flex items-center justify-center p-2 sm:p-6">
+              <div
+                aria-hidden="true"
+                onClick={() => setChatFocusOpen(false)}
+                className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+              />
+              <div
+                ref={chatDialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Community chat"
+                tabIndex={-1}
+                className="relative flex h-[min(46rem,calc(100dvh-1rem))] w-full max-w-5xl flex-col overflow-hidden outline-none animate-in fade-in zoom-in-95 duration-200 sm:h-[min(46rem,calc(100dvh-3rem))]"
+              >
+                <LiveMessageBoard
+                  showAds={adsVisible}
+                  title="Community chat"
+                  onClose={() => setChatFocusOpen(false)}
+                />
+              </div>
+            </div>,
+            document.body
+          )}
+
         <nav
           aria-label="Mobile navigation"
           className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-center bg-gradient-to-t from-zinc-950/95 via-zinc-950/70 to-transparent px-3 pt-3 pb-[calc(0.4rem+env(safe-area-inset-bottom))] md:hidden"
@@ -928,7 +969,10 @@ export function App() {
         onSideChatChange={(enabled) => {
           localStorage.setItem("polytrack_side_chat_enabled", enabled ? "true" : "false");
           setSideChatEnabled(enabled);
-          if (!enabled) setMobilePanel("games");
+          if (!enabled) {
+            setMobilePanel("games");
+            setChatFocusOpen(false);
+          }
         }}
       />
         </React.Suspense>

@@ -11,6 +11,10 @@ const CHAT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 // than a single bound value, and the worker only has a database binding.
 const CHAT_IMAGE_MAX_BYTES = 500 * 1024;
 const CHAT_IMAGE_CHUNK_BYTES = 48 * 1024;
+// Photos are kept for a month. The deployment has no scheduled trigger, so the
+// sweep runs when the chat is used, at most once an hour.
+const CHAT_IMAGE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const CHAT_IMAGE_SWEEP_MS = 60 * 60 * 1000;
 let ready;
 
 const cors = (r) => {
@@ -107,6 +111,9 @@ function schema(e) {
       e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS chat_image_chunks(image_id TEXT NOT NULL,idx INTEGER NOT NULL,data BLOB NOT NULL,PRIMARY KEY(image_id,idx))"
       ),
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS chat_maintenance(key TEXT PRIMARY KEY,ran_at TEXT NOT NULL)"
+      ),
     ])
       // Deployments created before the "not mobile optimized" tag have a game_flags
       // table without its column, so add it once instead of failing every flag read.
@@ -157,8 +164,38 @@ async function checkRateLimit(db, key, maxRequests, windowSeconds) {
   }
 }
 
+// Expired photos are dropped before the chat reads or writes, throttled through
+// the maintenance row so a busy chat still only sweeps once an hour.
+async function sweepChatImages(e) {
+  try {
+    const now = Date.now();
+    const last = await e.DB.prepare("SELECT ran_at FROM chat_maintenance WHERE key = 'image_sweep'").first();
+    const lastRun = last ? Date.parse(last.ran_at) : 0;
+    if (Number.isFinite(lastRun) && now - lastRun < CHAT_IMAGE_SWEEP_MS) return;
+
+    const cutoff = new Date(now - CHAT_IMAGE_TTL_MS).toISOString();
+    await e.DB.batch([
+      // Chunks first, then the messages pointing at the photo, then the photo
+      // row itself; the subquery still sees the expired rows at that point.
+      e.DB.prepare(
+        "DELETE FROM chat_image_chunks WHERE image_id IN (SELECT id FROM chat_images WHERE created_at < ?)"
+      ).bind(cutoff),
+      e.DB.prepare(
+        "UPDATE chat_messages SET image_url = '' WHERE image_url IN (SELECT '/api/chat/images/' || id FROM chat_images WHERE created_at < ?)"
+      ).bind(cutoff),
+      e.DB.prepare("DELETE FROM chat_images WHERE created_at < ?").bind(cutoff),
+      e.DB.prepare(
+        "INSERT INTO chat_maintenance (key,ran_at) VALUES('image_sweep',?) ON CONFLICT(key) DO UPDATE SET ran_at = excluded.ran_at"
+      ).bind(new Date(now).toISOString()),
+    ]);
+  } catch {
+    // A failed sweep must never break the chat; the next visit tries again.
+  }
+}
+
 async function messages(r, e) {
   if (r.method === "GET") {
+    await sweepChatImages(e);
     const q = await e.DB.prepare(
       "SELECT id,created_at,author,text,image_url FROM chat_messages ORDER BY created_at DESC LIMIT 100"
     ).all();
@@ -205,6 +242,7 @@ async function resolveChatImage(e, value) {
 
 async function uploadChatImage(r, e) {
   if (r.method !== "POST") return fail(r, "Use POST to upload a chat photo.", 405);
+  await sweepChatImages(e);
   const ipHash = await digest(ip(r));
   const rl = await checkRateLimit(e.DB, "chat_image:" + ipHash, 8, 600);
   if (!rl.allowed) {

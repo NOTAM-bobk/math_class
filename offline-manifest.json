@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-20T19:40:15.062Z",
-  "totalBytes": 347013285,
+  "generatedAt": "2026-11-20T21:59:33.558Z",
+  "totalBytes": 347234866,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 16537
+      "bytes": 16640
     },
     {
       "url": "/manifest.json",
@@ -65,15 +65,23 @@
     },
     {
       "url": "/images/app-icon-192.png",
-      "bytes": 9188
+      "bytes": 38717
     },
     {
       "url": "/images/app-icon-512.png",
-      "bytes": 5191
+      "bytes": 158038
     },
     {
       "url": "/images/app-icon.svg",
-      "bytes": 1437
+      "bytes": 3106
+    },
+    {
+      "url": "/images/apple-touch-icon.png",
+      "bytes": 35078
+    },
+    {
+      "url": "/images/favicon-32.png",
+      "bytes": 2355
     },
     {
       "url": "/games/2048.html",

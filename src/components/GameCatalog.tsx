@@ -1554,6 +1554,17 @@ export function GameCatalog({
     return game;
   }, [games, gameOfTheDayId, hiddenGames]);
 
+  // The hero always has a game: the admin's pick for today, or the most-played
+  // game in the catalog when no pick has been set.
+  const topGameToday = React.useMemo(() => {
+    if (gameOfTheDay) return gameOfTheDay;
+    const candidates = games.filter((game) => !game.disabled && !hiddenGames[game.id]);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, game) =>
+      (game.clicks || 0) > (best.clicks || 0) ? game : best
+    );
+  }, [gameOfTheDay, games, hiddenGames]);
+
   const recentGameItems = React.useMemo(() => {
     const byId = new Map(games.map((game) => [game.id, game]));
     return loadRecentGames()
@@ -1577,6 +1588,45 @@ export function GameCatalog({
 
   return (
     <div className="solid-3d-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+      {/* Hero: the number one game today, fixed at the very top of the catalog. */}
+      {!isFiltered && topGameToday && (
+        <section aria-labelledby="top-game-heading" className="shrink-0 px-2.5 pt-2.5 sm:px-4 sm:pt-4">
+          <a
+            href={topGameToday.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => launchGame(topGameToday, event)}
+            className="group relative flex min-h-[7rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[8.5rem] sm:p-4"
+          >
+            <GameCoverArt game={topGameToday} accent={gameAccent(topGameToday)} />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+            <div className="relative z-10 flex w-full flex-wrap items-end justify-between gap-3">
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+                  <Flame aria-hidden="true" className="h-3 w-3" />
+                  #1 game today
+                </span>
+                <h2 id="top-game-heading" className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
+                  {topGameToday.name}
+                </h2>
+                <p className="mt-0.5 line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">
+                  {topGameToday.description}
+                </p>
+                {(topGameToday.clicks || 0) > 0 && (
+                  <p className="mt-1 text-[10px] font-medium text-zinc-400">
+                    {(topGameToday.clicks || 0).toLocaleString()} plays
+                  </p>
+                )}
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
+                <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
+                Play
+              </span>
+            </div>
+          </a>
+        </section>
+      )}
+
       {/* Catalog top controls with search and category filters */}
       <div className="flex shrink-0 flex-col gap-2 border-b border-white/[0.06] p-2.5 sm:gap-2.5 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -1827,39 +1877,6 @@ export function GameCatalog({
                 <X aria-hidden="true" className="h-3 w-3" />
               </button>
             </div>
-          )}
-
-          {!isFiltered && gameOfTheDay && (
-            <section aria-labelledby="catalog-daily-heading" className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-2">
-                <h3 id="catalog-daily-heading" className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                  <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
-                  Game of the day
-                </h3>
-                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">Today&rsquo;s pick</span>
-              </div>
-              <a
-                href={gameOfTheDay.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => launchGame(gameOfTheDay, event)}
-                className="group relative flex min-h-[7.5rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[9rem] sm:p-4"
-              >
-                <GameCoverArt game={gameOfTheDay} accent={gameAccent(gameOfTheDay)} />
-                <div className="relative z-10 flex w-full items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">Game of the day</span>
-                    <p className="truncate text-lg font-bold tracking-tight text-white sm:text-xl">{gameOfTheDay.name}</p>
-                    <p className="line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">{gameOfTheDay.description}</p>
-                  </div>
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
-                    <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
-                    Play
-                  </span>
-                </div>
-              </a>
-            </section>
           )}
 
           {!isFiltered && recentGameItems.length > 0 && (
@@ -2121,7 +2138,7 @@ export function GameCatalog({
                 >
                   <RotateCcw aria-hidden="true" className="h-4 w-4" />
                 </button>
-                <PanicButton compact />
+                <PanicButton />
                 <a
                   href={launcherGame.url}
                   target="_blank"

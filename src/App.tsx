@@ -77,6 +77,12 @@ const CHIP_STYLE: React.CSSProperties = {
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
 
+const ICON_BUTTON_STYLE: React.CSSProperties = {
+  borderRadius: 999,
+  background: "rgba(255, 255, 255, 0.06)",
+  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.06)",
+};
+
 function BackgroundWrapper({
   config,
   children,
@@ -685,13 +691,12 @@ export function App() {
                 aria-label="Settings"
                 aria-haspopup="dialog"
                 aria-expanded={settingsOpen}
-                style={CHIP_STYLE}
-                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-none sm:px-3 sm:py-1"
+                style={ICON_BUTTON_STYLE}
+                className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.12] hover:text-white active:scale-[0.98]"
               >
-                <Settings aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden md:inline">Settings</span>
+                <Settings aria-hidden="true" className="h-4 w-4" />
               </button>
-              <PanicButton compact />
+              <PanicButton />
             </div>
           </div>
         </header>

@@ -56,6 +56,10 @@
         {
           "key": "Cache-Control",
           "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         }
       ]
     },
@@ -132,6 +136,14 @@
     {
       "source": "/api/avatar/:path*",
       "destination": "/api/avatar"
+    },
+    {
+      "source": "/api/version",
+      "destination": "/version.json"
+    },
+    {
+      "source": "/api/version/",
+      "destination": "/version.json"
     },
     {
       "source": "/api/games/flags",

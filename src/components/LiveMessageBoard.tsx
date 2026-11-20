@@ -570,6 +570,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
 
       {/* Input Form with Enter-to-send */}
       <form
+        data-tour-target="chat-composer"
         onSubmit={handleSendMessage}
         className="p-2.5 sm:p-3 border-t border-white/[0.04] flex items-center gap-2 shrink-0 bg-[#191919]"
       >

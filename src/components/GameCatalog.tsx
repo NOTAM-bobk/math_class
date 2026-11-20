@@ -1659,6 +1659,7 @@ export function GameCatalog({
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <div className="relative min-w-0 flex-1">
             <div
+              data-tour-target="game-categories"
               role="group"
               aria-label="Filter games by category"
               className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pt-0.5 pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"

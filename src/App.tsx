@@ -8,7 +8,7 @@ import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
 import { AdsNudgeModal } from "./components/AdsNudgeModal";
-import { FeatureTooltips } from "./components/FeatureTooltips";
+import { Tour, useTour } from "./components/Tour";
 import { BotChallengeGate } from "./components/BotChallengeGate";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
@@ -28,6 +28,7 @@ import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
 import { hasPassedBotChallenge, startStartupBotCheck } from "./lib/botDetection";
 import { loadCatalog } from "./lib/catalog";
+import { ONBOARDING_STORAGE_KEY, onboardingSteps } from "./lib/onboardingSteps";
 
 // The settings, admin and change log dialogs are large and most visits never
 // open them, so each one is a separate chunk loaded on first use.
@@ -155,6 +156,15 @@ export function App() {
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [bgConfig, setBgConfig] = React.useState<BackgroundConfig>(loadBackgroundConfig);
+
+  // First-visit walkthrough; the storage flag keeps it to one showing.
+  const onboarding = useTour(ONBOARDING_STORAGE_KEY);
+  const {
+    open: onboardingOpen,
+    setOpen: setOnboardingOpen,
+    index: onboardingIndex,
+    setIndex: setOnboardingIndex,
+  } = onboarding;
 
   React.useEffect(() => {
     document.getElementById("boot-loader")?.remove();
@@ -316,6 +326,40 @@ export function App() {
 
   const isLocked = siteLockEnabled && siteLockPassword.trim().length > 0 && !isUnlocked;
 
+  // On phones the chat lives in its own panel, so switch to it while the tour
+  // is on that step and go back to the games panel when the tour closes.
+  const handleTourIndexChange = React.useCallback(
+    (nextIndex: number) => {
+      setOnboardingIndex(nextIndex);
+      if (window.matchMedia("(max-width: 767px)").matches) {
+        const target = onboardingSteps[nextIndex]?.target;
+        setMobilePanel(target === '[data-tour-target="chat-composer"]' ? "chat" : "games");
+      }
+    },
+    [setOnboardingIndex]
+  );
+
+  const handleTourOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOnboardingOpen(nextOpen);
+      if (!nextOpen && window.matchMedia("(max-width: 767px)").matches) {
+        setMobilePanel("games");
+      }
+    },
+    [setOnboardingOpen]
+  );
+
+  // Show the walkthrough once, after the intro reveal and any gate has cleared.
+  React.useEffect(() => {
+    if (isLocked || showLoadReveal || botChallengePending || onboarding.seen()) return;
+    const timer = window.setTimeout(() => {
+      // The shortcut chips sit behind the collapsed nav; open it for the tour.
+      setNavCollapsed(false);
+      onboarding.start();
+    }, 1600);
+    return () => window.clearTimeout(timer);
+  }, [isLocked, showLoadReveal, botChallengePending, onboarding.seen, onboarding.start]);
+
   // Remember whether the nav options are open or closed between visits.
   const bugReturnUrlRef = React.useRef("/");
 
@@ -461,7 +505,7 @@ export function App() {
               >
                 <button
                   type="button"
-                  data-hint-target="submit-game"
+                  data-tour-target="submit-game"
                   aria-label="Submit a game"
                   aria-haspopup="dialog"
                   aria-expanded={submitModalOpen}
@@ -488,7 +532,7 @@ export function App() {
             <div className="order-2 ml-0 flex shrink-0 items-center gap-1 sm:ml-auto sm:gap-2">
               <button
                 type="button"
-                data-hint-target="settings"
+                data-tour-target="settings"
                 onClick={() => setSettingsOpen(true)}
                 title="Settings & Site Lock"
                 aria-label="Settings"
@@ -630,7 +674,7 @@ export function App() {
             <div className="hidden items-center gap-1.5 sm:flex">
               <button
                 type="button"
-                data-hint-target="bug-report"
+                data-tour-target="bug-report"
                 onClick={() => openBugReport()}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer ${
                   footerIsLight ? "text-black/80 hover:text-black hover:bg-black/[0.07]" : "text-zinc-300 hover:text-white hover:bg-white/[0.08]"
@@ -751,7 +795,17 @@ export function App() {
         onClose={() => setAdsNudgeOpen(false)}
       />
 
-      <FeatureTooltips />
+      <Tour
+        steps={onboardingSteps}
+        open={onboardingOpen}
+        onOpenChange={handleTourOpenChange}
+        index={onboardingIndex}
+        onIndexChange={handleTourIndexChange}
+        onFinish={onboarding.markSeen}
+        onSkip={onboarding.markSeen}
+        showProgress
+        dark
+      />
     </BackgroundWrapper>
   );
 }

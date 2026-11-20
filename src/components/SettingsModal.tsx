@@ -6,6 +6,7 @@ import { getUpdateHistoryDays } from "@/lib/updateHistory";
 import { SYSTEM_FONTS, getStoredSystemFont, applySystemFont } from "@/lib/systemFont";
 import { CHANGELOG, SITE_VERSION } from "@/lib/changelog";
 import { useDialogFocus } from "@/lib/dialogFocus";
+import { testFrameLoad } from "@/lib/frameReachability";
 import {
   BACKGROUND_PRESETS,
   loadBackgroundConfig,
@@ -110,50 +111,6 @@ const SITE_MIRRORS = [
 ];
 
 type ProxyCheckStatus = "idle" | "checking" | "reachable" | "blocked";
-
-/** Loads a proxy in an invisible frame; a load error or timeout means it did not load. */
-function testMirrorFrame(
-  url: string,
-  timeoutMs = 9000,
-  signal?: AbortSignal,
-): Promise<"reachable" | "blocked"> {
-  return new Promise((resolve) => {
-    const iframe = document.createElement("iframe");
-    iframe.setAttribute("aria-hidden", "true");
-    iframe.tabIndex = -1;
-    iframe.title = `Connectivity check for ${url}`;
-    Object.assign(iframe.style, {
-      position: "fixed",
-      left: "-10000px",
-      top: "0",
-      width: "1px",
-      height: "1px",
-      opacity: "0",
-      pointerEvents: "none",
-      border: "0",
-    });
-
-    let settled = false;
-    const finish = (result: "reachable" | "blocked") => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timer);
-      iframe.remove();
-      resolve(result);
-    };
-    const timer = window.setTimeout(() => finish("blocked"), timeoutMs);
-    const abort = () => finish("blocked");
-    if (signal?.aborted) {
-      finish("blocked");
-      return;
-    }
-    signal?.addEventListener("abort", abort, { once: true });
-    iframe.addEventListener("load", () => finish("reachable"), { once: true });
-    iframe.addEventListener("error", () => finish("blocked"), { once: true });
-    iframe.src = url;
-    document.body.appendChild(iframe);
-  });
-}
 
 type DesktopTab = "account" | "general" | "install" | "shortcuts" | "stats" | "streak" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "offline" | "proxies" | "changelog" | "admin";
 
@@ -469,7 +426,7 @@ export function SettingsModal({
         Object.fromEntries(SITE_MIRRORS.map((mirror) => [mirror.url, "checking" as ProxyCheckStatus]))
       );
       for (const mirror of SITE_MIRRORS) {
-        void testMirrorFrame(mirror.url, mirror.timeoutMs, controller.signal).then((result) => {
+        void testFrameLoad(mirror.url, mirror.timeoutMs, controller.signal).then((result) => {
           if (cancelled) return;
           setProxyStatus((current) => ({ ...current, [mirror.url]: result }));
         });

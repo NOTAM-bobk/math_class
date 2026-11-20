@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff } from "lucide-react";
+import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
@@ -24,6 +24,7 @@ import { PartnerBanner, PartnerNativeAd, pickPartnerBannerSize, type PartnerBann
 import { PanicButton } from "./PanicButton";
 import { RANDOM_GAME_EVENT } from "./RandomGameButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
+import { testFrameLoad } from "@/lib/frameReachability";
 import { loadCatalog } from "@/lib/catalog";
 import { markFeedbackPromptSeen, recordGameFeedback, shouldPromptFeedback } from "@/lib/gameFeedback";
 import { detectOffline, loadDownloadedPackIds, onDownloadedPacksChange } from "@/lib/gamePacks";
@@ -48,6 +49,11 @@ const CHIP_STYLE: React.CSSProperties = {
 };
 
 const FAVORITES_GAMES_KEY = "polytrack_favorite_games";
+
+// The blocked check opens a hidden frame per game, a few at a time. A frame
+// that has not loaded in this long is treated as blocked.
+const BLOCKED_CHECK_TIMEOUT_MS = 5000;
+const BLOCKED_CHECK_CONCURRENCY = 8;
 
 function loadFavorites(): string[] {
   try {
@@ -953,6 +959,43 @@ function GameCard({
   );
 }
 
+function BlockedCheckRow({
+  game,
+  status,
+  onPlay,
+}: {
+  game: GameItem;
+  status: "unblocked" | "blocked";
+  onPlay: (game: GameItem, event?: React.MouseEvent) => void;
+}) {
+  return (
+    <a
+      href={game.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(event) => onPlay(game, event)}
+      className="group flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2 transition hover:border-white/[0.16] hover:bg-white/[0.07]"
+    >
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
+        <GameCoverArt game={game} accent={gameAccent(game)} compact />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span>
+        <span className="block truncate text-[10px] text-zinc-500">{game.url}</span>
+      </span>
+      <span
+        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+          status === "unblocked"
+            ? "bg-emerald-500/15 text-emerald-300"
+            : "bg-red-500/15 text-red-300"
+        }`}
+      >
+        {status === "unblocked" ? "Unblocked" : "Blocked"}
+      </span>
+    </a>
+  );
+}
+
 export function GameCatalog({
   showAdSpot = true,
   onReportBug,
@@ -1080,6 +1123,116 @@ export function GameCatalog({
       window.removeEventListener("offline", goOffline);
     };
   }, [selectedCategory, onSelectCategory]);
+  // "Run Blocked Check" in the filter menu: every game is loaded once in an
+  // invisible frame, and a frame that never loads counts as blocked.
+  const [blockedCheckOpen, setBlockedCheckOpen] = React.useState(false);
+  const [blockedCheck, setBlockedCheck] = React.useState<{
+    running: boolean;
+    checked: number;
+    total: number;
+    unblocked: GameItem[];
+    blocked: GameItem[];
+  }>({ running: false, checked: 0, total: 0, unblocked: [], blocked: [] });
+  const blockedCheckAbortRef = React.useRef<AbortController | null>(null);
+  const blockedCheckPanelRef = React.useRef<HTMLDivElement>(null);
+  const blockedCheckCloseRef = React.useRef<HTMLButtonElement>(null);
+
+  const startBlockedCheck = React.useCallback(() => {
+    blockedCheckAbortRef.current?.abort();
+    const controller = new AbortController();
+    blockedCheckAbortRef.current = controller;
+
+    const targets = games.filter((game) => !!game.url);
+    const unblocked: GameItem[] = [];
+    const blocked: GameItem[] = [];
+    let checked = 0;
+    let finished = false;
+    let timer: number | null = null;
+
+    const flush = (running: boolean) => {
+      if (timer !== null) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
+      setBlockedCheck({
+        running,
+        checked,
+        total: targets.length,
+        unblocked: [...unblocked],
+        blocked: [...blocked],
+      });
+    };
+
+    // Frames settle a few at a time, so paint the list on a short interval
+    // instead of re-rendering it for every result.
+    const queueFlush = () => {
+      if (finished || timer !== null) return;
+      timer = window.setTimeout(() => {
+        timer = null;
+        if (!finished && !controller.signal.aborted) flush(true);
+      }, 160);
+    };
+
+    setBlockedCheckOpen(true);
+    flush(true);
+
+    let next = 0;
+    const worker = async () => {
+      while (!controller.signal.aborted) {
+        const index = next;
+        next += 1;
+        if (index >= targets.length) return;
+        const game = targets[index];
+        const result = await testFrameLoad(game.url, BLOCKED_CHECK_TIMEOUT_MS, controller.signal);
+        if (controller.signal.aborted) return;
+        if (result === "reachable") unblocked.push(game);
+        else blocked.push(game);
+        checked += 1;
+        queueFlush();
+      }
+    };
+
+    void Promise.all(
+      Array.from({ length: Math.min(BLOCKED_CHECK_CONCURRENCY, targets.length) }, () => worker())
+    ).then(() => {
+      // A newer run (or a close) owns the panel now.
+      if (blockedCheckAbortRef.current !== controller) return;
+      finished = true;
+      flush(false);
+      blockedCheckAbortRef.current = null;
+    });
+  }, [games]);
+
+  const stopBlockedCheck = React.useCallback(() => {
+    blockedCheckAbortRef.current?.abort();
+    setBlockedCheck((previous) =>
+      previous.running ? { ...previous, running: false } : previous
+    );
+  }, []);
+
+  const closeBlockedCheck = React.useCallback(() => {
+    stopBlockedCheck();
+    setBlockedCheckOpen(false);
+  }, [stopBlockedCheck]);
+
+  useDialogFocus({
+    active: blockedCheckOpen,
+    onClose: closeBlockedCheck,
+    panelRef: blockedCheckPanelRef,
+    initialFocusRef: blockedCheckCloseRef,
+  });
+
+  // Closing the catalog mid-check should not leave hidden frames behind.
+  React.useEffect(() => () => blockedCheckAbortRef.current?.abort(), []);
+
+  const blockedCheckGroups = React.useMemo(
+    () => ({
+      unblocked: [...blockedCheck.unblocked].sort((a, b) => a.name.localeCompare(b.name)),
+      blocked: [...blockedCheck.blocked].sort((a, b) => a.name.localeCompare(b.name)),
+    }),
+    [blockedCheck.unblocked, blockedCheck.blocked]
+  );
+
   // Broken games are hidden from the main list, but a scan cannot see a game
   // that dies after loading, so the launcher adds its own detections here.
   const [hiddenGames, setHiddenGames] = React.useState<Record<string, HiddenGameEntry>>(loadHiddenGames);
@@ -1879,6 +2032,31 @@ export function GameCatalog({
                       </button>
                     );
                   })}
+
+                  <div className="my-1 border-t border-white/[0.08]" />
+
+                  <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                    Checks
+                  </div>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setFilterOpen(false);
+                      startBlockedCheck();
+                    }}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs text-zinc-200 transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5 text-emerald-400" />
+                      <span>Run Blocked Check</span>
+                    </span>
+                    <span className="font-mono text-[10px] tabular-nums text-zinc-500">
+                      {blockedCheck.running
+                        ? `${blockedCheck.checked}/${blockedCheck.total}`
+                        : games.length}
+                    </span>
+                  </button>
                 </div>
               )}
             </div>
@@ -2449,6 +2627,152 @@ export function GameCatalog({
                     </a>
                   </div>
                 )}
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+
+      {blockedCheckOpen && typeof document !== "undefined"
+        ? createPortal(
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-2 sm:p-4">
+              <div
+                ref={blockedCheckPanelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="blocked-check-heading"
+                tabIndex={-1}
+                className="solid-3d-panel flex max-h-full w-full max-w-3xl flex-col overflow-hidden outline-none"
+              >
+                <div className="flex shrink-0 flex-wrap items-start gap-2 border-b border-white/[0.08] p-3">
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      id="blocked-check-heading"
+                      className="flex items-center gap-1.5 text-sm font-semibold text-zinc-100"
+                    >
+                      <ShieldCheck aria-hidden="true" className="h-4 w-4 text-emerald-400" />
+                      Run Blocked Check
+                    </h3>
+                    <p
+                      role="status"
+                      aria-live="polite"
+                      className="mt-0.5 text-[11px] leading-relaxed text-zinc-400"
+                    >
+                      {blockedCheck.running
+                        ? `Checking ${blockedCheck.checked} of ${blockedCheck.total} games…`
+                        : blockedCheck.total > 0
+                          ? `${blockedCheck.checked} of ${blockedCheck.total} checked — ${blockedCheck.unblocked.length} unblocked, ${blockedCheck.blocked.length} blocked`
+                          : "The catalog has not loaded yet."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={blockedCheck.running ? stopBlockedCheck : startBlockedCheck}
+                    className={`inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition-colors ${
+                      blockedCheck.running
+                        ? "bg-white/[0.1] text-zinc-200 hover:bg-white/[0.16]"
+                        : "bg-white text-zinc-950 hover:bg-zinc-100"
+                    }`}
+                  >
+                    {blockedCheck.running ? "Stop" : "Check again"}
+                  </button>
+                  <button
+                    ref={blockedCheckCloseRef}
+                    type="button"
+                    onClick={closeBlockedCheck}
+                    aria-label="Close blocked check"
+                    className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white"
+                  >
+                    <X aria-hidden="true" className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {blockedCheck.total > 0 && (
+                  <div className="h-1 shrink-0 bg-white/[0.06]">
+                    <div
+                      className="h-full bg-emerald-400/70 transition-[width] duration-200"
+                      style={{ width: `${Math.round((blockedCheck.checked / blockedCheck.total) * 100)}%` }}
+                    />
+                  </div>
+                )}
+
+                <div className="min-h-0 flex-1 overflow-y-auto p-3">
+                  <div className="flex flex-col gap-4">
+                    <section aria-labelledby="blocked-check-unblocked-heading">
+                      <div className="flex items-center gap-2">
+                        <h4
+                          id="blocked-check-unblocked-heading"
+                          className="text-xs font-semibold text-emerald-300"
+                        >
+                          Unblocked
+                        </h4>
+                        <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+                        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                          {blockedCheckGroups.unblocked.length}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-col gap-1.5">
+                        {blockedCheckGroups.unblocked.length === 0 ? (
+                          <p className="text-[11px] text-zinc-500">
+                            {blockedCheck.running ? "Still checking…" : "No game loaded."}
+                          </p>
+                        ) : (
+                          blockedCheckGroups.unblocked.map((game) => (
+                            <BlockedCheckRow
+                              key={game.id}
+                              game={game}
+                              status="unblocked"
+                              onPlay={(item, event) => {
+                                closeBlockedCheck();
+                                launchGame(item, event);
+                              }}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </section>
+
+                    <section aria-labelledby="blocked-check-blocked-heading">
+                      <div className="flex items-center gap-2">
+                        <h4
+                          id="blocked-check-blocked-heading"
+                          className="flex items-center gap-1.5 text-xs font-semibold text-red-300"
+                        >
+                          <WifiOff aria-hidden="true" className="h-3.5 w-3.5" />
+                          Blocked
+                        </h4>
+                        <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+                        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                          {blockedCheckGroups.blocked.length}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-col gap-1.5">
+                        {blockedCheckGroups.blocked.length === 0 ? (
+                          <p className="text-[11px] text-zinc-500">
+                            {blockedCheck.running ? "None so far." : "Every game loaded."}
+                          </p>
+                        ) : (
+                          blockedCheckGroups.blocked.map((game) => (
+                            <BlockedCheckRow
+                              key={game.id}
+                              game={game}
+                              status="blocked"
+                              onPlay={(item, event) => {
+                                closeBlockedCheck();
+                                launchGame(item, event);
+                              }}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </section>
+                  </div>
+                </div>
+
+                <p className="shrink-0 border-t border-white/[0.08] px-3 py-2 text-[10px] leading-relaxed text-zinc-500">
+                  Each game is loaded once in an invisible frame. “Blocked” means the frame did not
+                  load, so a network filter — or a site that refuses to be embedded — shows up here.
+                </p>
               </div>
             </div>,
             document.body

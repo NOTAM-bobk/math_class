@@ -1161,6 +1161,8 @@ export function App() {
       <SettingsModal
         isOpen={settingsOpen}
         initialSection={settingsSection}
+        updateReady={updateReady}
+        onUpdateReadyChange={setUpdateReady}
         loadingRevealEnabled={loadingRevealEnabled}
         onLoadingRevealChange={(enabled) => {
           try {

@@ -122,6 +122,22 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   tools: "#84cc16",
 };
 
+// Each genre's heading carries an emoji instead of a colour dot.
+const CATEGORY_EMOJIS: Record<string, string> = {
+  flash: "💾",
+  action: "⚡",
+  driving: "🏎️",
+  sports: "⚽",
+  arcade: "👾",
+  puzzle: "🧩",
+  casual: "🎈",
+  multiplayer: "👥",
+  shooting: "🎯",
+  strategy: "♟️",
+  idle: "⏳",
+  tools: "🛠️",
+};
+
 // The cover layout mixes wide, tall and square boxes; dense flow fills the gaps.
 const MOSAIC_SPAN_PATTERN = [
   "col-span-2 row-span-2",
@@ -227,7 +243,7 @@ function TopTenChart({
 function GameRail({
   id,
   title,
-  accent,
+  emoji,
   total,
   games,
   onSeeAll,
@@ -235,7 +251,7 @@ function GameRail({
 }: {
   id: string;
   title: string;
-  accent?: string;
+  emoji?: string;
   total: number;
   games: GameItem[];
   onSeeAll: () => void;
@@ -287,12 +303,10 @@ function GameRail({
           id={headingId}
           className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-zinc-200"
         >
-          {accent && (
-            <span
-              aria-hidden="true"
-              className="h-2 w-2 shrink-0 rounded-full"
-              style={{ background: accent }}
-            />
+          {emoji && (
+            <span aria-hidden="true" className="shrink-0 text-[13px] leading-none">
+              {emoji}
+            </span>
           )}
           <span className="truncate">{title}</span>
         </h3>
@@ -2218,7 +2232,7 @@ export function GameCatalog({
       return {
         id,
         title: CATEGORY_NAMES[id],
-        accent: CATEGORY_ACCENTS[id],
+        emoji: CATEGORY_EMOJIS[id],
         total: matches.length,
         games: matches.slice(0, SHELF_GAME_LIMIT),
       };
@@ -2270,12 +2284,10 @@ export function GameCatalog({
               aria-live="polite"
               className="flex min-w-0 items-baseline gap-1.5 truncate text-sm font-semibold text-zinc-100 sm:text-[15px]"
             >
-              {CATEGORY_ACCENTS[selectedCategory] && (
-                <span
-                  aria-hidden="true"
-                  className="h-2 w-2 shrink-0 self-center rounded-full"
-                  style={{ background: CATEGORY_ACCENTS[selectedCategory] }}
-                />
+              {CATEGORY_EMOJIS[selectedCategory] && (
+                <span aria-hidden="true" className="shrink-0 self-center text-[13px] leading-none">
+                  {CATEGORY_EMOJIS[selectedCategory]}
+                </span>
               )}
               {serverSearching ? (
                 <span className="font-normal text-zinc-400">Searching…</span>
@@ -2633,7 +2645,7 @@ export function GameCatalog({
                   <GameRail
                     id={shelf.id}
                     title={shelf.title}
-                    accent={shelf.accent}
+                    emoji={shelf.emoji}
                     total={shelf.total}
                     games={shelf.games}
                     onSeeAll={() => seeAllCategory(shelf.id)}

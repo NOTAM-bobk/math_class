@@ -1072,7 +1072,7 @@ export function App() {
             <aside
               id="chat-panel"
               aria-label="Chat and visitor count"
-              className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-80 lg:w-96 flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full animate-in fade-in slide-in-from-right-2 duration-300`}
+              className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-72 lg:w-[22rem] flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full animate-in fade-in slide-in-from-right-2 duration-300`}
             >
               <div className="flex-1 min-h-0 flex flex-col">
                 <LiveMessageBoard showAds={adsVisible} />

@@ -204,7 +204,9 @@ export function SettingsModal({
   onLoadingRevealChange,
   footerHidden = false,
   onFooterHiddenChange,
-  initialSection = null
+  initialSection = null,
+  updateReady = false,
+  onUpdateReadyChange
 }: SettingsModalProps) {
   const [isDesktop, setIsDesktop] = React.useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches);
   React.useEffect(() => {

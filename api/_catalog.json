@@ -17,6 +17,18 @@
     "badgeColor": "amber"
   },
   {
+    "id": "tool-youtube-unblocked",
+    "name": "YouTube Unblocked",
+    "url": "/yt/index.html",
+    "description": "Search and watch videos without opening youtube.com. Still in the works, so it is not available yet.",
+    "tags": [
+      "Tools",
+      "Video",
+      "Unblocked"
+    ],
+    "disabled": true
+  },
+  {
     "id": "game-retro-bowl",
     "name": "Retro Bowl",
     "url": "/games/retro-bowl.html",

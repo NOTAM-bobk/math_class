@@ -15,6 +15,7 @@ import {
   type HiddenGameReason,
 } from "@/lib/hiddenGames";
 import { finalizePlaySession, noteGamePlayed } from "@/lib/playStats";
+import { formatPlays, totalPlays } from "@/lib/playCounts";
 import { loadGameCardLayout, onGameCardLayoutChange, type GameCardLayout } from "@/lib/gameCardLayout";
 import { loadGameOfTheDayId, onGameOfTheDayChange } from "@/lib/gameOfTheDay";
 import { loadEditorPicks, onEditorPicksChange, fetchEditorPicks } from "@/lib/editorPicks";
@@ -81,12 +82,29 @@ export const CATEGORY_FILTERS = [
   { id: "arcade", label: "🕹️ Arcade" },
   { id: "puzzle", label: "🧩 Puzzle" },
   { id: "casual", label: "🎮 Casual" },
+  { id: "multiplayer", label: "👥 Multiplayer" },
+  { id: "shooting", label: "🎯 Shooting" },
+  { id: "strategy", label: "♟️ Strategy" },
+  { id: "idle", label: "⏳ Idle" },
+  { id: "tools", label: "🧰 Tools" },
 ] as const;
 
 // The home catalog is a stack of genre shelves. Each shelf shows one row on
 // phones and two rows on wide screens, and both rows scroll sideways together.
 const SHELF_GAME_LIMIT = 24;
-const GENRE_SHELVES = ["action", "driving", "sports", "arcade", "puzzle", "casual", "flash"] as const;
+const GENRE_SHELVES = [
+  "action",
+  "driving",
+  "sports",
+  "arcade",
+  "puzzle",
+  "casual",
+  "multiplayer",
+  "shooting",
+  "strategy",
+  "idle",
+  "flash",
+] as const;
 
 // Each genre gets its own accent colour so cards and chips read as distinct categories.
 const CATEGORY_ACCENTS: Record<string, string> = {
@@ -97,6 +115,11 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   arcade: "#a855f7",
   puzzle: "#06b6d4",
   casual: "#ec4899",
+  multiplayer: "#3b82f6",
+  shooting: "#f43f5e",
+  strategy: "#14b8a6",
+  idle: "#8b5cf6",
+  tools: "#84cc16",
 };
 
 // The cover layout mixes wide, tall and square boxes; dense flow fills the gaps.
@@ -343,6 +366,11 @@ const CATEGORY_NAMES: Record<CategoryId, string> = {
   arcade: "Arcade",
   puzzle: "Puzzle",
   casual: "Casual",
+  multiplayer: "Multiplayer",
+  shooting: "Shooting",
+  strategy: "Strategy",
+  idle: "Idle",
+  tools: "Tools",
   buggy: "Error: bug",
   blocked: "Blocked",
 };
@@ -648,6 +676,42 @@ function matchesCategory(game: GameItem, categoryId: CategoryId): boolean {
         nameLower.includes("bitlife") ||
         nameLower.includes("behold")
       );
+    case "multiplayer":
+      return (
+        tagsLower.some((t) =>
+          ["multiplayer", "2 player", "battle", "co-op", "online", "pvp", "io"].includes(t)
+        ) ||
+        nameLower.includes("multiplayer") ||
+        nameLower.includes("2 player")
+      );
+    case "shooting":
+      return (
+        tagsLower.some((t) => ["shooting", "shooter", "fps", "gun", "sniper", "tanks"].includes(t)) ||
+        nameLower.includes("shoot") ||
+        nameLower.includes("sniper") ||
+        nameLower.includes("gun") ||
+        nameLower.includes("war")
+      );
+    case "strategy":
+      return (
+        tagsLower.some((t) =>
+          ["strategy", "tower defense", "tycoon", "management", "defense", "card", "rts"].includes(t)
+        ) ||
+        nameLower.includes("tower") ||
+        nameLower.includes("tycoon") ||
+        nameLower.includes("defense")
+      );
+    case "idle":
+      return (
+        tagsLower.some((t) =>
+          ["idle", "clicker", "incremental", "upgrade", "simulation", "farming"].includes(t)
+        ) ||
+        nameLower.includes("idle") ||
+        nameLower.includes("clicker") ||
+        nameLower.includes("tycoon")
+      );
+    case "tools":
+      return tagsLower.includes("tools") || tagsLower.includes("tool");
     default:
       return true;
   }
@@ -788,6 +852,7 @@ function GameCard({
   isBlocked,
   hiddenInfo,
   blockedEmoji,
+  plays,
   searchQuery,
   onPlay,
   onToggleFavorite,
@@ -806,6 +871,7 @@ function GameCard({
   isBlocked: boolean;
   hiddenInfo?: HiddenGameEntry | null;
   blockedEmoji: string;
+  plays: number;
   searchQuery: string;
   onPlay: (game: GameItem, event?: React.MouseEvent) => void;
   onToggleFavorite: (id: string, event?: React.MouseEvent) => void;
@@ -898,9 +964,19 @@ function GameCard({
             <HighlightText text={game.name} query={searchQuery} />
           </h4>
           <div className="mt-1.5 flex items-center justify-between gap-2">
-            <span className="truncate text-[10px] text-zinc-300/80">
-              {game.disabled ? "Coming soon" : game.tags[0] || (opensInHub ? "In the hub" : "New tab")}
-            </span>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-[10px] text-zinc-300/80">
+                {game.disabled ? "Coming soon" : game.tags[0] || (opensInHub ? "In the hub" : "New tab")}
+              </span>
+              {!game.disabled && (
+                <span
+                  className="font-mono text-[9.5px] leading-tight tabular-nums text-zinc-300/60"
+                  title={`${plays.toLocaleString()} plays`}
+                >
+                  {formatPlays(plays)} plays
+                </span>
+              )}
+            </div>
             {hiddenInfo && onRestoreHidden && (
               <button
                 type="button"
@@ -1114,12 +1190,12 @@ function GameCard({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            {!game.disabled && (game.clicks || 0) > 0 && (
+            {!game.disabled && (
               <span
                 className="text-[10px] font-mono tabular-nums text-zinc-500"
-                title={`${game.clicks} ${game.clicks === 1 ? "play" : "plays"}`}
+                title={`${plays.toLocaleString()} plays`}
               >
-                {game.clicks} {game.clicks === 1 ? "play" : "plays"}
+                {formatPlays(plays)} plays
               </span>
             )}
             {hiddenInfo && onRestoreHidden && (
@@ -1938,7 +2014,7 @@ export function GameCatalog({
     () =>
       games
         .filter((game) => !game.disabled && !hiddenGames[game.id])
-        .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
+        .sort((a, b) => totalPlays(b) - totalPlays(a))
         .slice(0, 10),
     [games, hiddenGames]
   );
@@ -1994,7 +2070,7 @@ export function GameCatalog({
     switch (sortOption) {
       case "popular":
         return sorted.sort((a, b) => {
-          const diff = (b.clicks || 0) - (a.clicks || 0);
+          const diff = totalPlays(b) - totalPlays(a);
           if (diff !== 0) return diff;
           if (!!b.editorsPick !== !!a.editorsPick) return Number(!!b.editorsPick) - Number(!!a.editorsPick);
           return Number(!!b.featured) - Number(!!a.featured);
@@ -2050,7 +2126,7 @@ export function GameCatalog({
     const candidates = games.filter((game) => !game.disabled && !hiddenGames[game.id]);
     if (candidates.length === 0) return null;
     return candidates.reduce((best, game) =>
-      (game.clicks || 0) > (best.clicks || 0) ? game : best
+      totalPlays(game) > totalPlays(best) ? game : best
     );
   }, [gameOfTheDay, games, hiddenGames]);
 
@@ -2160,6 +2236,7 @@ export function GameCatalog({
       isBlocked={blockedIds.has(game.id)}
       hiddenInfo={hiddenGames[game.id] ?? null}
       blockedEmoji={blockedEmoji}
+      plays={totalPlays(game)}
       searchQuery={searchQuery}
       onPlay={launchGame}
       onToggleFavorite={toggleFavorite}
@@ -2404,11 +2481,9 @@ export function GameCatalog({
                           <p className="mt-1 line-clamp-2 max-w-xl text-xs leading-snug text-zinc-300 sm:text-sm">
                             {game.description}
                           </p>
-                          {(game.clicks || 0) > 0 && (
-                            <p className="mt-1 text-[10px] font-medium text-zinc-400">
-                              {(game.clicks || 0).toLocaleString()} plays
-                            </p>
-                          )}
+                          <p className="mt-1 text-[10px] font-medium text-zinc-400">
+                            {totalPlays(game).toLocaleString()} plays
+                          </p>
                         </div>
                         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-zinc-950 transition group-hover:bg-amber-200">
                           <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />

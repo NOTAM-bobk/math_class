@@ -5,6 +5,7 @@ import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
 import { ShareButton } from "./components/ShareButton";
+import { RandomGameButton } from "./components/RandomGameButton";
 import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
@@ -648,7 +649,7 @@ export function App() {
                       setSearchQuery("");
                     }
                   }}
-                  placeholder="Search games…"
+                  placeholder="Search 700+ games"
                   autoComplete="off"
                   spellCheck={false}
                   style={{
@@ -682,7 +683,8 @@ export function App() {
             </div>
 
             <div className="relative z-10 order-2 ml-auto flex shrink-0 items-center gap-1 sm:order-4 sm:gap-2">
-              <ShareButton compact />
+              <ShareButton />
+              <RandomGameButton />
               <button
                 type="button"
                 data-tour-target="settings"

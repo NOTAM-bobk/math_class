@@ -27,19 +27,13 @@ async function copyText(text: string) {
   if (!copied) throw new Error("Copy failed");
 }
 
-const LABELS: Record<ShareState, string> = {
-  idle: "Share",
-  copied: "Copied",
-  error: "Copy failed",
+const ICON_BUTTON_STYLE: React.CSSProperties = {
+  borderRadius: 999,
+  background: "rgba(255, 255, 255, 0.06)",
+  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.06)",
 };
 
-const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
-  background: "rgba(255, 255, 255, 0.04)",
-  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
-};
-
-export function ShareButton({ compact = false }: { compact?: boolean }) {
+export function ShareButton() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [state, setState] = React.useState<ShareState>("idle");
   const copyButtonRef = React.useRef<HTMLButtonElement>(null);
@@ -87,11 +81,10 @@ export function ShareButton({ compact = false }: { compact?: boolean }) {
         aria-label="Share this page"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        style={CHIP_STYLE}
-        className={`inline-flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.08] transition whitespace-nowrap active:scale-[0.98] cursor-pointer ${compact ? "h-8 w-8 justify-center rounded-full p-0 sm:h-auto sm:w-auto sm:justify-start sm:rounded-none sm:px-3 sm:py-1" : "px-3 py-1"}`}
+        style={ICON_BUTTON_STYLE}
+        className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.12] hover:text-white active:scale-[0.98]"
       >
-        <Share2 aria-hidden="true" className="w-3.5 h-3.5 text-zinc-400" />
-        <span className="hidden sm:inline">{LABELS[state]}</span>
+        <Share2 aria-hidden="true" className="h-4 w-4" />
       </button>
 
       {isOpen && (

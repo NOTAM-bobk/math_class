@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink } from "lucide-react";
+import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink } from "lucide-react";
 import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
@@ -228,8 +228,23 @@ export function SettingsModal({
     return () => mq.removeEventListener("change", update);
   }, []);
   const [desktopTab, setDesktopTab] = React.useState<DesktopTab>("general");
+  // Phones get a menu of settings sections instead of one long scroll.
+  const [mobileSection, setMobileSection] = React.useState<DesktopTab | null>(null);
   const [settingsSearch, setSettingsSearch] = React.useState("");
-  const paneStyle = (tab: DesktopTab): React.CSSProperties => ({ display: isDesktop && desktopTab !== tab ? "none" : "contents" });
+  const activeTab: DesktopTab | null = isDesktop ? desktopTab : mobileSection;
+  const paneStyle = (tab: DesktopTab): React.CSSProperties => ({
+    display: activeTab === tab ? "contents" : "none",
+  });
+  const settingsQuery = settingsSearch.trim().toLowerCase();
+  const matchesSettings = (item: { label: string; keywords: string }) =>
+    !settingsQuery || item.label.toLowerCase().includes(settingsQuery) || item.keywords.includes(settingsQuery);
+  const visibleSettingsCount = DESKTOP_NAV.reduce(
+    (count, group) => count + group.items.filter(matchesSettings).length,
+    0
+  );
+  React.useEffect(() => {
+    if (isOpen) setMobileSection(null);
+  }, [isOpen]);
 
   // Referral cards come from referrals.json; load them the first time the dialog
   // opens instead of on every page load.
@@ -878,17 +893,34 @@ export function SettingsModal({
         )}
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-3" style={isDesktop ? { display: "none" } : undefined}>
-          <div className="flex items-center gap-2">
-            <h2 id="settings-title" className="text-base font-semibold tracking-tight text-zinc-100">
-              Settings
-            </h2>
-            <span
-              style={CHIP_STYLE}
-              className="px-2.5 py-0.5 font-mono text-[11px] text-[#caccd2]"
-            >
-              Preferences
-            </span>
-          </div>
+          {mobileSection ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMobileSection(null)}
+                aria-label="Back to settings sections"
+                style={CHIP_STYLE}
+                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white"
+              >
+                <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+              </button>
+              <h2 id="settings-title" className="truncate text-base font-semibold tracking-tight text-zinc-100">
+                {DESKTOP_NAV.flatMap((g) => g.items).find((i) => i.id === mobileSection)?.label ?? "Settings"}
+              </h2>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <h2 id="settings-title" className="text-base font-semibold tracking-tight text-zinc-100">
+                Settings
+              </h2>
+              <span
+                style={CHIP_STYLE}
+                className="px-2.5 py-0.5 font-mono text-[11px] text-[#caccd2]"
+              >
+                Preferences
+              </span>
+            </div>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -898,6 +930,80 @@ export function SettingsModal({
             <X aria-hidden="true" className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Phone settings menu: search plus grouped sections. */}
+        {!isDesktop && !mobileSection && (
+          <nav aria-label="Settings sections" className="flex flex-col gap-3">
+            <label
+              className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+              style={{
+                background: "rgba(0, 0, 0, 0.3)",
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.06)",
+              }}
+            >
+              <Search aria-hidden="true" className="h-4 w-4 shrink-0 text-zinc-500" />
+              <input
+                value={settingsSearch}
+                onChange={(e) => setSettingsSearch(e.target.value)}
+                placeholder="Search settings"
+                aria-label="Search settings"
+                className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                style={{ border: "none", padding: 0, background: "transparent" }}
+              />
+              {settingsSearch && (
+                <button
+                  type="button"
+                  onClick={() => setSettingsSearch("")}
+                  aria-label="Clear settings search"
+                  className="shrink-0 rounded-full p-1 text-zinc-500 transition-colors hover:bg-white/[0.08] hover:text-zinc-200"
+                >
+                  <X aria-hidden="true" className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </label>
+
+            {DESKTOP_NAV.map((group) => {
+              const items = group.items.filter(matchesSettings);
+              if (!items.length) return null;
+              return (
+                <section key={group.heading} aria-label={`${group.heading} settings`}>
+                  <h3 className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                    {group.heading}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setMobileSection(item.id);
+                            setSettingsSearch("");
+                          }}
+                          style={{ ...CHIP_STYLE, borderRadius: 12 }}
+                          className="flex min-h-14 cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.99]"
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.06]">
+                            <Icon className="h-3.5 w-3.5 text-zinc-300" />
+                          </span>
+                          <span className="min-w-0 flex-1">{item.label}</span>
+                          <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-600" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+
+            {visibleSettingsCount === 0 && (
+              <p className="rounded-xl border border-dashed border-white/[0.12] bg-white/[0.015] px-3 py-3 text-xs text-zinc-500">
+                No settings match “{settingsSearch.trim()}”.
+              </p>
+            )}
+          </nav>
+        )}
 
         <div style={paneStyle("general")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="layout-controls-title">
@@ -1263,7 +1369,8 @@ export function SettingsModal({
         </section>
         </div>
 
-        {/* Mobile-only shortcuts, moved out of the footer on phones */}
+        {/* Mobile-only shortcuts live on the settings menu, not inside a pane. */}
+        {!isDesktop && !mobileSection && (
         <section className="flex flex-col gap-2 border-t border-white/[0.08] pt-3 sm:hidden" aria-labelledby="classroom-tools-title">
           <h3 id="classroom-tools-title" className="text-sm font-semibold text-zinc-100">
             Classroom tools
@@ -1295,6 +1402,7 @@ export function SettingsModal({
             </button>
           </div>
         </section>
+        )}
 
         {/* Security: Site Lock */}
         <div style={paneStyle("security")}>

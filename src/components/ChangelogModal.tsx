@@ -3,6 +3,7 @@ import { X, History, Sparkles } from "lucide-react";
 import { CHANGELOG, SITE_VERSION } from "@/lib/changelog";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
+import { UptimeMonitor } from "./UptimeMonitor";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
 
 interface ChangelogModalProps {
@@ -73,6 +74,8 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
         </div>
 
         <div className="flex min-h-0 flex-col gap-4 overflow-y-auto pr-1">
+          <UptimeMonitor />
+
           {/* GitHub Activity Grid component */}
           <div>
             <div className="mb-2 text-xs font-medium text-zinc-400">

@@ -996,9 +996,15 @@ function startEngine(
       }
     }
     if (dirty && logo && renderer && !lost) {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
       const cw = canvas.clientWidth
       const ch = canvas.clientHeight
+      // Full-screen shader cost scales with pixels: render low-end and touch devices at 1x,
+      // and cap the total so big high-DPI screens never push more than ~1.6M pixels a frame.
+      const nav = navigator as Navigator & { deviceMemory?: number }
+      const lowEnd = (nav.hardwareConcurrency || 8) <= 4 || (nav.deviceMemory || 8) <= 4 || window.matchMedia("(pointer: coarse)").matches
+      let dpr = Math.min(window.devicePixelRatio || 1, lowEnd ? 1 : 1.5)
+      const maxPx = 1_600_000
+      if (cw * ch * dpr * dpr > maxPx) dpr = Math.sqrt(maxPx / Math.max(1, cw * ch))
       const w = Math.max(1, Math.round(cw * dpr))
       const h = Math.max(1, Math.round(ch * dpr))
       if (canvas.width !== w || canvas.height !== h) {

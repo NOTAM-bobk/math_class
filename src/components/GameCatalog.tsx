@@ -612,7 +612,7 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
         background: "rgba(255, 255, 255, 0.015)",
         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
       }}
-      className={`col-span-full flex-col gap-1.5 px-3 py-2 ${hidden ? "hidden" : "flex"}`}
+      className={`catalog-native-ad col-span-full mx-auto w-full max-w-sm flex-col gap-1 px-2.5 py-1.5 ${hidden ? "hidden" : "flex"}`}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">

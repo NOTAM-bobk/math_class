@@ -74,6 +74,13 @@ import {
 const SettingsModal = React.lazy(() =>
   import("./components/SettingsModal").then((module) => ({ default: module.SettingsModal }))
 );
+// Warm the settings chunk once the page is idle, so opening settings doesn't wait on a download.
+if (typeof window !== "undefined") {
+  const warm = () => void import("./components/SettingsModal").catch(() => {});
+  const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  if (ric) ric(warm, { timeout: 6000 });
+  else window.setTimeout(warm, 4000);
+}
 const AdminPanelModal = React.lazy(() =>
   import("./components/AdminPanelModal").then((module) => ({ default: module.AdminPanelModal }))
 );

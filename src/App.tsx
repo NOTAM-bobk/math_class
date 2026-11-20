@@ -1,5 +1,6 @@
 import * as React from "react";
-import { GameCatalog } from "./components/GameCatalog";
+import { GameCatalog, initialCategory, initialSearchQuery, type CategoryId } from "./components/GameCatalog";
+import { SideNav, SideNavDrawer, type SideNavSection } from "./components/SideNav";
 import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
@@ -12,7 +13,31 @@ import { Tour, useTour } from "./components/Tour";
 import { BotChallengeGate } from "./components/BotChallengeGate";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
-import { Compass, Send, Sparkles, Settings, Gamepad2, MessageCircle, Bug, Shield, ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  Bug,
+  Car,
+  CheckCircle2,
+  Compass,
+  Flame,
+  Gamepad2,
+  Ghost,
+  Heart,
+  History,
+  Home,
+  Infinity as InfinityIcon,
+  Menu,
+  MessageCircle,
+  Puzzle,
+  Search,
+  Send,
+  Settings,
+  Shield,
+  Sparkles,
+  Star,
+  Trophy,
+  X,
+  Zap,
+} from "lucide-react";
 import { applyTabCloak, loadTabCloakSettings, saveTabCloakSettings, type TabCloakSettings } from "./lib/tabCloak";
 import {
   backgroundIsLight,
@@ -28,7 +53,11 @@ import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
 import { hasPassedBotChallenge, startStartupBotCheck } from "./lib/botDetection";
 import { loadCatalog } from "./lib/catalog";
-import { ONBOARDING_STORAGE_KEY, onboardingSteps } from "./lib/onboardingSteps";
+import {
+  CHAT_COMPOSER_TARGET,
+  getOnboardingSteps,
+  ONBOARDING_STORAGE_KEY,
+} from "./lib/onboardingSteps";
 
 // The settings, admin and change log dialogs are large and most visits never
 // open them, so each one is a separate chunk loaded on first use.
@@ -126,10 +155,6 @@ export function App() {
   const [bugReportGame, setBugReportGame] = React.useState("");
   const [submitModalOpen, setSubmitModalOpen] = React.useState(false);
   const [changelogOpen, setChangelogOpen] = React.useState(false);
-  // The nav starts closed; an explicit open/close choice is remembered.
-  const [navCollapsed, setNavCollapsed] = React.useState(
-    () => localStorage.getItem("polytrack_nav_collapsed") !== "false"
-  );
   // Ads are always on now: removing them is an Ultra feature, not a setting.
   const adSpotEnabled = true;
   const [sideChatEnabled, setSideChatEnabled] = React.useState(() => localStorage.getItem("polytrack_side_chat_enabled") !== "false");
@@ -156,6 +181,19 @@ export function App() {
   const [mobilePanel, setMobilePanel] = React.useState<"games" | "chat">("games");
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [bgConfig, setBgConfig] = React.useState<BackgroundConfig>(loadBackgroundConfig);
+  // Search and the active filter live here so the top nav and side nav can
+  // drive the catalog without passing refs around.
+  const [searchQuery, setSearchQuery] = React.useState(initialSearchQuery);
+  const [selectedCategory, setSelectedCategory] = React.useState<CategoryId>(initialCategory);
+  const [sideNavExpanded, setSideNavExpanded] = React.useState(() => {
+    try {
+      return localStorage.getItem("polytrack_side_nav_expanded") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
+  const searchRef = React.useRef<HTMLInputElement>(null);
 
   // First-visit walkthrough; the storage flag keeps it to one showing.
   const onboarding = useTour(ONBOARDING_STORAGE_KEY);
@@ -165,6 +203,12 @@ export function App() {
     index: onboardingIndex,
     setIndex: setOnboardingIndex,
   } = onboarding;
+  // The side rail is desktop-only, so phones get the same tour without it.
+  const isPhoneViewport = React.useMemo(
+    () => window.matchMedia("(max-width: 767px)").matches,
+    []
+  );
+  const tourSteps = React.useMemo(() => getOnboardingSteps(isPhoneViewport), [isPhoneViewport]);
 
   React.useEffect(() => {
     document.getElementById("boot-loader")?.remove();
@@ -331,30 +375,27 @@ export function App() {
   const handleTourIndexChange = React.useCallback(
     (nextIndex: number) => {
       setOnboardingIndex(nextIndex);
-      if (window.matchMedia("(max-width: 767px)").matches) {
-        const target = onboardingSteps[nextIndex]?.target;
-        setMobilePanel(target === '[data-tour-target="chat-composer"]' ? "chat" : "games");
+      if (isPhoneViewport) {
+        setMobilePanel(tourSteps[nextIndex]?.target === CHAT_COMPOSER_TARGET ? "chat" : "games");
       }
     },
-    [setOnboardingIndex]
+    [isPhoneViewport, setOnboardingIndex, tourSteps]
   );
 
   const handleTourOpenChange = React.useCallback(
     (nextOpen: boolean) => {
       setOnboardingOpen(nextOpen);
-      if (!nextOpen && window.matchMedia("(max-width: 767px)").matches) {
-        setMobilePanel("games");
-      }
+      if (!nextOpen && isPhoneViewport) setMobilePanel("games");
     },
-    [setOnboardingOpen]
+    [isPhoneViewport, setOnboardingOpen]
   );
 
   // Show the walkthrough once, after the intro reveal and any gate has cleared.
   React.useEffect(() => {
     if (isLocked || showLoadReveal || botChallengePending || onboarding.seen()) return;
     const timer = window.setTimeout(() => {
-      // The shortcut chips sit behind the collapsed nav; open it for the tour.
-      setNavCollapsed(false);
+      // Expand the side rail so its labels are readable while it is highlighted.
+      setSideNavExpanded(true);
       onboarding.start();
     }, 1600);
     return () => window.clearTimeout(timer);
@@ -390,58 +431,136 @@ export function App() {
     return () => window.removeEventListener("popstate", syncWithUrl);
   }, []);
 
-  const toggleNav = () => {
-    setNavCollapsed((collapsed) => {
-      const next = !collapsed;
+  // "/" jumps to search from anywhere on the page, the usual shortcut in game libraries.
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+      ) {
+        return;
+      }
+      if (document.querySelector('[role="dialog"]')) return;
+      event.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const toggleSideNav = React.useCallback(() => {
+    setSideNavExpanded((expanded) => {
+      const next = !expanded;
       try {
-        localStorage.setItem("polytrack_nav_collapsed", next ? "true" : "false");
+        localStorage.setItem("polytrack_side_nav_expanded", next ? "true" : "false");
       } catch {}
       return next;
     });
-  };
+  }, []);
+
+  const selectCategory = React.useCallback((category: CategoryId) => {
+    setSelectedCategory(category);
+    setMobileNavOpen(false);
+  }, []);
+
+  // The side navigation mirrors the catalog's filters plus the hub's actions,
+  // grouped the same way in both the rail and the phone drawer.
+  const sideNavSections: SideNavSection[] = React.useMemo(() => {
+    const category = (id: CategoryId, label: string, icon: SideNavSection["items"][number]["icon"]) => ({
+      id,
+      label,
+      icon,
+      active: selectedCategory === id,
+      onSelect: () => selectCategory(id),
+    });
+
+    return [
+      {
+        items: [
+          category("all", "Home", Home),
+          category("recent", "Recently played", History),
+          category("favorites", "Favorites", Heart),
+          category("trending", "Trending", Flame),
+        ],
+      },
+      {
+        items: [
+          category("action", "Action", Zap),
+          category("driving", "Driving", Car),
+          category("sports", "Sports", Trophy),
+          category("arcade", "Arcade", Gamepad2),
+          category("puzzle", "Puzzle", Puzzle),
+          category("casual", "Casual", InfinityIcon),
+          category("flash", "Flash", Ghost),
+        ],
+      },
+      {
+        items: [
+          category("editors", "Editor’s picks", Star),
+          category("verified", "Verified", CheckCircle2),
+        ],
+      },
+      {
+        items: [
+          ...(sideChatEnabled
+            ? [
+                {
+                  id: "chat",
+                  label: "Community chat",
+                  icon: MessageCircle,
+                  onSelect: () => {
+                    setMobileNavOpen(false);
+                    setMobilePanel("chat");
+                    document.getElementById("chat-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                  },
+                },
+              ]
+            : []),
+          {
+            id: "ai",
+            label: "Unblocked AIs",
+            icon: Sparkles,
+            onSelect: () => {
+              setMobileNavOpen(false);
+              window.open("/ai/", "_blank", "noopener,noreferrer");
+            },
+          },
+          {
+            id: "outside",
+            label: "Outside games",
+            icon: Compass,
+            onSelect: () => {
+              setMobileNavOpen(false);
+              window.open("/outside/", "_blank", "noopener,noreferrer");
+            },
+          },
+          {
+            id: "submit",
+            label: "Submit a game",
+            icon: Send,
+            onSelect: () => {
+              setMobileNavOpen(false);
+              setSubmitModalOpen(true);
+            },
+          },
+          {
+            id: "report",
+            label: "Report a bug",
+            icon: Bug,
+            onSelect: () => {
+              setMobileNavOpen(false);
+              openBugReport();
+            },
+          },
+        ],
+      },
+    ];
+  }, [selectedCategory, selectCategory, sideChatEnabled, openBugReport]);
 
   // Animate the collapse over the links' real width: transitioning a fixed max-width
   // leaves dead time before the links start to shrink, which reads as a snap.
-  const navLinksRef = React.useRef<HTMLDivElement>(null);
-  const [navLinksWidth, setNavLinksWidth] = React.useState(0);
-
-  React.useEffect(() => {
-    const element = navLinksRef.current;
-    if (!element) return;
-    const measure = () => setNavLinksWidth(Math.ceil(element.scrollWidth) + 1);
-    measure();
-    window.addEventListener("resize", measure);
-    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
-    observer?.observe(element);
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer?.disconnect();
-    };
-  }, []);
-
-  // Same toggle button in three spots: beside the logo once collapsed, and in line with
-  // the chips otherwise (inside the scrolling nav on desktop, pinned right on mobile).
-  const renderNavToggle = (placement: string) => (
-    <button
-      type="button"
-      onClick={toggleNav}
-      aria-expanded={!navCollapsed}
-      aria-label={navCollapsed ? "Expand navigation" : "Collapse navigation"}
-      title={
-        navCollapsed ? "Show Unblocked AIs, Outside games and Share" : "Hide Unblocked AIs, Outside games and Share"
-      }
-      style={CHIP_STYLE}
-      className={`inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1 ${placement}`}
-    >
-      {navCollapsed ? (
-        <ChevronRight aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-      ) : (
-        <ChevronLeft aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-      )}
-      <span className="sr-only">{navCollapsed ? "Expand navigation" : "Collapse navigation"}</span>
-    </button>
-  );
-
   return (
     <BackgroundWrapper config={bgConfig}>
       {loadingRevealEnabled && showLoadReveal && <GlassReveal21st onComplete={() => setShowLoadReveal(false)} />}
@@ -461,7 +580,7 @@ export function App() {
         {/* 3D Top Navigation Bar */}
         <header className="px-2 pt-2 sm:px-4 sm:pt-3 shrink-0 z-20">
           <div
-            className="solid-3d-panel flex w-full flex-nowrap items-center justify-end gap-1.5 px-2.5 py-1 sm:justify-start sm:gap-4 sm:px-4 sm:py-2"
+            className="solid-3d-panel relative flex w-full flex-wrap items-center gap-x-2 gap-y-1.5 px-2.5 py-1.5 sm:gap-x-3 sm:px-4 sm:py-2 lg:min-h-[3.5rem]"
             style={{
               background: "#1d1d1d",
               borderRadius: 20,
@@ -470,10 +589,23 @@ export function App() {
               fontFamily: "system-ui, -apple-system, sans-serif",
             }}
           >
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Open navigation"
+              aria-haspopup="dialog"
+              aria-expanded={mobileNavOpen}
+              title="Browse games"
+              style={CHIP_STYLE}
+              className="order-1 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] md:hidden"
+            >
+              <Menu aria-hidden="true" className="h-4 w-4" />
+            </button>
+
             <a
               href="/"
               aria-label="math_games home"
-              className={`order-1 ${navCollapsed ? "flex" : "hidden"} shrink-0 items-center gap-2 group sm:flex`}
+              className="order-1 flex shrink-0 items-center gap-2 group"
             >
               <span
                 style={{
@@ -487,49 +619,64 @@ export function App() {
               </span>
             </a>
 
-            <nav
-              aria-label="Site"
-              className="order-1 flex min-w-0 flex-1 items-center justify-end gap-1 py-0.5 sm:order-2 sm:justify-start sm:gap-1.5"
-            >
-              <div
-                id="site-nav-links"
-                ref={navLinksRef}
-                aria-hidden={navCollapsed}
-                inert={navCollapsed}
-                className="flex min-w-0 items-center gap-1 overflow-hidden transition-[max-width,opacity,transform] duration-300 ease-in-out sm:gap-1.5"
-                style={{
-                  maxWidth: navCollapsed ? 0 : navLinksWidth > 0 ? `${navLinksWidth}px` : "1000px",
-                  opacity: navCollapsed ? 0 : 1,
-                  transform: navCollapsed ? "translateX(-8px)" : "translateX(0)",
-                }}
-              >
-                <button
-                  type="button"
-                  data-tour-target="submit-game"
-                  aria-label="Submit a game"
-                  aria-haspopup="dialog"
-                  aria-expanded={submitModalOpen}
-                  tabIndex={navCollapsed ? -1 : 0}
-                  onClick={() => setSubmitModalOpen(true)}
-                  style={CHIP_STYLE}
-                  title="Submit a game"
-                  className="inline-flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:gap-1.5 sm:px-3 sm:py-1"
-                >
-                  <Send aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" />
-                  <span className="hidden sm:inline">Submit a game</span>
-                </button>
-                <a href="/ai/" target="_blank" rel="noopener noreferrer" title="Open Unblocked AIs in a new tab" aria-label="Unblocked AIs (opens in a new tab)" style={CHIP_STYLE} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1">
-                  <Sparkles aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" /><span className="hidden sm:inline">Unblocked AIs</span>
-                </a>
-                <a href="/outside/" target="_blank" rel="noopener noreferrer" title="Open outside games in a new tab" aria-label="Outside games (opens in a new tab)" style={CHIP_STYLE} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1">
-                  <Compass aria-hidden="true" className="h-4 w-4 text-zinc-400 sm:h-3.5 sm:w-3.5" /><span className="hidden sm:inline">Outside games</span>
-                </a>
-                <ShareButton compact />
+            {/* Dead centre from lg up; on phones it takes its own row. */}
+            <div className="order-3 w-full min-w-0 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-none lg:w-[26rem] lg:max-w-[42vw] lg:-translate-x-1/2 lg:-translate-y-1/2">
+              <div className="relative w-full">
+                <label htmlFor="game-search" className="sr-only">
+                  Search games
+                </label>
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                />
+                <input
+                  id="game-search"
+                  ref={searchRef}
+                  type="search"
+                  name="q"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape" && searchQuery) {
+                      event.preventDefault();
+                      setSearchQuery("");
+                    }
+                  }}
+                  placeholder="Search games…"
+                  autoComplete="off"
+                  spellCheck={false}
+                  style={{
+                    ...CHIP_STYLE,
+                    borderRadius: 14,
+                    background: "rgba(255, 255, 255, 0.03)",
+                  }}
+                  className="h-10 w-full appearance-none pl-9 pr-16 text-[13px] text-zinc-100 transition-colors placeholder:text-zinc-500 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      searchRef.current?.focus();
+                    }}
+                    aria-label="Clear search"
+                    className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-zinc-100"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                ) : (
+                  <kbd
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] leading-none text-zinc-500 sm:block"
+                  >
+                    /
+                  </kbd>
+                )}
               </div>
-              {renderNavToggle("inline-flex")}
-            </nav>
+            </div>
 
-            <div className="order-2 ml-0 flex shrink-0 items-center gap-1 sm:ml-auto sm:gap-2">
+            <div className="relative z-10 order-2 ml-auto flex shrink-0 items-center gap-1 sm:order-4 sm:gap-2">
+              <ShareButton compact />
               <button
                 type="button"
                 data-tour-target="settings"
@@ -590,7 +737,14 @@ export function App() {
           tabIndex={-1}
           className="flex-1 flex flex-col md:flex-row min-h-0 p-2 gap-2 overflow-hidden focus:outline-none sm:p-3 sm:gap-3 md:p-4 md:pb-3"
         >
-          <h1 className="sr-only">math_games — browser games for a study break</h1>
+                    <h1 className="sr-only">math_games — browser games for a study break</h1>
+
+          <SideNav
+            sections={sideNavSections}
+            expanded={sideNavExpanded}
+            onToggleExpanded={toggleSideNav}
+          />
+
           <section
             id="games-panel"
             aria-label="Games"
@@ -601,6 +755,10 @@ export function App() {
                 showAdSpot={adsVisible}
                 onReportBug={openBugReport}
                 bugReportOpen={bugModalOpen}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                selectedCategory={selectedCategory}
+                onSelectCategory={selectCategory}
               />
             </div>
           </section>
@@ -620,6 +778,12 @@ export function App() {
             </aside>
           )}
         </main>
+
+        <SideNavDrawer
+          open={mobileNavOpen}
+          sections={sideNavSections}
+          onClose={() => setMobileNavOpen(false)}
+        />
 
         <nav
           aria-label="Mobile navigation"
@@ -674,7 +838,7 @@ export function App() {
             <div className="hidden items-center gap-1.5 sm:flex">
               <button
                 type="button"
-                data-tour-target="bug-report"
+                data-hint-target="bug-report"
                 onClick={() => openBugReport()}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer ${
                   footerIsLight ? "text-black/80 hover:text-black hover:bg-black/[0.07]" : "text-zinc-300 hover:text-white hover:bg-white/[0.08]"
@@ -796,7 +960,7 @@ export function App() {
       />
 
       <Tour
-        steps={onboardingSteps}
+        steps={tourSteps}
         open={onboardingOpen}
         onOpenChange={handleTourOpenChange}
         index={onboardingIndex}

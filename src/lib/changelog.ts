@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.5.0";
+export const SITE_VERSION = "1.6.0";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,20 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.0",
+    date: "November 2026",
+    title: "Side navigation and a search bar in the top nav",
+    changes: [
+      "Search moved into the middle of the top bar and is larger, with the same / shortcut.",
+      "The top bar is now just the logo, the centred search and quick actions.",
+      "A new side navigation holds Home, recently played, favorites, trending and every category in one place.",
+      "The side navigation can collapse to icons or expand with labels, and remembers which you chose.",
+      "Chat, Unblocked AIs, outside games, submitting a game and bug reports live in the same navigation.",
+      "On phones the same list opens as a drawer from the menu button beside the logo.",
+      "Added a Recently played filter that keeps the games you opened in the last week.",
+    ],
+  },
   {
     version: "1.5.0",
     date: "November 2026",

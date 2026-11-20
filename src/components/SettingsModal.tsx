@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink } from "lucide-react";
+import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard } from "lucide-react";
 import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
@@ -68,6 +68,7 @@ import {
 } from "@/lib/gameCardLayout";
 import { hardResetSite } from "@/lib/hardReset";
 import type { SiteMeta } from "@/lib/siteMeta";
+import { canInstall, isInstalled, isIos, onInstallAvailabilityChange, promptInstall } from "@/lib/pwaInstall";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -151,7 +152,7 @@ function testMirrorFrame(
   });
 }
 
-type DesktopTab = "account" | "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "offline" | "proxies" | "changelog" | "admin";
+type DesktopTab = "account" | "general" | "install" | "shortcuts" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "offline" | "proxies" | "changelog" | "admin";
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
   { heading: "Account", items: [
@@ -159,6 +160,8 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
   ] },
   { heading: "General", items: [
     { id: "general", label: "Layout & startup", icon: LayoutGrid, keywords: "loading animation side chat visitor counter ad space layout startup" },
+    { id: "install", label: "Install app", icon: Download, keywords: "install app pwa home screen desktop standalone add to home screen" },
+    { id: "shortcuts", label: "Keyboard shortcuts", icon: Keyboard, keywords: "keyboard shortcuts hotkeys keys command palette ctrl k meta k search panic escape enter" },
     { id: "stats", label: "Your stats", icon: BarChart3, keywords: "play time clicks most played games stats" },
     { id: "security", label: "Site lock", icon: Lock, keywords: "password lock security site" },
     { id: "notifications", label: "Notifications", icon: Bell, keywords: "notifications new games chat alerts" },
@@ -185,6 +188,15 @@ const DESKTOP_LIGHT_CSS = `
 .sm-desk section{border-top:none!important;padding-top:0!important}
 }
 `;
+
+const KEYBOARD_SHORTCUTS: { label: string; keys: string }[] = [
+  { label: "Open the command palette", keys: "⌘ K / Ctrl K" },
+  { label: "Jump to the game search", keys: "/" },
+  { label: "Close a dialog or the palette", keys: "Esc" },
+  { label: "Move through palette results", keys: "↑ / ↓" },
+  { label: "Open the highlighted command", keys: "Enter" },
+  { label: "Panic — leave the site instantly", keys: "]" },
+];
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
@@ -228,6 +240,35 @@ export function SettingsModal({
     return () => mq.removeEventListener("change", update);
   }, []);
   const [desktopTab, setDesktopTab] = React.useState<DesktopTab>("general");
+  const [installAvailable, setInstallAvailable] = React.useState(canInstall);
+  const [installed, setInstalled] = React.useState(isInstalled);
+  const [installing, setInstalling] = React.useState(false);
+  const [installMessage, setInstallMessage] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const sync = () => {
+      setInstallAvailable(canInstall());
+      setInstalled(isInstalled());
+    };
+    sync();
+    return onInstallAvailabilityChange(sync);
+  }, []);
+
+  const handleInstall = async () => {
+    setInstalling(true);
+    setInstallMessage(null);
+    const outcome = await promptInstall();
+    setInstalling(false);
+    setInstallAvailable(canInstall());
+    setInstalled(isInstalled());
+    if (outcome === "accepted") {
+      setInstallMessage("Installed. math_games will open in its own window from now on.");
+    } else if (outcome === "dismissed") {
+      setInstallMessage("Install dismissed. You can try again whenever you like.");
+    } else {
+      setInstallMessage("This browser has not offered its install prompt. Use the browser menu instead.");
+    }
+  };
   // Phones get a menu of settings sections instead of one long scroll.
   const [mobileSection, setMobileSection] = React.useState<DesktopTab | null>(null);
   const [settingsSearch, setSettingsSearch] = React.useState("");
@@ -1157,6 +1198,105 @@ export function SettingsModal({
                 : "Use this when an update seems stuck on an old version of the site."}
             </p>
           </div>
+        </section>
+        </div>
+
+        {/* Install as an app: the button uses the browser's own PWA prompt. */}
+        <div style={paneStyle("install")}>
+        <section aria-labelledby="install-app-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+          <div>
+            <h3 id="install-app-title" className="text-sm font-semibold text-zinc-100">Install math_games</h3>
+            <p className="mt-0.5 text-xs text-zinc-400">
+              Add it to your device for its own window, a home-screen or desktop icon, and a faster start.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-zinc-200">
+                  {installed ? "Installed" : installAvailable ? "Ready to install" : "Install from your browser"}
+                </div>
+                <div className="mt-0.5 text-xs text-zinc-500">
+                  {installed
+                    ? "math_games is running as an installed app on this device."
+                    : installAvailable
+                      ? "The browser will ask you to confirm before anything is added."
+                      : "This browser is not currently offering an automatic install prompt."
+                  }
+                </div>
+              </div>
+              <Download aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${installed ? "text-emerald-400" : "text-zinc-500"}`} />
+            </div>
+
+            {!installed && (
+              <button
+                type="button"
+                onClick={() => void handleInstall()}
+                disabled={installing || !installAvailable}
+                className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors active:scale-[0.99] disabled:cursor-default ${
+                  installAvailable
+                    ? "bg-white text-zinc-950 hover:bg-zinc-200"
+                    : "bg-white/[0.05] text-zinc-500"
+                }`}
+              >
+                <Download aria-hidden="true" className="h-3.5 w-3.5" />
+                <span>
+                  {installing ? "Opening install prompt…" : installAvailable ? "Install app" : "Install prompt unavailable"}
+                </span>
+              </button>
+            )}
+
+            {installed && (
+              <p className="text-[11px] leading-relaxed text-emerald-300">
+                You are already using the installed app. Nothing else to do.
+              </p>
+            )}
+            {installMessage && (
+              <p role="status" className="text-[11px] leading-relaxed text-zinc-400">{installMessage}</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 text-[11px] leading-relaxed text-zinc-400">
+            <div className="mb-1 text-xs font-medium text-zinc-300">If no prompt appears</div>
+            <ul className="list-disc space-y-1 pl-4">
+              {isIos() ? (
+                <li>On iPhone or iPad, open the Share menu in Safari and choose “Add to Home Screen”.</li>
+              ) : (
+                <li>Open your browser menu and choose “Install app” or “Add to Home screen”. Chrome and Edge also show an install icon in the address bar.</li>
+              )}
+              <li>Installing needs HTTPS and a supported browser; private windows usually cannot install.</li>
+            </ul>
+          </div>
+        </section>
+        </div>
+
+        {/* Keyboard shortcuts, including the command palette. */}
+        <div style={paneStyle("shortcuts")}>
+        <section aria-labelledby="shortcuts-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+          <div>
+            <h3 id="shortcuts-title" className="text-sm font-semibold text-zinc-100">Keyboard shortcuts</h3>
+            <p className="mt-0.5 text-xs text-zinc-400">These work anywhere in the hub. The search and panic keys pause while you are typing in a field.</p>
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.025]">
+            {KEYBOARD_SHORTCUTS.map((shortcut, index) => (
+              <div
+                key={shortcut.label}
+                className={`flex items-center justify-between gap-3 px-3 py-2.5 ${index > 0 ? "border-t border-white/[0.06]" : ""}`}
+              >
+                <span className="text-xs text-zinc-300">{shortcut.label}</span>
+                <kbd className="shrink-0 rounded-md border border-white/10 bg-white/[0.05] px-2 py-1 font-mono text-[10px] leading-none text-zinc-200">
+                  {shortcut.keys}
+                </kbd>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] leading-relaxed text-zinc-500">
+            The command palette searches games and runs hub actions, including random play, settings, the change log and copying
+            this page’s link. On macOS, ⌘ K opens it; elsewhere use Ctrl K.
+          </p>
         </section>
         </div>
 

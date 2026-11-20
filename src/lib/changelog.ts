@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.6";
+export const SITE_VERSION = "1.6.7";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.7",
+    date: "November 2026",
+    title: "Install as an app and a keyboard command palette",
+    changes: [
+      "math_games can be installed as an app: look for the Install button in the first-visit notice or under Settings > Install app.",
+      "Press ⌘ K or Ctrl K anywhere to open a command palette that searches games and runs hub actions.",
+      "Settings > Keyboard shortcuts lists every shortcut, including search, the panic key and palette navigation.",
+    ],
+  },
   {
     version: "1.6.6",
     date: "November 2026",

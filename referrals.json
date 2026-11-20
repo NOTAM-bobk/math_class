@@ -8,5 +8,30 @@
     "badge": "Reward",
     "cta": "Claim now"
   },
-  "referrals": []
+  "referrals": [
+    {
+      "id": "adsterra-publishers",
+      "title": "Adsterra publisher referral",
+      "description": "Run ads on your own site and join through this link to support math_games.",
+      "url": "https://beta.publishers.adsterra.com/referral/xLsjj9Uep3",
+      "badge": "Referral",
+      "cta": "Referral link"
+    },
+    {
+      "id": "asiafilm-offer",
+      "title": "Sponsored offer",
+      "description": "Open this sponsor link — every visit helps keep math_games free.",
+      "url": "https://asiafilm.org/4/857d2eb4830b5fd9ce6806758f86fa2e",
+      "badge": "Sponsor",
+      "cta": "Open"
+    },
+    {
+      "id": "freebuff",
+      "title": "Build with Freebuff",
+      "description": "An AI coding agent for building apps and sites. Join through this link and you help keep math_games free.",
+      "url": "https://freebuff.com/?ref=ref-9dbf5024-0a7b-40ba-933a-f300a3c29275&via=rewards_link",
+      "badge": "Tool",
+      "cta": "Try Freebuff"
+    }
+  ]
 }

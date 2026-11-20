@@ -75,6 +75,12 @@ function schema(e) {
         "CREATE TABLE IF NOT EXISTS chat_messages(id TEXT PRIMARY KEY,created_at TEXT NOT NULL,author TEXT NOT NULL,text TEXT NOT NULL,ip_hash TEXT NOT NULL DEFAULT '')"
       ),
       e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS chat_reactions(message_id TEXT NOT NULL,emoji TEXT NOT NULL,author TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(message_id,emoji,author))"
+      ),
+      e.DB.prepare(
+        "CREATE INDEX IF NOT EXISTS idx_chat_reactions_message ON chat_reactions(message_id)"
+      ),
+      e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS page_views(id INTEGER PRIMARY KEY CHECK(id=1),total INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL)"
       ),
       e.DB.prepare(
@@ -162,6 +168,89 @@ async function messages(r, e) {
   const createdAt = new Date().toISOString();
   await e.DB.prepare("INSERT INTO chat_messages VALUES(?,?,?,?,?)").bind(id, createdAt, author, text, await digest(ip(r))).run();
   return json(r, { ok: true, message: { id, createdAt, author, text } }, 201);
+}
+
+function groupReactions(rows) {
+  const grouped = {};
+  for (const row of rows || []) {
+    if (!grouped[row.message_id]) grouped[row.message_id] = {};
+    if (!grouped[row.message_id][row.emoji]) grouped[row.message_id][row.emoji] = [];
+    grouped[row.message_id][row.emoji].push(row.author);
+  }
+  return grouped;
+}
+
+async function reactions(r, e) {
+  if (r.method === "GET") {
+    const ids = clean(new URL(r.url).searchParams.get("ids"), 2000)
+      .split(",")
+      .map((id) => clean(id, 64))
+      .filter(Boolean)
+      .slice(0, 100);
+    if (ids.length === 0) return json(r, { ok: true, reactions: {} });
+    const marks = ids.map(() => "?").join(",");
+    const q = await e.DB.prepare(
+      `SELECT message_id,emoji,author FROM chat_reactions WHERE message_id IN (${marks}) ORDER BY created_at ASC LIMIT 2000`
+    )
+      .bind(...ids)
+      .all();
+    return json(r, { ok: true, reactions: groupReactions(q.results) });
+  }
+
+  if (r.method !== "POST") return fail(r, "Method not allowed.", 405);
+
+  const b = await read(r);
+  const messageId = clean(b?.messageId, 64);
+  const emoji = clean(b?.emoji, 16);
+  const author = clean(b?.author, 32, "Guest");
+  if (!messageId || !emoji) return fail(r, "Pick a reaction first.", 422);
+
+  const limit = await checkRateLimit(e.DB, `reaction:${await digest(ip(r))}`, 90, 60);
+  if (!limit.allowed) return fail(r, "Slow down on reactions.", 429);
+
+  // Reactions only attach to real messages, so a stale id cannot grow the table.
+  const message = await e.DB.prepare("SELECT id FROM chat_messages WHERE id = ?")
+    .bind(messageId)
+    .first();
+  if (!message) return fail(r, "That message is gone.", 404);
+
+  const existing = await e.DB.prepare(
+    "SELECT author FROM chat_reactions WHERE message_id = ? AND emoji = ? AND author = ?"
+  )
+    .bind(messageId, emoji, author)
+    .first();
+
+  if (existing) {
+    await e.DB.prepare(
+      "DELETE FROM chat_reactions WHERE message_id = ? AND emoji = ? AND author = ?"
+    )
+      .bind(messageId, emoji, author)
+      .run();
+  } else {
+    const count = await e.DB.prepare(
+      "SELECT COUNT(*) AS total FROM chat_reactions WHERE message_id = ?"
+    )
+      .bind(messageId)
+      .first();
+    if (Number(count?.total || 0) >= 400) {
+      return fail(r, "This message has enough reactions.", 429);
+    }
+    await e.DB.prepare("INSERT INTO chat_reactions VALUES(?,?,?,?)")
+      .bind(messageId, emoji, author, new Date().toISOString())
+      .run();
+  }
+
+  const q = await e.DB.prepare(
+    "SELECT emoji,author FROM chat_reactions WHERE message_id = ? ORDER BY created_at ASC LIMIT 500"
+  )
+    .bind(messageId)
+    .all();
+  const perEmoji = {};
+  for (const row of q.results || []) {
+    if (!perEmoji[row.emoji]) perEmoji[row.emoji] = [];
+    perEmoji[row.emoji].push(row.author);
+  }
+  return json(r, { ok: true, messageId, reactions: perEmoji });
 }
 
 async function views(r, e) {
@@ -521,6 +610,7 @@ export default {
       }
       await schema(e);
       if (p === "/api/messages") return messages(r, e);
+      if (p === "/api/reactions") return reactions(r, e);
       if (p === "/api/views") return views(r, e);
       if (p === "/api/games/stats") return games(r, e);
       if (p === "/api/games/click") return games(r, e);

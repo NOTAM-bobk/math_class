@@ -55,6 +55,55 @@ export async function sendMessage(author: string, text: string): Promise<HubMess
   return data.message;
 }
 
+export type HubReactions = Record<string, Record<string, string[]>>;
+
+function readReactions(value: unknown): HubReactions {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const cleaned: HubReactions = {};
+  for (const [messageId, perEmoji] of Object.entries(value as Record<string, unknown>)) {
+    if (!perEmoji || typeof perEmoji !== "object" || Array.isArray(perEmoji)) continue;
+    const emojis: Record<string, string[]> = {};
+    for (const [emoji, authors] of Object.entries(perEmoji as Record<string, unknown>)) {
+      if (!Array.isArray(authors)) continue;
+      const names = authors.filter(
+        (author): author is string => typeof author === "string" && author.length > 0
+      );
+      if (names.length > 0) emojis[emoji] = names;
+    }
+    if (Object.keys(emojis).length > 0) cleaned[messageId] = emojis;
+  }
+  return cleaned;
+}
+
+/** Loads the reactions for a batch of message ids from the hub. */
+export async function loadReactions(ids: string[]): Promise<HubReactions> {
+  const unique = [...new Set(ids.filter(Boolean))].slice(0, 100);
+  if (unique.length === 0) return {};
+  const response = await fetch(`${HUB_API}/reactions?ids=${encodeURIComponent(unique.join(","))}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Reactions unavailable");
+  const data = await response.json().catch(() => ({}));
+  return readReactions(data?.reactions);
+}
+
+/** Toggles one reaction on the hub and returns that message's current chips. */
+export async function sendReaction(
+  messageId: string,
+  emoji: string,
+  author: string
+): Promise<Record<string, string[]>> {
+  const response = await fetch(`${HUB_API}/reactions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ messageId, emoji, author }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Reaction could not be saved");
+  return readReactions({ [messageId]: data?.reactions })[messageId] ?? {};
+}
+
 export async function recordPageView(): Promise<number> {
   const response = await fetch(`${HUB_API}/views`, { method: "POST", headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("View counter unavailable");

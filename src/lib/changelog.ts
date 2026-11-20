@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.3";
+export const SITE_VERSION = "1.7.4";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.4",
+    date: "November 2026",
+    title: "Genre shelves on the home page",
+    changes: [
+      "Games are grouped into genre shelves like Driving, Action and Puzzle instead of one long list.",
+      "Each shelf scrolls sideways, with one row on phones and two rows on wide screens.",
+      "Every shelf has a See all link that opens that genre's full list, and Browse all games opens the complete catalog.",
+    ],
+  },
   {
     version: "1.7.3",
     date: "November 2026",

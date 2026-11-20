@@ -9,6 +9,7 @@ import { VisitorCounter } from "./components/VisitorCounter";
 import { usePresenceHeartbeat } from "./lib/presence";
 import { ShareButton } from "./components/ShareButton";
 import { RandomGameButton, RANDOM_GAME_EVENT } from "./components/RandomGameButton";
+import { NotificationsButton } from "./components/NotificationsButton";
 import { CommandPalette, type CommandPaletteItem } from "./components/CommandPalette";
 import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
@@ -570,6 +571,20 @@ export function App() {
     } catch {}
   }, []);
 
+  // A message notification opens the conversation, turning the chat panel back
+  // on if it had been hidden in Settings.
+  const openChatFromNotification = React.useCallback(() => {
+    setMobilePanel("chat");
+    setChatFocusOpen(true);
+    setSideChatEnabled((enabled) => {
+      if (enabled) return enabled;
+      try {
+        localStorage.setItem("polytrack_side_chat_enabled", "true");
+      } catch {}
+      return true;
+    });
+  }, []);
+
   // Back and forward move in and out of the bug report like any other page.
   React.useEffect(() => {
     const syncWithUrl = () => setBugModalOpen(bugReportOpenFromUrl());
@@ -970,6 +985,10 @@ export function App() {
                   </span>
                 </button>
               )}
+              <NotificationsButton
+                onOpenChangelog={() => setChangelogOpen(true)}
+                onOpenChat={openChatFromNotification}
+              />
               <ShareButton />
               <RandomGameButton />
               <button

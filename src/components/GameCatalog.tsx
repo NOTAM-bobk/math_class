@@ -23,6 +23,7 @@ import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { PanicButton } from "./PanicButton";
 import { RANDOM_GAME_EVENT } from "./RandomGameButton";
+import { CONTINUE_GAME_EVENT } from "./NotificationsButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { testFrameLoad } from "@/lib/frameReachability";
 import { loadCatalog } from "@/lib/catalog";
@@ -1901,6 +1902,27 @@ export function GameCatalog({
     const playRandomGame = () => launchRandomGameRef.current();
     window.addEventListener(RANDOM_GAME_EVENT, playRandomGame);
     return () => window.removeEventListener(RANDOM_GAME_EVENT, playRandomGame);
+  }, []);
+
+  // The notifications bell asks for a specific game to continue, which launches
+  // through the same path as a card so the play session and launch are counted.
+  const launchGameByIdRef = React.useRef<(id: string) => void>(() => {});
+  launchGameByIdRef.current = (id: string) => {
+    const game = games.find(
+      (entry) => entry.id === id && !entry.disabled && !hiddenGames[entry.id]
+    );
+    if (!game) return;
+    const embed = isSameOriginGame(game.url);
+    launchGame(game);
+    if (!embed) window.open(game.url, "_blank", "noopener,noreferrer");
+  };
+  React.useEffect(() => {
+    const playGameById = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: string }>).detail?.id;
+      if (id) launchGameByIdRef.current(id);
+    };
+    window.addEventListener(CONTINUE_GAME_EVENT, playGameById);
+    return () => window.removeEventListener(CONTINUE_GAME_EVENT, playGameById);
   }, []);
 
   // The in-page launcher stays open while the game runs; Escape or the return

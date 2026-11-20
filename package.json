@@ -19,6 +19,7 @@
     "framer-motion": "^14.14.0",
     "lucide-react": "^0.460.0",
     "posthog-js": "^1.451.0",
+    "qrcode-generator": "^1.4.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "redis": "^4.6.13",

@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.0";
+export const SITE_VERSION = "1.7.1";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.1",
+    date: "November 2026",
+    title: "QR and email sharing, and a tidier phone header",
+    changes: [
+      "The share dialog can show a QR code for the current page, ready to scan with a phone camera.",
+      "You can type a friend's email address in the share dialog and send them the link directly, without a mail app.",
+      "Email shares are rate limited so the form cannot be used to send bulk mail.",
+      "On phones the top bar now fits the menu, logo and every action button on one row, with search on the row below.",
+    ],
+  },
   {
     version: "1.7.0",
     date: "November 2026",

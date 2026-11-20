@@ -791,7 +791,7 @@ export function App() {
         {/* 3D Top Navigation Bar */}
         <header className="px-2 pt-1.5 sm:px-4 sm:pt-3 shrink-0 z-20">
           <div
-            className="solid-3d-panel relative flex w-full flex-wrap items-center gap-x-1.5 gap-y-1 px-2 py-1 sm:gap-x-3 sm:px-4 sm:py-2 lg:min-h-[3.5rem]"
+            className="solid-3d-panel relative grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-1.5 gap-y-1.5 px-2 py-1.5 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-1 sm:px-4 sm:py-2 lg:min-h-[3.5rem]"
             style={{
               background: "#1d1d1d",
               borderRadius: 20,
@@ -808,7 +808,7 @@ export function App() {
               aria-expanded={mobileNavOpen}
               title="Browse games"
               style={CHIP_STYLE}
-              className="order-1 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] md:hidden"
+              className="order-1 col-start-1 row-start-1 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] md:hidden"
             >
               <Menu aria-hidden="true" className="h-4 w-4" />
             </button>
@@ -816,7 +816,7 @@ export function App() {
             <a
               href="/"
               aria-label="math_games home"
-              className="order-1 flex shrink-0 items-center gap-2 group"
+              className="order-1 col-start-2 row-start-1 flex min-w-0 shrink-0 items-center gap-2 justify-self-start group"
             >
               <span
                 style={{
@@ -832,7 +832,7 @@ export function App() {
 
             {/* Dead centre from lg up; on phones it takes its own row. */}
             <div
-              className={`order-3 w-full min-w-0 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-none lg:w-[26rem] lg:max-w-[42vw] lg:-translate-x-1/2 lg:-translate-y-1/2 ${
+              className={`order-3 col-span-3 row-start-2 w-full min-w-0 sm:col-auto sm:row-auto lg:absolute lg:left-1/2 lg:top-1/2 lg:order-none lg:w-[26rem] lg:max-w-[42vw] lg:-translate-x-1/2 lg:-translate-y-1/2 ${
                 mobilePanel === "chat" ? "hidden md:block" : ""
               }`}
             >
@@ -890,7 +890,7 @@ export function App() {
               </div>
             </div>
 
-            <div className="relative z-10 order-2 ml-auto flex shrink-0 items-center gap-1 sm:order-4 sm:gap-2">
+            <div className="relative z-10 order-2 col-start-3 row-start-1 ml-auto flex shrink-0 items-center gap-1 justify-self-end sm:col-auto sm:row-auto sm:gap-2">
               {streak.current > 0 && (
                 <button
                   type="button"
@@ -899,7 +899,7 @@ export function App() {
                   aria-label={`${streak.current}-day streak. Open streak settings.`}
                   aria-haspopup="dialog"
                   style={ICON_BUTTON_STYLE}
-                  className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 text-amber-300 transition-colors hover:bg-white/[0.12] hover:text-amber-200 active:scale-[0.98] sm:h-9"
+                  className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 text-amber-300 transition-colors hover:bg-white/[0.12] hover:text-amber-200 active:scale-[0.98] max-[359px]:hidden sm:h-9"
                 >
                   <Flame
                     aria-hidden="true"

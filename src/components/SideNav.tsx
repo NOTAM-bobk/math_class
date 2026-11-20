@@ -182,9 +182,37 @@ function NavList({
   );
 }
 
+const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
+
+/**
+ * Whether this device has a real pointer. Touch screens fire hover and focus
+ * when tapped but never clear them, so auto-opening there leaves the rail
+ * stuck over the games; those devices get the explicit toggle instead.
+ */
+export function canHoverPointer() {
+  if (typeof window === "undefined" || !window.matchMedia) return true;
+  return window.matchMedia(HOVER_QUERY).matches;
+}
+
+function useCanHover() {
+  const [canHover, setCanHover] = React.useState(canHoverPointer);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const query = window.matchMedia(HOVER_QUERY);
+    const update = () => setCanHover(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return canHover;
+}
+
 /**
  * The desktop rail. It lives as a 56px strip in the layout and floats open over
  * the games when hovered or focused, so the grid never shifts under the pointer.
+ * Touch devices skip that and only open it from the toggle.
  */
 export function SideNav({
   sections,
@@ -195,19 +223,28 @@ export function SideNav({
   expanded: boolean;
   onToggleExpanded: () => void;
 }) {
+  const canHover = useCanHover();
   const [hovered, setHovered] = React.useState(false);
-  const open = expanded || hovered;
+  const open = expanded || (canHover && hovered);
+
+  React.useEffect(() => {
+    if (!canHover) setHovered(false);
+  }, [canHover]);
 
   return (
     <div className="relative hidden w-14 shrink-0 md:block">
       <nav
         aria-label="Game navigation"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onFocusCapture={() => setHovered(true)}
-        onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHovered(false);
-        }}
+        onMouseEnter={canHover ? () => setHovered(true) : undefined}
+        onMouseLeave={canHover ? () => setHovered(false) : undefined}
+        onFocusCapture={canHover ? () => setHovered(true) : undefined}
+        onBlurCapture={
+          canHover
+            ? (event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHovered(false);
+              }
+            : undefined
+        }
         className={`absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden transition-[width] duration-200 ease-out ${
           open ? "w-[13rem]" : "w-14"
         }`}
@@ -249,8 +286,22 @@ export function SideNavDrawer({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
+    // The drawer is hidden from md up, so closing it there stops a phone that
+    // turns to landscape from finding it still open when it turns back.
+    const desktop = window.matchMedia?.("(min-width: 768px)");
+    if (desktop?.matches) {
+      onClose();
+      return;
+    }
+    const onBreakpoint = () => {
+      if (desktop?.matches) onClose();
+    };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    desktop?.addEventListener("change", onBreakpoint);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      desktop?.removeEventListener("change", onBreakpoint);
+    };
   }, [open, onClose]);
 
   if (!open) return null;

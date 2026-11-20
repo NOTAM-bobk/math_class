@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { GameCatalog, initialCategory, initialSearchQuery, type CategoryId } from "./components/GameCatalog";
-import { SideNav, SideNavDrawer, type SideNavSection } from "./components/SideNav";
+import { SideNav, SideNavDrawer, canHoverPointer, type SideNavSection } from "./components/SideNav";
 import { PanicButton } from "./components/PanicButton";
 import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
@@ -467,11 +467,13 @@ export function App() {
     if (isLocked || showLoadReveal || botChallengePending || settingsOpen || onboarding.seen()) return;
     const timer = window.setTimeout(() => {
       // Expand the side rail so its labels are readable while it is highlighted.
-      setSideNavExpanded(true);
+      // Phones have no rail step and touch screens must not be left open, so
+      // only a desktop pointer expands it.
+      if (!isPhoneViewport && canHoverPointer()) setSideNavExpanded(true);
       onboarding.start();
     }, 1600);
     return () => window.clearTimeout(timer);
-  }, [isLocked, showLoadReveal, botChallengePending, settingsOpen, onboarding.seen, onboarding.start]);
+  }, [isLocked, showLoadReveal, botChallengePending, settingsOpen, onboarding.seen, onboarding.start, isPhoneViewport]);
 
   // Remember whether the nav options are open or closed between visits.
   const bugReturnUrlRef = React.useRef("/");

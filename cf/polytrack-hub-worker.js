@@ -230,7 +230,7 @@ async function messages(r, e) {
       messages: (q.results || []).reverse().map((x) => {
         const message = { id: x.id, createdAt: x.created_at, author: x.author, text: x.text };
         // Older rows have no photo, so only send the field when there is one.
-        return x.image_url ? { ...message, image: x.image_url } : message;
+        return x.image_url ? { ...message, image: chatImageUrl(r, x.image_url) } : message;
       }),
     });
   }
@@ -246,7 +246,11 @@ async function messages(r, e) {
   )
     .bind(id, createdAt, author, text, await digest(ip(r)), image)
     .run();
-  return json(r, { ok: true, message: { id, createdAt, author, text, ...(image ? { image } : {}) } }, 201);
+  return json(r, { ok: true, message: { id, createdAt, author, text, ...(image ? { image: chatImageUrl(r, image) } : {}) } }, 201);
+}
+
+function chatImageUrl(r, path) {
+  return new URL(path, r.url).toString();
 }
 
 // A message may only point at a photo this hub already stored, so nobody can

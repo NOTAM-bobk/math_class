@@ -67,7 +67,17 @@ import {
   type GameCardLayout,
 } from "@/lib/gameCardLayout";
 import { hardResetSite } from "@/lib/hardReset";
-import { dayKey, loadStreak, recordVisit, subscribeStreak, type StreakData } from "@/lib/streak";
+import {
+  dayKey,
+  loadStreak,
+  recordVisit,
+  subscribeStreak,
+  currentStreakMilestone,
+  nextStreakMilestone,
+  STREAK_MILESTONES,
+  type StreakData,
+} from "@/lib/streak";
+import { shareStreakCard } from "@/lib/streakCard";
 import type { SiteMeta } from "@/lib/siteMeta";
 import { canInstall, isInstalled, isIos, onInstallAvailabilityChange, promptInstall } from "@/lib/pwaInstall";
 
@@ -451,6 +461,30 @@ export function SettingsModal({
     return days;
   }, [streak]);
   const streakDaysVisited = streakDays.filter((day) => day.visited).length;
+  const streakMilestone = currentStreakMilestone(streak.current);
+  const nextMilestone = nextStreakMilestone(streak.current);
+  const [sharingStreak, setSharingStreak] = React.useState(false);
+  const [streakShareNote, setStreakShareNote] = React.useState("");
+
+  const handleShareStreak = React.useCallback(async () => {
+    if (sharingStreak) return;
+    setSharingStreak(true);
+    setStreakShareNote("");
+    try {
+      const result = await shareStreakCard(streak);
+      setStreakShareNote(
+        result === "shared"
+          ? "Streak card shared."
+          : result === "downloaded"
+            ? "Streak card saved to your downloads."
+            : "Share cancelled."
+      );
+    } catch {
+      setStreakShareNote("Couldn't build the streak card. Try again.");
+    } finally {
+      setSharingStreak(false);
+    }
+  }, [sharingStreak, streak]);
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -1590,6 +1624,28 @@ export function SettingsModal({
             />
           </div>
 
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void handleShareStreak()}
+              disabled={sharingStreak}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/20 disabled:cursor-wait disabled:opacity-60"
+            >
+              <Download aria-hidden="true" className="h-3.5 w-3.5" />
+              <span>{sharingStreak ? "Building card…" : "Share streak card"}</span>
+            </button>
+            {streakMilestone && (
+              <span className="rounded-full bg-white/[0.05] px-2 py-1 text-[10px] font-medium text-zinc-400">
+                {streakMilestone.name} unlocked
+              </span>
+            )}
+          </div>
+          {streakShareNote && (
+            <p role="status" aria-live="polite" className="text-[10.5px] leading-relaxed text-zinc-400">
+              {streakShareNote}
+            </p>
+          )}
+
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl bg-black/30 p-2.5 ring-1 ring-inset ring-white/[0.04]">
               <div className="flex items-center gap-1 text-[10.5px] font-medium text-zinc-500">
@@ -1613,6 +1669,59 @@ export function SettingsModal({
                 <span className="ml-1 text-xs font-normal text-zinc-500">visited</span>
               </div>
             </div>
+          </div>
+
+          <div className="rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-zinc-200">Milestones</span>
+              <span className="text-[10.5px] text-zinc-500">
+                {nextMilestone
+                  ? `${nextMilestone.days - streak.current} more ${nextMilestone.days - streak.current === 1 ? "day" : "days"} to ${nextMilestone.name}`
+                  : "Every milestone unlocked"}
+              </span>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
+              {STREAK_MILESTONES.map((milestone) => {
+                const reached = streak.current >= milestone.days;
+                const upcoming = nextMilestone?.days === milestone.days;
+                return (
+                  <div
+                    key={milestone.days}
+                    title={milestone.blurb}
+                    aria-label={`${milestone.days}-day milestone: ${milestone.name}${reached ? ", unlocked" : ""}`}
+                    className={`flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-center ring-1 ring-inset ${
+                      reached
+                        ? "bg-amber-400/10 ring-amber-400/25"
+                        : upcoming
+                          ? "bg-white/[0.04] ring-white/15"
+                          : "bg-white/[0.02] ring-white/[0.05]"
+                    }`}
+                  >
+                    <Flame
+                      aria-hidden="true"
+                      className={`h-3.5 w-3.5 ${reached ? "fill-amber-400/30 text-amber-300" : "text-zinc-600"}`}
+                    />
+                    <span
+                      className={`font-mono text-xs font-semibold tabular-nums ${
+                        reached ? "text-amber-200" : "text-zinc-400"
+                      }`}
+                    >
+                      {milestone.days}
+                    </span>
+                    <span
+                      className={`w-full truncate text-[9px] ${
+                        reached ? "text-amber-200/80" : "text-zinc-500"
+                      }`}
+                    >
+                      {milestone.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">
+              Milestones belong to the current run, so a missed day starts them over from 1.
+            </p>
           </div>
 
           <div className="rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">

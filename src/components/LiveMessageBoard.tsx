@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, SmilePlus, Sparkles, X, CornerDownRight, ImagePlus, Loader2 } from "lucide-react";
-import { HubMessage, loadMessages, sendMessage, uploadChatImage } from "@/lib/hubApi";
+import { HubMessage, loadMessages, loadReactions, sendMessage, sendReaction, uploadChatImage } from "@/lib/hubApi";
 import { CHAT_IMAGE_ACCEPT, prepareChatImage } from "@/lib/chatImages";
 import { notifyNewChatMessage } from "@/lib/chatNotifications";
 import { isChatVerified } from "@/lib/turnstile";
@@ -273,6 +273,23 @@ export function LiveMessageBoard({
         }
         return next;
       });
+      // Reactions come from the hub with every refresh, so chips match on every
+      // device. A hub without the endpoint leaves the local copy alone.
+      const reactionIds = loaded.map((message) => message.id);
+      if (reactionIds.length > 0) {
+        void loadReactions(reactionIds)
+          .then((serverReactions) => {
+            setReactions((previous) => {
+              const next = { ...previous };
+              for (const id of reactionIds) delete next[id];
+              for (const [id, perEmoji] of Object.entries(serverReactions)) {
+                next[id] = perEmoji;
+              }
+              return next;
+            });
+          })
+          .catch(() => {});
+      }
       setError("");
     } catch {
       setError("Chat is offline. Check your connection, then retry.");
@@ -390,8 +407,9 @@ export function LiveMessageBoard({
     setInputText((prev) => (prev ? `${prev} ${emoji}` : emoji));
   };
 
-  // Reactions are kept on this device, one per name per message, and tapping a
-  // chip again takes yours back off.
+  // One reaction per name per message. The chip updates immediately, then the
+  // hub toggle replaces it with the shared list; when the hub is unreachable the
+  // local copy still works for this device.
   const toggleReaction = React.useCallback(
     (messageId: string, emoji: string) => {
       const name = nickname.trim() || "Guest";
@@ -407,6 +425,13 @@ export function LiveMessageBoard({
         else next[messageId] = perEmoji;
         return next;
       });
+      void sendReaction(messageId, emoji, name)
+        .then((shared) => {
+          setReactions((current) => ({ ...current, [messageId]: shared }));
+        })
+        .catch(() => {
+          setError("Reactions are saved on this device until chat sync comes back.");
+        });
     },
     [nickname]
   );

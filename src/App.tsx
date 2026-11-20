@@ -641,7 +641,11 @@ export function App() {
             </a>
 
             {/* Dead centre from lg up; on phones it takes its own row. */}
-            <div className="order-3 w-full min-w-0 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-none lg:w-[26rem] lg:max-w-[42vw] lg:-translate-x-1/2 lg:-translate-y-1/2">
+            <div
+              className={`order-3 w-full min-w-0 lg:absolute lg:left-1/2 lg:top-1/2 lg:order-none lg:w-[26rem] lg:max-w-[42vw] lg:-translate-x-1/2 lg:-translate-y-1/2 ${
+                mobilePanel === "chat" ? "hidden md:block" : ""
+              }`}
+            >
               <div className="relative w-full">
                 <label htmlFor="game-search" className="sr-only">
                   Search games

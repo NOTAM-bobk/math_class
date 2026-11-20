@@ -149,6 +149,22 @@ function gameAccent(game: GameItem) {
   );
 }
 
+/** Soft blur over both clipped edges of a sideways scroller. */
+function ScrollEdgeBlur() {
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,transparent)] [-webkit-mask-image:linear-gradient(to_right,black,transparent)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 backdrop-blur-[2px] [mask-image:linear-gradient(to_left,black,transparent)] [-webkit-mask-image:linear-gradient(to_left,black,transparent)]"
+      />
+    </>
+  );
+}
+
 // The same ranked row backs the Trending page and the home-page chart.
 function TopTenChart({
   games,
@@ -172,6 +188,7 @@ function TopTenChart({
           Most played
         </span>
       </div>
+      <div className="relative">
       <div className="-mx-1 flex snap-x gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {games.map((game, index) => (
           <a
@@ -199,6 +216,8 @@ function TopTenChart({
             </span>
           </a>
         ))}
+      </div>
+      <ScrollEdgeBlur />
       </div>
     </section>
   );
@@ -308,12 +327,10 @@ function GameRail({
           ))}
         </div>
 
+        <ScrollEdgeBlur />
+
         {edges.left && (
           <>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 left-0 hidden w-8 bg-gradient-to-r from-black/50 to-transparent sm:block"
-            />
             <button
               type="button"
               aria-label={`Scroll ${title} left`}
@@ -327,10 +344,6 @@ function GameRail({
 
         {edges.right && (
           <>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-black/50 to-transparent sm:block"
-            />
             <button
               type="button"
               aria-label={`Scroll ${title} right`}
@@ -893,7 +906,7 @@ function GameCard({
       >
         <GameCoverArt game={game} accent={genreAccent} />
 
-        <div className="relative z-10 flex items-start justify-between gap-1.5 p-2.5">
+        <div className="relative z-20 flex items-start justify-between gap-1.5 p-2.5">
           <div className="flex min-w-0 flex-wrap items-center gap-1">
             {isVerified && <VerifiedBadge />}
             {isPopular && (
@@ -968,7 +981,7 @@ function GameCard({
               <span className="truncate text-[10px] text-zinc-300/80">
                 {game.disabled ? "Coming soon" : game.tags[0] || (opensInHub ? "In the hub" : "New tab")}
               </span>
-              {!game.disabled && (
+              {!game.disabled && plays > 0 && (
                 <span
                   className="font-mono text-[9.5px] leading-tight tabular-nums text-zinc-300/60"
                   title={`${plays.toLocaleString()} plays`}
@@ -1190,7 +1203,7 @@ function GameCard({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            {!game.disabled && (
+            {!game.disabled && plays > 0 && (
               <span
                 className="text-[10px] font-mono tabular-nums text-zinc-500"
                 title={`${plays.toLocaleString()} plays`}
@@ -2481,9 +2494,11 @@ export function GameCatalog({
                           <p className="mt-1 line-clamp-2 max-w-xl text-xs leading-snug text-zinc-300 sm:text-sm">
                             {game.description}
                           </p>
-                          <p className="mt-1 text-[10px] font-medium text-zinc-400">
-                            {totalPlays(game).toLocaleString()} plays
-                          </p>
+                          {totalPlays(game) > 0 && (
+                            <p className="mt-1 text-[10px] font-medium text-zinc-400">
+                              {totalPlays(game).toLocaleString()} plays
+                            </p>
+                          )}
                         </div>
                         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-zinc-950 transition group-hover:bg-amber-200">
                           <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
@@ -2548,6 +2563,29 @@ export function GameCatalog({
             </p>
           )}
 
+          {!isFiltered && recentGameItems.length > 0 && (
+            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-2">
+                <h3 id="catalog-recent-heading" className="text-xs font-semibold text-zinc-200">Recently played</h3>
+                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
+              </div>
+              <div className="relative">
+              <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
+                {recentGameItems.map((game) => (
+                  <a key={game.id} href={game.url} target="_blank" rel="noopener noreferrer" onClick={(event) => launchGame(game, event)} className="group flex w-44 shrink-0 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 text-left transition hover:border-white/[0.16] hover:bg-white/[0.07]">
+                    <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
+                      <GameCoverArt game={game} accent={gameAccent(game)} compact />
+                    </span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span><span className="mt-0.5 block text-[10px] text-zinc-500">Play again</span></span>
+                    <Play className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition group-hover:text-zinc-200" />
+                  </a>
+                ))}
+              </div>
+              <ScrollEdgeBlur />
+              </div>
+            </section>
+          )}
+
           {showAdSpot && (
             <div
               aria-label="Advertisement"
@@ -2578,31 +2616,6 @@ export function GameCatalog({
                 <X aria-hidden="true" className="h-3 w-3" />
               </button>
             </div>
-          )}
-
-          {!isFiltered && recentGameItems.length > 0 && (
-            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-2">
-                <h3 id="catalog-recent-heading" className="text-xs font-semibold text-zinc-200">Recently played</h3>
-                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-              </div>
-              <div className="relative">
-              <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
-                {recentGameItems.map((game) => (
-                  <a key={game.id} href={game.url} target="_blank" rel="noopener noreferrer" onClick={(event) => launchGame(game, event)} className="group flex w-44 shrink-0 items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 text-left transition hover:border-white/[0.16] hover:bg-white/[0.07]">
-                    <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
-                      <GameCoverArt game={game} accent={gameAccent(game)} compact />
-                    </span>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span><span className="mt-0.5 block text-[10px] text-zinc-500">Play again</span></span>
-                    <Play className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition group-hover:text-zinc-200" />
-                  </a>
-                ))}
-              </div>
-              {/* Soft blur over the clipped edges of the recently played row. */}
-              <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,transparent)] [-webkit-mask-image:linear-gradient(to_right,black,transparent)]" />
-              <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_left,black,transparent)] [-webkit-mask-image:linear-gradient(to_left,black,transparent)]" />
-              </div>
-            </section>
           )}
 
           {!isFiltered && trendingGames.length > 0 && (

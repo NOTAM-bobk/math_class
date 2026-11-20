@@ -1,6 +1,6 @@
 import { checkForUpdate, applyUpdate, type CheckUpdateResult } from "@/lib/updateChecker";
 import * as React from "react";
-import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard, RefreshCw, CheckCircle2 } from "lucide-react";
+import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard, RefreshCw, CheckCircle2, Share2 } from "lucide-react";
 import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
@@ -724,6 +724,63 @@ export function SettingsModal({
     (max, game) => Math.max(max, game.playMs > 0 ? game.playMs : game.clicks),
     0
   );
+
+  const [sharingStats, setSharingStats] = React.useState(false);
+  const [statsShareNote, setStatsShareNote] = React.useState("");
+
+  const handleShareStats = React.useCallback(async () => {
+    if (sharingStats) return;
+    setSharingStats(true);
+    setStatsShareNote("");
+    const lines = [
+      "My math_games stats",
+      `${formatPlayTime(playStats.totalPlayMs)} on site`,
+      `${playStats.totalClicks.toLocaleString()} game clicks`,
+      `${playStats.games.length.toLocaleString()} games played`,
+      mostPlayed[0] ? `Top game: ${mostPlayed[0].name}` : "",
+    ].filter(Boolean);
+    const text = lines.join("\n");
+    const url = window.location.origin;
+    const copy = async () => {
+      const payload = `${text}\n${url}`;
+      try {
+        await navigator.clipboard.writeText(payload);
+        return true;
+      } catch {}
+      // Older browsers and pages without clipboard permission still get a copy
+      // through a hidden textarea, as long as this runs from the click.
+      try {
+        const area = document.createElement("textarea");
+        area.value = payload;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        const copied = document.execCommand("copy");
+        document.body.removeChild(area);
+        return copied;
+      } catch {
+        return false;
+      }
+    };
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: "My math_games stats", text, url });
+        setStatsShareNote("Stats shared.");
+      } else {
+        setStatsShareNote((await copy()) ? "Stats copied to your clipboard." : "Couldn't copy your stats.");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setStatsShareNote("Share cancelled.");
+      } else {
+        setStatsShareNote((await copy()) ? "Stats copied to your clipboard." : "Couldn't share your stats.");
+      }
+    } finally {
+      setSharingStats(false);
+    }
+  }, [mostPlayed, playStats, sharingStats]);
 
   const downloadedPackIds = React.useMemo(
     () => new Set(downloadedPacks.map((pack) => pack.gameId)),
@@ -1604,6 +1661,23 @@ export function SettingsModal({
                 </div>
               );
             })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void handleShareStats()}
+              disabled={sharingStats}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1.5 text-xs font-semibold text-sky-200 transition-colors hover:bg-sky-400/20 disabled:cursor-wait disabled:opacity-60"
+            >
+              <Share2 aria-hidden="true" className="h-3.5 w-3.5" />
+              <span>{sharingStats ? "Preparing…" : "Share my stats"}</span>
+            </button>
+            {statsShareNote && (
+              <span role="status" aria-live="polite" className="text-[10.5px] text-zinc-400">
+                {statsShareNote}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-2 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">

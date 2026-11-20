@@ -1088,6 +1088,20 @@ export function GameCatalog({
     };
   }, []);
 
+  // The lower sponsor unit is mounted only after the reader has scrolled into
+  // the list, so a quick first-screen visit never loads it.
+  const [lowerAdVisible, setLowerAdVisible] = React.useState(false);
+  React.useEffect(() => {
+    const element = catalogScrollRef.current;
+    if (!element || lowerAdVisible) return;
+    const reveal = () => {
+      if (element.scrollTop > 280) setLowerAdVisible(true);
+    };
+    element.addEventListener("scroll", reveal, { passive: true });
+    reveal();
+    return () => element.removeEventListener("scroll", reveal);
+  }, [lowerAdVisible]);
+
   React.useEffect(() => {
     return onBlockedGamesChange((updated) => setBlockedIds(updated));
   }, []);
@@ -1608,8 +1622,8 @@ export function GameCatalog({
     return game;
   }, [games, gameOfTheDayId, hiddenGames]);
 
-  // The hero always has a game: the admin's pick for today, or the most-played
-  // game in the catalog when no pick has been set.
+  // The hero always has a base game: the admin's pick for today, or the
+  // most-played game in the catalog when no pick has been set.
   const topGameToday = React.useMemo(() => {
     if (gameOfTheDay) return gameOfTheDay;
     const candidates = games.filter((game) => !game.disabled && !hiddenGames[game.id]);
@@ -1620,7 +1634,8 @@ export function GameCatalog({
   }, [gameOfTheDay, games, hiddenGames]);
 
   // The hero rotates through the editor's picks, starting with today's pick
-  // (or the most played game when no pick has been set).
+  // (or the most played game when no pick has been set). The dots below the
+  // card report and switch the active game.
   const heroGames = React.useMemo(() => {
     const picks = games.filter(
       (game) => !!game.editorsPick && !game.disabled && !hiddenGames[game.id]
@@ -1630,15 +1645,29 @@ export function GameCatalog({
   }, [games, hiddenGames, topGameToday]);
 
   const [heroIndex, setHeroIndex] = React.useState(0);
+  const [heroPaused, setHeroPaused] = React.useState(false);
+  const [heroCycle, setHeroCycle] = React.useState(0);
+
   React.useEffect(() => {
-    if (heroGames.length < 2) return;
+    setHeroIndex(0);
+  }, [heroGames.length]);
+
+  // Advance on its own, but not while the reader is hovering or tabbing through
+  // the card, and never when the OS asks for reduced motion.
+  React.useEffect(() => {
+    if (heroGames.length < 2 || heroPaused) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const timer = window.setInterval(() => {
       setHeroIndex((index) => (index + 1) % heroGames.length);
     }, 5000);
     return () => window.clearInterval(timer);
-  }, [heroGames]);
+  }, [heroGames.length, heroPaused, heroCycle]);
 
-  const heroGame = heroGames.length > 0 ? heroGames[heroIndex % heroGames.length] : null;
+  const selectHeroGame = (index: number) => {
+    setHeroIndex(index);
+    // Restart the timer so a manual pick gets a full turn on screen.
+    setHeroCycle((value) => value + 1);
+  };
 
   const recentGameItems = React.useMemo(() => {
     const byId = new Map(games.map((game) => [game.id, game]));
@@ -1823,42 +1852,103 @@ export function GameCatalog({
         }}
       >
         <div className="flex flex-col gap-4">
-          {/* The #1 game today scrolls with the catalog, just below the filters. */}
-          {!isFiltered && heroGame && (
-            <section aria-labelledby="top-game-heading">
-              <a
-                href={heroGame.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => launchGame(heroGame, event)}
-                className="group relative flex min-h-[8rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[10rem] sm:p-4"
+          {/* The top games carousel scrolls with the catalog, just below the filters. */}
+          {!isFiltered && heroGames.length > 0 && (
+            <section aria-labelledby="top-game-heading" className="flex flex-col gap-2">
+              <div
+                role="group"
+                aria-roledescription="carousel"
+                onMouseEnter={() => setHeroPaused(true)}
+                onMouseLeave={() => setHeroPaused(false)}
+                onFocusCapture={() => setHeroPaused(true)}
+                onBlurCapture={() => setHeroPaused(false)}
+                className="relative h-[9rem] overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] sm:h-[10.5rem]"
               >
-                <GameCoverArt game={heroGame} accent={gameAccent(heroGame)} eager />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
-                <div className="relative z-10 flex w-full flex-wrap items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
-                      <Flame aria-hidden="true" className="h-3 w-3" />
-                      {heroGame.editorsPick ? "Editor’s pick" : "#1 game today"}
-                    </span>
-                    <h2 id="top-game-heading" className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
-                      {heroGame.name}
-                    </h2>
-                    <p className="mt-0.5 line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">
-                      {heroGame.description}
-                    </p>
-                    {(heroGame.clicks || 0) > 0 && (
-                      <p className="mt-1 text-[10px] font-medium text-zinc-400">
-                        {(heroGame.clicks || 0).toLocaleString()} plays
-                      </p>
-                    )}
-                  </div>
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
-                    <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
-                    Play
-                  </span>
+                {heroGames.map((game, index) => {
+                  const active = index === heroIndex % heroGames.length;
+                  return (
+                    <a
+                      key={game.id}
+                      href={game.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(event) => launchGame(game, event)}
+                      aria-hidden={!active}
+                      tabIndex={active ? undefined : -1}
+                      className={`group absolute inset-0 flex items-end p-3 transition-[opacity,transform] duration-500 ease-out sm:p-4 ${
+                        active
+                          ? "z-10 translate-x-0 opacity-100"
+                          : "pointer-events-none z-0 translate-x-3 opacity-0"
+                      }`}
+                    >
+                      <GameCoverArt
+                        game={game}
+                        accent={gameAccent(game)}
+                        eager={index === 0}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
+                      <div className="relative z-10 flex w-full flex-wrap items-end justify-between gap-3">
+                        <div className="min-w-0">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+                            <Flame aria-hidden="true" className="h-3 w-3" />
+                            {game.editorsPick ? "Editor’s pick" : "#1 game today"}
+                          </span>
+                          <h2
+                            id={active ? "top-game-heading" : undefined}
+                            className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl"
+                          >
+                            {game.name}
+                          </h2>
+                          <p className="mt-0.5 line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">
+                            {game.description}
+                          </p>
+                          {(game.clicks || 0) > 0 && (
+                            <p className="mt-1 text-[10px] font-medium text-zinc-400">
+                              {(game.clicks || 0).toLocaleString()} plays
+                            </p>
+                          )}
+                        </div>
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
+                          <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
+                          Play
+                        </span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+
+              {heroGames.length > 1 && (
+                <div
+                  role="group"
+                  aria-label="Choose the top game"
+                  className="flex items-center justify-center gap-1"
+                >
+                  {heroGames.map((game, index) => {
+                    const active = index === heroIndex % heroGames.length;
+                    return (
+                      <button
+                        key={game.id}
+                        type="button"
+                        aria-label={`Show ${game.name}`}
+                        aria-pressed={active}
+                        title={game.name}
+                        onClick={() => selectHeroGame(index)}
+                        className="group/dot flex h-6 w-6 cursor-pointer items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`block rounded-full transition-all duration-300 ${
+                            active
+                              ? "h-2 w-2 bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.55)]"
+                              : "h-1.5 w-1.5 bg-white/25 group-hover/dot:bg-white/50"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
-              </a>
+              )}
             </section>
           )}
 
@@ -1939,7 +2029,7 @@ export function GameCatalog({
             </section>
           )}
 
-          {showAdSpot && (
+          {showAdSpot && lowerAdVisible && (
             <div
               aria-label="Advertisement"
               style={{

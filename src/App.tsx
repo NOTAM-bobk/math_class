@@ -9,7 +9,7 @@ import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
 import { AdsNudgeModal } from "./components/AdsNudgeModal";
-import { FeatureTooltips } from "./components/FeatureTooltips";
+import { Tour, useTour } from "./components/Tour";
 import { BotChallengeGate } from "./components/BotChallengeGate";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
 import { GlassReveal21st } from "./components/ui/liquid-glass-logo-reveal";
@@ -53,6 +53,11 @@ import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
 import { hasPassedBotChallenge, startStartupBotCheck } from "./lib/botDetection";
 import { loadCatalog } from "./lib/catalog";
+import {
+  CHAT_COMPOSER_TARGET,
+  getOnboardingSteps,
+  ONBOARDING_STORAGE_KEY,
+} from "./lib/onboardingSteps";
 
 // The settings, admin and change log dialogs are large and most visits never
 // open them, so each one is a separate chunk loaded on first use.
@@ -189,6 +194,21 @@ export function App() {
   });
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const searchRef = React.useRef<HTMLInputElement>(null);
+
+  // First-visit walkthrough; the storage flag keeps it to one showing.
+  const onboarding = useTour(ONBOARDING_STORAGE_KEY);
+  const {
+    open: onboardingOpen,
+    setOpen: setOnboardingOpen,
+    index: onboardingIndex,
+    setIndex: setOnboardingIndex,
+  } = onboarding;
+  // The side rail is desktop-only, so phones get the same tour without it.
+  const isPhoneViewport = React.useMemo(
+    () => window.matchMedia("(max-width: 767px)").matches,
+    []
+  );
+  const tourSteps = React.useMemo(() => getOnboardingSteps(isPhoneViewport), [isPhoneViewport]);
 
   React.useEffect(() => {
     document.getElementById("boot-loader")?.remove();
@@ -349,6 +369,37 @@ export function App() {
   };
 
   const isLocked = siteLockEnabled && siteLockPassword.trim().length > 0 && !isUnlocked;
+
+  // On phones the chat lives in its own panel, so switch to it while the tour
+  // is on that step and go back to the games panel when the tour closes.
+  const handleTourIndexChange = React.useCallback(
+    (nextIndex: number) => {
+      setOnboardingIndex(nextIndex);
+      if (isPhoneViewport) {
+        setMobilePanel(tourSteps[nextIndex]?.target === CHAT_COMPOSER_TARGET ? "chat" : "games");
+      }
+    },
+    [isPhoneViewport, setOnboardingIndex, tourSteps]
+  );
+
+  const handleTourOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOnboardingOpen(nextOpen);
+      if (!nextOpen && isPhoneViewport) setMobilePanel("games");
+    },
+    [isPhoneViewport, setOnboardingOpen]
+  );
+
+  // Show the walkthrough once, after the intro reveal and any gate has cleared.
+  React.useEffect(() => {
+    if (isLocked || showLoadReveal || botChallengePending || onboarding.seen()) return;
+    const timer = window.setTimeout(() => {
+      // Expand the side rail so its labels are readable while it is highlighted.
+      setSideNavExpanded(true);
+      onboarding.start();
+    }, 1600);
+    return () => window.clearTimeout(timer);
+  }, [isLocked, showLoadReveal, botChallengePending, onboarding.seen, onboarding.start]);
 
   // Remember whether the nav options are open or closed between visits.
   const bugReturnUrlRef = React.useRef("/");
@@ -628,7 +679,7 @@ export function App() {
               <ShareButton compact />
               <button
                 type="button"
-                data-hint-target="settings"
+                data-tour-target="settings"
                 onClick={() => setSettingsOpen(true)}
                 title="Settings & Site Lock"
                 aria-label="Settings"
@@ -908,7 +959,17 @@ export function App() {
         onClose={() => setAdsNudgeOpen(false)}
       />
 
-      <FeatureTooltips />
+      <Tour
+        steps={tourSteps}
+        open={onboardingOpen}
+        onOpenChange={handleTourOpenChange}
+        index={onboardingIndex}
+        onIndexChange={handleTourIndexChange}
+        onFinish={onboarding.markSeen}
+        onSkip={onboarding.markSeen}
+        showProgress
+        dark
+      />
     </BackgroundWrapper>
   );
 }

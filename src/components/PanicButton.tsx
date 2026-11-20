@@ -40,6 +40,7 @@ export function PanicButton({ className = "", compact = false }: { className?: s
   return (
     <button
       type="button"
+      data-tour-target="panic"
       onClick={triggerPanic}
       title="Panic: press ] anywhere to leave this site instantly"
       aria-keyshortcuts="]"

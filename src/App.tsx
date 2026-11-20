@@ -1,3 +1,4 @@
+import { checkForUpdate, applyUpdate } from "./lib/updateChecker";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { GameCatalog, initialCategory, initialSearchQuery, type CategoryId } from "./components/GameCatalog";
@@ -269,22 +270,48 @@ export function App() {
   }, []);
 
   React.useEffect(() => {
-    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
-    const handleControllerChange = () => {
-      setUpdateReady(true);
+    let isMounted = true;
+
+    const runCheck = async () => {
+      try {
+        const res = await checkForUpdate();
+        if (isMounted && res.hasUpdate) {
+          setUpdateReady(true);
+        }
+      } catch {}
     };
-    navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+
+    // Check shortly after boot once the catalog and UI are responsive
+    const initTimer = window.setTimeout(runCheck, 2500);
+    // Periodically poll for updates every 3 minutes
+    const intervalTimer = window.setInterval(runCheck, 180000);
 
     const handleFocus = () => {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        regs.forEach((r) => r.update().catch(() => {}));
-      }).catch(() => {});
+      runCheck();
+      if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.update().catch(() => {}));
+        }).catch(() => {});
+      }
     };
     window.addEventListener("focus", handleFocus);
 
+    let handleControllerChange: (() => void) | undefined;
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+      handleControllerChange = () => {
+        if (isMounted) setUpdateReady(true);
+      };
+      navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+    }
+
     return () => {
-      navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+      isMounted = false;
+      window.clearTimeout(initTimer);
+      window.clearInterval(intervalTimer);
       window.removeEventListener("focus", handleFocus);
+      if (handleControllerChange && typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+      }
     };
   }, []);
 
@@ -970,10 +997,12 @@ export function App() {
             <span className="whitespace-nowrap">New version is ready</span>
             <button
               type="button"
-              onClick={() => window.location.reload()}
-              className="rounded-full bg-white/10 px-3 py-1 font-medium text-zinc-100 transition-colors hover:bg-white/20"
+              onClick={() => {
+                applyUpdate().catch(() => window.location.reload());
+              }}
+              className="rounded-full bg-emerald-500/20 px-3 py-1 font-medium text-emerald-300 transition-colors hover:bg-emerald-500/30"
             >
-              Reload
+              Update now
             </button>
             <button
               type="button"

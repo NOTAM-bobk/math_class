@@ -20,6 +20,7 @@ try {
 // Offline copy
 // ---------------------------------------------------------------------------
 
+const SW_VERSION = "1.7.3";
 const OFFLINE_CACHE = "polytrack-offline-v1";
 const OFFLINE_META_CACHE = "polytrack-offline-meta-v1";
 // Per-game packs downloaded from Settings live in their own cache so one game

@@ -21,6 +21,7 @@ import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
 import { PartnerBanner, PartnerNativeAd, pickPartnerBannerSize, type PartnerBannerSize } from "./NetworkAd";
 import { PanicButton } from "./PanicButton";
+import { RANDOM_GAME_EVENT } from "./RandomGameButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { loadCatalog } from "@/lib/catalog";
 import { markFeedbackPromptSeen, recordGameFeedback, shouldPromptFeedback } from "@/lib/gameFeedback";
@@ -1347,6 +1348,23 @@ export function GameCatalog({
     if (embed) openLauncher(game);
   };
 
+  // The shuffle button in the header asks for a random game; the catalog owns
+  // the list, so it picks one and launches it the same way a card does.
+  const launchRandomGameRef = React.useRef<() => void>(() => {});
+  launchRandomGameRef.current = () => {
+    const pool = games.filter((game) => !game.disabled && !hiddenGames[game.id]);
+    if (pool.length === 0) return;
+    const game = pool[Math.floor(Math.random() * pool.length)];
+    const embed = isSameOriginGame(game.url);
+    launchGame(game);
+    if (!embed) window.open(game.url, "_blank", "noopener,noreferrer");
+  };
+  React.useEffect(() => {
+    const playRandomGame = () => launchRandomGameRef.current();
+    window.addEventListener(RANDOM_GAME_EVENT, playRandomGame);
+    return () => window.removeEventListener(RANDOM_GAME_EVENT, playRandomGame);
+  }, []);
+
   // The in-page launcher stays open while the game runs; Escape or the return
   // bar closes it, and only then is the play session finalized.
   useDialogFocus({
@@ -1575,6 +1593,17 @@ export function GameCatalog({
     return game;
   }, [games, gameOfTheDayId, hiddenGames]);
 
+  // The hero always has a game: the admin's pick for today, or the most-played
+  // game in the catalog when no pick has been set.
+  const topGameToday = React.useMemo(() => {
+    if (gameOfTheDay) return gameOfTheDay;
+    const candidates = games.filter((game) => !game.disabled && !hiddenGames[game.id]);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, game) =>
+      (game.clicks || 0) > (best.clicks || 0) ? game : best
+    );
+  }, [gameOfTheDay, games, hiddenGames]);
+
   const recentGameItems = React.useMemo(() => {
     const byId = new Map(games.map((game) => [game.id, game]));
     return loadRecentGames()
@@ -1758,6 +1787,45 @@ export function GameCatalog({
         }}
       >
         <div className="flex flex-col gap-4">
+          {/* The #1 game today scrolls with the catalog, just below the filters. */}
+          {!isFiltered && topGameToday && (
+            <section aria-labelledby="top-game-heading">
+              <a
+                href={topGameToday.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => launchGame(topGameToday, event)}
+                className="group relative flex min-h-[7rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[8.5rem] sm:p-4"
+              >
+                <GameCoverArt game={topGameToday} accent={gameAccent(topGameToday)} eager />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
+                <div className="relative z-10 flex w-full flex-wrap items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+                      <Flame aria-hidden="true" className="h-3 w-3" />
+                      #1 game today
+                    </span>
+                    <h2 id="top-game-heading" className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
+                      {topGameToday.name}
+                    </h2>
+                    <p className="mt-0.5 line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">
+                      {topGameToday.description}
+                    </p>
+                    {(topGameToday.clicks || 0) > 0 && (
+                      <p className="mt-1 text-[10px] font-medium text-zinc-400">
+                        {(topGameToday.clicks || 0).toLocaleString()} plays
+                      </p>
+                    )}
+                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
+                    <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
+                    Play
+                  </span>
+                </div>
+              </a>
+            </section>
+          )}
+
           {catalogLoading && games.length === 0 && (
             <div
               role="status"
@@ -1808,39 +1876,6 @@ export function GameCatalog({
                 <X aria-hidden="true" className="h-3 w-3" />
               </button>
             </div>
-          )}
-
-          {!isFiltered && gameOfTheDay && (
-            <section aria-labelledby="catalog-daily-heading" className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-2">
-                <h3 id="catalog-daily-heading" className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                  <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
-                  Game of the day
-                </h3>
-                <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">Today&rsquo;s pick</span>
-              </div>
-              <a
-                href={gameOfTheDay.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => launchGame(gameOfTheDay, event)}
-                className="group relative flex min-h-[7.5rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[9rem] sm:p-4"
-              >
-                <GameCoverArt game={gameOfTheDay} accent={gameAccent(gameOfTheDay)} />
-                <div className="relative z-10 flex w-full items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">Game of the day</span>
-                    <p className="truncate text-lg font-bold tracking-tight text-white sm:text-xl">{gameOfTheDay.name}</p>
-                    <p className="line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">{gameOfTheDay.description}</p>
-                  </div>
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
-                    <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
-                    Play
-                  </span>
-                </div>
-              </a>
-            </section>
           )}
 
           {!isFiltered && recentGameItems.length > 0 && (
@@ -2102,7 +2137,7 @@ export function GameCatalog({
                 >
                   <RotateCcw aria-hidden="true" className="h-4 w-4" />
                 </button>
-                <PanicButton compact />
+                <PanicButton />
                 <a
                   href={launcherGame.url}
                   target="_blank"

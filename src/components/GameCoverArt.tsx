@@ -34,19 +34,29 @@ export function gameIconUrl(url: string) {
   }
 }
 
+// The hub hosts PolyTrack itself, so its in-game scenery is the cover art.
+const LOCAL_GAME_COVERS: Record<string, string> = {
+  "polytrack-050": "/0.5.0/images/official_tracks.jpg",
+};
+
 export function GameCoverArt({
   game,
   accent,
   compact = false,
+  eager = false,
 }: {
   game: CoverGame;
   accent: string;
   compact?: boolean;
+  eager?: boolean;
 }) {
   const [iconFailed, setIconFailed] = React.useState(false);
   const [coverFailed, setCoverFailed] = React.useState(false);
   const iconUrl = React.useMemo(() => gameIconUrl(game.url), [game.url]);
-  const coverUrl = React.useMemo(() => gameCoverUrl(game.id), [game.id]);
+  const coverUrl = React.useMemo(
+    () => gameCoverUrl(game.id) || LOCAL_GAME_COVERS[game.id] || "",
+    [game.id]
+  );
   const initials = React.useMemo(() => gameInitials(game.name), [game.name]);
   const showCover = !!coverUrl && !coverFailed;
   const showIcon = !showCover && !!iconUrl && !iconFailed;
@@ -67,7 +77,7 @@ export function GameCoverArt({
         <img
           src={coverUrl}
           alt=""
-          loading="lazy"
+          loading={eager ? "eager" : "lazy"}
           decoding="async"
           onError={() => setCoverFailed(true)}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -89,7 +99,7 @@ export function GameCoverArt({
               <img
                 src={iconUrl}
                 alt=""
-                loading="lazy"
+                loading={eager ? "eager" : "lazy"}
                 decoding="async"
                 onError={() => setIconFailed(true)}
                 className={`object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110 ${

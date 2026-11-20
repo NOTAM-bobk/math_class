@@ -121,16 +121,63 @@ function NavList({
   expanded: boolean;
   withHoldTooltips: boolean;
 }) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = React.useState({ top: false, bottom: false });
+
+  const updateEdges = React.useCallback(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    const remaining = element.scrollHeight - element.clientHeight - element.scrollTop;
+    const top = element.scrollTop > 2;
+    const bottom = remaining > 2;
+    setEdges((previous) =>
+      previous.top === top && previous.bottom === bottom ? previous : { top, bottom }
+    );
+  }, []);
+
+  React.useEffect(() => {
+    updateEdges();
+    const element = scrollRef.current;
+    if (!element) return;
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateEdges) : null;
+    observer?.observe(element);
+    return () => observer?.disconnect();
+  }, [updateEdges, sections, expanded]);
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      {sections.map((section, index) => (
-        <div key={section.items[0]?.id ?? index} className="flex flex-col gap-1">
-          {index > 0 && <div aria-hidden="true" className="mx-1 my-0.5 h-px shrink-0 bg-white/[0.08]" />}
-          {section.items.map((item) => (
-            <NavButton key={item.id} item={item} expanded={expanded} withHoldTooltip={withHoldTooltips} />
-          ))}
-        </div>
-      ))}
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div
+        ref={scrollRef}
+        onScroll={updateEdges}
+        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {sections.map((section, index) => (
+          <div key={section.items[0]?.id ?? index} className="flex flex-col gap-1">
+            {index > 0 && <div aria-hidden="true" className="mx-1 my-0.5 h-px shrink-0 bg-white/[0.08]" />}
+            {section.items.map((item) => (
+              <NavButton
+                key={item.id}
+                item={item}
+                expanded={expanded}
+                withHoldTooltip={withHoldTooltips}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* Soft blur over the clipped edges, shown only while there is more to scroll. */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-gradient-to-b from-[#1d1d1d] via-[#1d1d1d]/70 to-transparent backdrop-blur-[2px] transition-opacity duration-200 [mask-image:linear-gradient(to_bottom,black,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,black,transparent)] ${
+          edges.top ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-gradient-to-t from-[#1d1d1d] via-[#1d1d1d]/70 to-transparent backdrop-blur-[2px] transition-opacity duration-200 [mask-image:linear-gradient(to_top,black,transparent)] [-webkit-mask-image:linear-gradient(to_top,black,transparent)] ${
+          edges.bottom ? "opacity-100" : "opacity-0"
+        }`}
+      />
     </div>
   );
 }

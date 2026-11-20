@@ -4,7 +4,7 @@ import { ShieldAlert } from "lucide-react";
 const PANIC_STORAGE_KEY = "polytrack_panic_url";
 const DEFAULT_TARGET = "https://www.wikipedia.org/";
 
-export function PanicButton({ className = "", compact = false }: { className?: string; compact?: boolean }) {
+export function PanicButton({ className = "" }: { className?: string }) {
   const triggerPanic = React.useCallback(() => {
     let target = DEFAULT_TARGET;
     try {
@@ -44,17 +44,10 @@ export function PanicButton({ className = "", compact = false }: { className?: s
       onClick={triggerPanic}
       title="Panic: press ] anywhere to leave this site instantly"
       aria-keyshortcuts="]"
-      aria-label={compact ? "Panic: leave this site" : undefined}
-      className={`inline-flex cursor-pointer items-center rounded-full bg-red-600/90 text-xs font-medium tracking-tight text-white shadow-sm transition-colors hover:bg-red-500 active:scale-[0.98] ${compact ? "h-8 w-8 justify-center gap-0 p-0 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1" : "gap-1.5 px-3 py-1"} ${className}`}
+      aria-label="Panic: leave this site"
+      className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-red-600/90 text-white shadow-sm transition-colors hover:bg-red-500 active:scale-[0.98] ${className}`}
     >
-      <ShieldAlert aria-hidden="true" className="w-3.5 h-3.5" />
-      <span className={compact ? "hidden sm:inline" : undefined}>Panic</span>
-      <kbd
-        aria-hidden="true"
-        className={compact ? "hidden sm:inline rounded bg-red-800/70 px-1.5 py-0.5 font-mono text-[10px] leading-none text-red-100" : "rounded bg-red-800/70 px-1.5 py-0.5 font-mono text-[10px] leading-none text-red-100"}
-      >
-        ]
-      </kbd>
+      <ShieldAlert aria-hidden="true" className="h-4 w-4" />
     </button>
   );
 }

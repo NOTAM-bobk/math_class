@@ -32,6 +32,22 @@
       "url": "https://freebuff.com/?ref=ref-9dbf5024-0a7b-40ba-933a-f300a3c29275&via=rewards_link",
       "badge": "Tool",
       "cta": "Try Freebuff"
+    },
+    {
+      "id": "lovable",
+      "title": "Build apps with Lovable",
+      "description": "An AI app builder — join through this invite and you help keep math_games free.",
+      "url": "https://lovable.dev/invite/HUSIQI9",
+      "badge": "Tool",
+      "cta": "Join Lovable"
+    },
+    {
+      "id": "manus",
+      "title": "Try Manus",
+      "description": "An AI agent for research and everyday tasks — use this invitation and support math_games.",
+      "url": "https://manus.im/invitation/FGWWFIYFCPA3PB?utm_source=invitation&utm_medium=social&utm_campaign=copy_link",
+      "badge": "Tool",
+      "cta": "Get invite"
     }
   ]
 }

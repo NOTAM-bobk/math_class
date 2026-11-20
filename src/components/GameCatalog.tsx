@@ -117,6 +117,27 @@ function gameAccent(game: GameItem) {
 export type SpecialFilterId = "buggy" | "blocked";
 export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilterId;
 
+// Readable names for the catalog heading, e.g. "82 games in Driving".
+const CATEGORY_NAMES: Record<CategoryId, string> = {
+  all: "All Games",
+  recent: "Recently played",
+  favorites: "Favorites",
+  editors: "Editor’s picks",
+  verified: "Verified",
+  hidden: "Hidden games",
+  trending: "Trending",
+  offline: "Offline",
+  flash: "Flash",
+  action: "Action",
+  driving: "Driving",
+  sports: "Sports",
+  arcade: "Arcade",
+  puzzle: "Puzzle",
+  casual: "Casual",
+  buggy: "Error: bug",
+  blocked: "Blocked",
+};
+
 type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 
 const DEFAULT_SORT: SortOption = "popular";
@@ -1579,80 +1600,41 @@ export function GameCatalog({
     <div className="solid-3d-panel flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* Catalog top controls with search and category filters */}
       <div className="flex shrink-0 flex-col gap-2 border-b border-white/[0.06] p-2.5 sm:gap-2.5 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div
+          data-tour-target="game-categories"
+          className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
+        >
           <div className="flex min-w-0 items-center gap-2">
-            <span
-              role="status"
+            <h2
               aria-live="polite"
-              style={CHIP_STYLE}
-              className="shrink-0 px-2.5 py-0.5 text-[11px] tabular-nums text-[#caccd2]"
+              className="flex min-w-0 items-baseline gap-1.5 truncate text-sm font-semibold text-zinc-100 sm:text-[15px]"
             >
-              {serverSearching ? "Searching…" : `${filteredGames.length} ${filteredGames.length === 1 ? "game" : "games"}`}
-            </span>
+              {CATEGORY_ACCENTS[selectedCategory] && (
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 shrink-0 self-center rounded-full"
+                  style={{ background: CATEGORY_ACCENTS[selectedCategory] }}
+                />
+              )}
+              {serverSearching ? (
+                <span className="font-normal text-zinc-400">Searching…</span>
+              ) : (
+                <>
+                  <span className="tabular-nums">{filteredGames.length}</span>
+                  <span className="font-normal text-zinc-400">
+                    {filteredGames.length === 1 ? "game" : "games"} in
+                  </span>
+                  <span className="truncate">{CATEGORY_NAMES[selectedCategory]}</span>
+                </>
+              )}
+              {!serverSearching && searchQuery.trim() && (
+                <span className="truncate text-[12px] font-normal text-zinc-500">
+                  for “{searchQuery.trim()}”
+                </span>
+              )}
+            </h2>
           </div>
-        </div>
-
-        {/* Category Filter Chips Bar near search */}
-        <div className="flex min-w-0 items-center gap-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            <div className="relative min-w-0 flex-1">
-            <div
-              data-tour-target="game-categories"
-              role="group"
-              aria-label="Filter games by category"
-              className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pt-0.5 pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {CATEGORY_FILTERS.map((cat) => {
-                // Downloaded games are only useful with no connection, so the
-                // filter only exists while the browser is offline.
-                if (cat.id === OFFLINE_CATEGORY && !offlineNow) return null;
-                const active = selectedCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => {
-                      onSelectCategory(cat.id);
-                      posthog.capture("catalog_filter_applied", {
-                        filter_type: "category",
-                        filter_value: cat.id,
-                      });
-                    }}
-                    style={{
-                      ...CHIP_STYLE,
-                      borderRadius: 20,
-                      background: active ? "#ffffff" : "rgba(255, 255, 255, 0.04)",
-                      color: active ? "#09090b" : cat.id === "favorites" && favoriteIds.size > 0 ? "#fbbf24" : "#d4d4d8",
-                      fontWeight: active ? 600 : 500,
-                      boxShadow: active
-                        ? "0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
-                        : "inset 0 0 0 1px rgba(255, 255, 255, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
-                    }}
-                    className="inline-flex shrink-0 items-center gap-1 px-3 py-1 text-[11px] transition hover:text-white active:scale-95"
-                  >
-                    {CATEGORY_ACCENTS[cat.id] && (
-                      <span
-                        aria-hidden="true"
-                        className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ background: CATEGORY_ACCENTS[cat.id] }}
-                      />
-                    )}
-                    <span>{cat.label}</span>
-                    {cat.id === "favorites" && favoriteIds.size > 0 && (
-                      <span className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-mono leading-tight ${active ? "bg-zinc-900/10 text-zinc-900 font-bold" : "bg-amber-400/20 text-amber-300"}`}>
-                        {favoriteIds.size}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Soft blur over the clipped edges of the scrolling chip row. */}
-            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,transparent)] [-webkit-mask-image:linear-gradient(to_right,black,transparent)]" />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_left,black,transparent)] [-webkit-mask-image:linear-gradient(to_left,black,transparent)]" />
-            </div>
-
+          <div className="flex min-w-0 items-center gap-1.5">
             <div className="relative shrink-0" ref={filterRef}>
               <button
                 ref={filterButtonRef}

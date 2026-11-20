@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.1";
+export const SITE_VERSION = "1.6.2";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.2",
+    date: "November 2026",
+    title: "Category headings and a focused chat view",
+    changes: [
+      "The catalog heading now reads \"82 games in Driving\" for whichever category is selected.",
+      "The row of filter tags at the top of the catalog is gone; every category lives in the side navigation.",
+      "Opening Community chat from the side navigation shows it centred and much larger.",
+    ],
+  },
   {
     version: "1.6.1",
     date: "November 2026",

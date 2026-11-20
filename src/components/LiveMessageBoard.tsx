@@ -120,7 +120,15 @@ function pickQuickReactions(count = 8): string[] {
   return pool.slice(0, count);
 }
 
-export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
+export function LiveMessageBoard({
+  showAds = true,
+  title = "Chat",
+  onClose,
+}: {
+  showAds?: boolean;
+  title?: string;
+  onClose?: () => void;
+}) {
   const [messages, setMessages] = React.useState<ChatMessage[]>(fallbackMessages);
   const [nickname, setNickname] = React.useState(() => localStorage.getItem("polytrack_nickname") || `Racer_${Math.floor(100 + Math.random() * 900)}`);
   const [inputText, setInputText] = React.useState("");
@@ -365,7 +373,7 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
           <div style={CHIP_STYLE} className="p-1.5 text-zinc-300">
             <Radio aria-hidden="true" className="w-3.5 h-3.5" />
           </div>
-          <h2 className="text-xs font-semibold text-zinc-200">Chat</h2>
+          <h2 className={`font-semibold text-zinc-200 ${onClose ? "text-sm" : "text-xs"}`}>{title}</h2>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -390,6 +398,18 @@ export function LiveMessageBoard({ showAds = true }: { showAds?: boolean }) {
               {loading ? "Connecting…" : error ? "Offline" : "Live"}
             </span>
           </span>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              title="Close chat"
+              aria-label="Close chat"
+              style={CHIP_STYLE}
+              className="p-1.5 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X aria-hidden="true" className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 

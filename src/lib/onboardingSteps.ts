@@ -43,9 +43,9 @@ export function getOnboardingSteps(isPhone: boolean): TourStep[] {
     },
     {
       target: '[data-tour-target="game-categories"]',
-      title: "Filter the catalog",
+      title: "Browse by category",
       content:
-        "Browse trending, new, favorites, verified and more. Star any game to keep it in Favorites.",
+        "Pick a genre from the side rail and the catalog says how many games are in it. Star any game to keep it in Favorites.",
       placement: "bottom",
     },
     {

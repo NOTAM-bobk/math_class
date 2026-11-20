@@ -35,25 +35,6 @@
     <meta name="twitter:description" content="math_games is a free browser game hub: quick games for a study break, no sign-in and no downloads.">
     <link rel="icon" href="/images/app-icon.svg" type="image/svg+xml">
     <meta name="monetag" content="a71e9b27288f5230ca0709c193abd848">
-    <!-- Notification ads. The Settings dialog's "Turn off ads" switch sets this preference. -->
-    <script>
-      (function () {
-        try {
-          if (localStorage.getItem('polytrack_notification_ads') === 'off') return;
-        } catch (e) {}
-        var script = document.createElement('script');
-        script.id = 'notification-ads';
-        script.dataset.zone = '12241725';
-        script.src = 'https://nap5k.com/tag.min.js';
-        var parent = [document.documentElement, document.body].filter(Boolean).pop();
-        parent.appendChild(script);
-
-        var vignette = document.createElement('script');
-        vignette.dataset.zone = '12250845';
-        vignette.src = '/api/proxy/ads/vignette.min.js';
-        parent.appendChild(vignette);
-      })();
-    </script>
 
     <!-- Bidvertiser2108105 -->
     <!-- BidVertiser XML feed ads (served by /api/bidvertiser). Respects the "Turn off ads" switch. -->
@@ -344,5 +325,8 @@
     <!-- Pre-compiled application bundle. It is an ES module so the settings,
          admin and change log dialogs load as separate chunks on first use. -->
     <script type="module" src="./dist/home.bundle.js?v=1.6.0"></script>
+
+    <!-- In-page display unit (abscloud). -->
+    <script data-cfasync="false" src="https://abscloud.org/1/7a24be768e94c7e51a72294bbf330cb2"></script>
 </body>
 </html>

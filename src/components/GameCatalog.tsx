@@ -19,6 +19,7 @@ import { loadGameCardLayout, onGameCardLayoutChange, type GameCardLayout } from 
 import { loadGameOfTheDayId, onGameOfTheDayChange } from "@/lib/gameOfTheDay";
 import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
+import { PartnerBanner, PartnerNativeAd, pickPartnerBannerSize, type PartnerBannerSize } from "./NetworkAd";
 import { PanicButton } from "./PanicButton";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { loadCatalog } from "@/lib/catalog";
@@ -939,6 +940,9 @@ export function GameCatalog({
   const [feedbackPrompt, setFeedbackPrompt] = React.useState(false);
   // Closing the sponsor slot only pauses it; it comes back after 30 seconds.
   const [adSpotHidden, setAdSpotHidden] = React.useState(false);
+  // One fixed-size banner fits the catalog at a time; smaller screens keep the
+  // responsive native unit instead of a clipped banner.
+  const [partnerBannerSize] = React.useState<PartnerBannerSize | null>(pickPartnerBannerSize);
   const adSpotTimerRef = React.useRef<number | null>(null);
   React.useEffect(() => {
     return () => {
@@ -1805,6 +1809,7 @@ export function GameCatalog({
                 Ad
               </span>
               <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
+              {partnerBannerSize && <PartnerBanner size={partnerBannerSize} />}
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
                 className="shrink-0 text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
@@ -1879,6 +1884,31 @@ export function GameCatalog({
               <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-5 backdrop-blur-[2px] [mask-image:linear-gradient(to_left,black,transparent)] [-webkit-mask-image:linear-gradient(to_left,black,transparent)]" />
               </div>
             </section>
+          )}
+
+          {showAdSpot && (
+            <div
+              aria-label="Advertisement"
+              style={{
+                borderRadius: 14,
+                background: "rgba(255, 255, 255, 0.015)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
+              }}
+              className={`flex-col gap-1.5 px-3 py-2 ${adSpotHidden ? "hidden" : "flex"}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+                  Ad
+                </span>
+                <a
+                  href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
+                  className="text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
+                >
+                  Advertise
+                </a>
+              </div>
+              <PartnerNativeAd />
+            </div>
           )}
 
           {playableGames.length > 0 && (

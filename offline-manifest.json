@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-20T00:09:06.893Z",
-  "totalBytes": 346845201,
+  "generatedAt": "2026-11-20T00:13:33.613Z",
+  "totalBytes": 346850955,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 14387
+      "bytes": 13752
     },
     {
       "url": "/manifest.json",
@@ -24,32 +24,32 @@
       "bytes": 14387
     },
     {
-      "url": "/dist/chunks/AdminPanelModal-BJ4BBTPL.js",
+      "url": "/dist/chunks/AdminPanelModal-XNGD5WW6.js",
       "bytes": 47699
     },
     {
-      "url": "/dist/chunks/ChangelogModal-BX64VGNY.js",
+      "url": "/dist/chunks/ChangelogModal-MUDEWG7T.js",
       "bytes": 3965
     },
     {
-      "url": "/dist/chunks/SettingsModal-KWUOIA3W.js",
-      "bytes": 83519
-    },
-    {
-      "url": "/dist/chunks/chunk-22XLCQZQ.js",
-      "bytes": 45421
+      "url": "/dist/chunks/SettingsModal-YR7APPVP.js",
+      "bytes": 86851
     },
     {
       "url": "/dist/chunks/chunk-44T34U4P.js",
       "bytes": 20188
     },
     {
-      "url": "/dist/chunks/chunk-5A4DB32G.js",
-      "bytes": 155767
+      "url": "/dist/chunks/chunk-D7HN55X2.js",
+      "bytes": 23664
     },
     {
-      "url": "/dist/chunks/chunk-QOHMFH7X.js",
-      "bytes": 23664
+      "url": "/dist/chunks/chunk-E2JLUVS4.js",
+      "bytes": 155849
+    },
+    {
+      "url": "/dist/chunks/chunk-E7CKOHNS.js",
+      "bytes": 45949
     },
     {
       "url": "/dist/chunks/chunk-W5HTUNVE.js",
@@ -57,11 +57,11 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 795801
+      "bytes": 798164
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 63810
+      "bytes": 63894
     },
     {
       "url": "/images/app-icon-192.png",

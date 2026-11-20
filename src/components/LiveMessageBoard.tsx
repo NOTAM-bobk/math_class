@@ -240,6 +240,15 @@ export function LiveMessageBoard({
     }
   }, []);
 
+  // Pulls in the previous page, remembering the height so the message the
+  // reader is looking at stays put while the older ones appear above it.
+  const loadOlderMessages = React.useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container || visibleCount >= messages.length) return;
+    pendingScrollAdjustRef.current = container.scrollHeight;
+    setVisibleCount((count) => count + OLDER_PAGE_SIZE);
+  }, [messages.length, visibleCount]);
+
   // Handle scroll detection
   const handleScroll = React.useCallback(() => {
     const el = scrollContainerRef.current;
@@ -251,7 +260,9 @@ export function LiveMessageBoard({
     if (!scrolledUp) {
       setUnreadCount(0);
     }
-  }, []);
+    // Reaching the top of the log loads the next page of older messages.
+    if (el.scrollTop <= 24) loadOlderMessages();
+  }, [loadOlderMessages]);
 
   const refreshMessages = React.useCallback(async (mode: "full" | "poll" = "full") => {
     if (mode === "full") setRefreshing(true);
@@ -310,11 +321,13 @@ export function LiveMessageBoard({
     return () => window.clearInterval(interval);
   }, [refreshMessages]);
 
-  // Initial scroll to bottom when messages load
+  // The first paint jumps to the newest message; everything after that glides
+  // down, so a poll never snaps the log out from under the reader.
+  const autoScrolledRef = React.useRef(false);
   React.useEffect(() => {
-    if (!isScrolledUp && messages.length > 0) {
-      scrollToBottom(false);
-    }
+    if (isScrolledUp || messages.length === 0) return;
+    scrollToBottom(autoScrolledRef.current);
+    autoScrolledRef.current = true;
   }, [messages.length, isScrolledUp, scrollToBottom]);
 
   React.useEffect(() => {
@@ -469,12 +482,6 @@ export function LiveMessageBoard({
     () => messages.slice(-visibleCount),
     [messages, visibleCount]
   );
-
-  const loadOlderMessages = React.useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (container) pendingScrollAdjustRef.current = container.scrollHeight;
-    setVisibleCount((count) => count + OLDER_PAGE_SIZE);
-  }, []);
 
   // Keep the reader's place when older messages are prepended.
   React.useLayoutEffect(() => {

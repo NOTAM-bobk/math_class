@@ -1910,7 +1910,7 @@ export function GameCatalog({
                 onMouseLeave={() => setHeroPaused(false)}
                 onFocusCapture={() => setHeroPaused(true)}
                 onBlurCapture={() => setHeroPaused(false)}
-                className="relative h-[9rem] overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] sm:h-[10.5rem]"
+                className="relative h-[12.5rem] overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] sm:h-[16rem]"
               >
                 {heroGames.map((game, index) => {
                   const active = index === heroIndex % heroGames.length;
@@ -1923,7 +1923,7 @@ export function GameCatalog({
                       onClick={(event) => launchGame(game, event)}
                       aria-hidden={!active}
                       tabIndex={active ? undefined : -1}
-                      className={`group absolute inset-0 flex items-end p-3 transition-[opacity,transform] duration-500 ease-out sm:p-4 ${
+                      className={`group absolute inset-0 flex items-end p-3 transition-[opacity,transform] duration-500 ease-out sm:p-5 ${
                         active
                           ? "z-10 translate-x-0 opacity-100"
                           : "pointer-events-none z-0 translate-x-3 opacity-0"
@@ -1943,11 +1943,11 @@ export function GameCatalog({
                           </span>
                           <h2
                             id={active ? "top-game-heading" : undefined}
-                            className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl"
+                            className="mt-1 truncate text-2xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-3xl"
                           >
                             {game.name}
                           </h2>
-                          <p className="mt-0.5 line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">
+                          <p className="mt-1 line-clamp-2 max-w-xl text-xs leading-snug text-zinc-300 sm:text-sm">
                             {game.description}
                           </p>
                           {(game.clicks || 0) > 0 && (
@@ -1956,7 +1956,7 @@ export function GameCatalog({
                             </p>
                           )}
                         </div>
-                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-200">
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-zinc-950 transition group-hover:bg-amber-200">
                           <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
                           Play
                         </span>

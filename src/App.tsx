@@ -143,6 +143,16 @@ function bugReportOpenFromUrl() {
   }
 }
 
+const SETTINGS_PATH = "/settings";
+
+function settingsOpenFromUrl() {
+  try {
+    return /\/settings\/?$/.test(window.location.pathname);
+  } catch {
+    return false;
+  }
+}
+
 
 export function App() {
   const [loadingRevealEnabled, setLoadingRevealEnabled] = React.useState(() => {
@@ -161,7 +171,7 @@ export function App() {
     } catch {}
     return typeof performance !== "undefined" && performance.now() > 250;
   });
-  const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(settingsOpenFromUrl);
   const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
   const [installAvailable, setInstallAvailable] = React.useState(canInstall);
   // The flame opens Settings straight on the streak pane; the gear opens General.
@@ -454,17 +464,18 @@ export function App() {
 
   // Show the walkthrough once, after the intro reveal and any gate has cleared.
   React.useEffect(() => {
-    if (isLocked || showLoadReveal || botChallengePending || onboarding.seen()) return;
+    if (isLocked || showLoadReveal || botChallengePending || settingsOpen || onboarding.seen()) return;
     const timer = window.setTimeout(() => {
       // Expand the side rail so its labels are readable while it is highlighted.
       setSideNavExpanded(true);
       onboarding.start();
     }, 1600);
     return () => window.clearTimeout(timer);
-  }, [isLocked, showLoadReveal, botChallengePending, onboarding.seen, onboarding.start]);
+  }, [isLocked, showLoadReveal, botChallengePending, settingsOpen, onboarding.seen, onboarding.start]);
 
   // Remember whether the nav options are open or closed between visits.
   const bugReturnUrlRef = React.useRef("/");
+  const settingsReturnUrlRef = React.useRef("/");
 
   const openBugReport = React.useCallback((gameName?: string) => {
     setBugReportSourcePath(window.location.pathname || "/");
@@ -486,11 +497,45 @@ export function App() {
     } catch {}
   }, []);
 
+  // Settings has its own address, so a phone can open it directly or a link can
+  // be shared. The path follows the dialog open and closed.
+  const openSettings = React.useCallback((section: "streak" | null = null) => {
+    setSettingsSection(section);
+    setSettingsOpen(true);
+    try {
+      if (!settingsOpenFromUrl()) {
+        settingsReturnUrlRef.current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        window.history.pushState({ settings: true }, "", SETTINGS_PATH);
+      }
+    } catch {}
+  }, []);
+
+  const closeSettings = React.useCallback(() => {
+    setSettingsOpen(false);
+    setSettingsSection(null);
+    try {
+      if (settingsOpenFromUrl()) {
+        window.history.replaceState(null, "", settingsReturnUrlRef.current || "/");
+      }
+    } catch {}
+  }, []);
+
   // Back and forward move in and out of the bug report like any other page.
   React.useEffect(() => {
     const syncWithUrl = () => setBugModalOpen(bugReportOpenFromUrl());
     window.addEventListener("popstate", syncWithUrl);
     return () => window.removeEventListener("popstate", syncWithUrl);
+  }, []);
+
+  // Back and forward open and close Settings with its address too.
+  React.useEffect(() => {
+    const syncSettingsWithUrl = () => {
+      const open = settingsOpenFromUrl();
+      setSettingsOpen(open);
+      if (!open) setSettingsSection(null);
+    };
+    window.addEventListener("popstate", syncSettingsWithUrl);
+    return () => window.removeEventListener("popstate", syncSettingsWithUrl);
   }, []);
 
   // "/" jumps to search from anywhere on the page, the usual shortcut in game libraries.
@@ -591,10 +636,7 @@ export function App() {
         label: "Open settings",
         group: "Site",
         icon: Settings,
-        run: () => {
-          setSettingsSection(null);
-          setSettingsOpen(true);
-        },
+        run: () => openSettings(null),
       },
       {
         id: "changelog",
@@ -852,10 +894,7 @@ export function App() {
               {streak.current > 0 && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSettingsSection("streak");
-                    setSettingsOpen(true);
-                  }}
+                  onClick={() => openSettings("streak")}
                   title={`${streak.current}-day streak — keep it going`}
                   aria-label={`${streak.current}-day streak. Open streak settings.`}
                   aria-haspopup="dialog"
@@ -876,10 +915,7 @@ export function App() {
               <button
                 type="button"
                 data-tour-target="settings"
-                onClick={() => {
-                  setSettingsSection(null);
-                  setSettingsOpen(true);
-                }}
+                onClick={() => openSettings(null)}
                 title="Settings & Site Lock"
                 aria-label="Settings"
                 aria-haspopup="dialog"
@@ -1131,21 +1167,21 @@ export function App() {
           setLoadingRevealEnabled(enabled);
           if (!enabled) setShowLoadReveal(false);
         }}
-        onClose={() => setSettingsOpen(false)}
+        onClose={closeSettings}
         onLockNow={() => setIsUnlocked(false)}
         onReportBug={() => {
-          setSettingsOpen(false);
+          closeSettings();
           openBugReport();
         }}
         onOpenAdmin={() => {
-          setSettingsOpen(false);
+          closeSettings();
           setAdminModalOpen(true);
         }}
         onConfigChange={handleConfigChange}
         tabCloakSettings={tabCloakSettings}
         onTabCloakChange={handleTabCloakChange}
         onOpenChangelog={() => {
-          setSettingsOpen(false);
+          closeSettings();
           setChangelogOpen(true);
         }}
         adSpotEnabled={adSpotEnabled}

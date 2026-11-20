@@ -914,7 +914,7 @@ function GameCard({
     return (
       <article
         key={game.id}
-        className={`game-card group relative flex h-full w-full flex-col overflow-hidden ${sizeClass ?? ""} ${
+        className={`game-card game-card-mosaic group relative flex h-full w-full flex-col overflow-hidden ${sizeClass ?? ""} ${
           game.disabled ? "opacity-80" : ""
         }`}
       >

@@ -1604,6 +1604,27 @@ export function GameCatalog({
     );
   }, [gameOfTheDay, games, hiddenGames]);
 
+  // The hero rotates through the editor's picks, starting with today's pick
+  // (or the most played game when no pick has been set).
+  const heroGames = React.useMemo(() => {
+    const picks = games.filter(
+      (game) => !!game.editorsPick && !game.disabled && !hiddenGames[game.id]
+    );
+    if (!topGameToday) return picks;
+    return [topGameToday, ...picks.filter((game) => game.id !== topGameToday.id)];
+  }, [games, hiddenGames, topGameToday]);
+
+  const [heroIndex, setHeroIndex] = React.useState(0);
+  React.useEffect(() => {
+    if (heroGames.length < 2) return;
+    const timer = window.setInterval(() => {
+      setHeroIndex((index) => (index + 1) % heroGames.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [heroGames]);
+
+  const heroGame = heroGames.length > 0 ? heroGames[heroIndex % heroGames.length] : null;
+
   const recentGameItems = React.useMemo(() => {
     const byId = new Map(games.map((game) => [game.id, game]));
     return loadRecentGames()
@@ -1788,32 +1809,32 @@ export function GameCatalog({
       >
         <div className="flex flex-col gap-4">
           {/* The #1 game today scrolls with the catalog, just below the filters. */}
-          {!isFiltered && topGameToday && (
+          {!isFiltered && heroGame && (
             <section aria-labelledby="top-game-heading">
               <a
-                href={topGameToday.url}
+                href={heroGame.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(event) => launchGame(topGameToday, event)}
-                className="group relative flex min-h-[7rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[8.5rem] sm:p-4"
+                onClick={(event) => launchGame(heroGame, event)}
+                className="group relative flex min-h-[8rem] items-end overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] p-3 transition hover:border-amber-300/45 sm:min-h-[10rem] sm:p-4"
               >
-                <GameCoverArt game={topGameToday} accent={gameAccent(topGameToday)} eager />
+                <GameCoverArt game={heroGame} accent={gameAccent(heroGame)} eager />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
                 <div className="relative z-10 flex w-full flex-wrap items-end justify-between gap-3">
                   <div className="min-w-0">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
                       <Flame aria-hidden="true" className="h-3 w-3" />
-                      #1 game today
+                      {heroGame.editorsPick ? "Editor’s pick" : "#1 game today"}
                     </span>
                     <h2 id="top-game-heading" className="mt-1 truncate text-xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
-                      {topGameToday.name}
+                      {heroGame.name}
                     </h2>
                     <p className="mt-0.5 line-clamp-2 max-w-xl text-[11.5px] leading-snug text-zinc-300 sm:text-xs">
-                      {topGameToday.description}
+                      {heroGame.description}
                     </p>
-                    {(topGameToday.clicks || 0) > 0 && (
+                    {(heroGame.clicks || 0) > 0 && (
                       <p className="mt-1 text-[10px] font-medium text-zinc-400">
-                        {(topGameToday.clicks || 0).toLocaleString()} plays
+                        {(heroGame.clicks || 0).toLocaleString()} plays
                       </p>
                     )}
                   </div>

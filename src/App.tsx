@@ -545,7 +545,7 @@ export function App() {
             icon: Sparkles,
             onSelect: () => {
               setMobileNavOpen(false);
-              window.open("/ai/", "_blank", "noopener,noreferrer");
+              window.location.assign("/ai/");
             },
           },
           {
@@ -554,7 +554,7 @@ export function App() {
             icon: Compass,
             onSelect: () => {
               setMobileNavOpen(false);
-              window.open("/outside/", "_blank", "noopener,noreferrer");
+              window.location.assign("/outside/");
             },
           },
           {

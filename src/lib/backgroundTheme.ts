@@ -238,10 +238,12 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
 
 const STORAGE_KEY = "polytrack_background_theme";
 
+// The hub opens on a flat surface; the animated halftone shader is opt-in
+// from Settings → Background.
 export const DEFAULT_BACKGROUND: BackgroundConfig = {
-  type: "shader",
-  id: "shader-halftone",
-  value: "shader",
+  type: "solid",
+  id: "solid-onyx",
+  value: "#09090b",
 };
 
 function hexLuminance(hex: string): number {

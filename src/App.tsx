@@ -8,7 +8,7 @@ import { LiveMessageBoard } from "./components/LiveMessageBoard";
 import { VisitorCounter } from "./components/VisitorCounter";
 import { usePresenceHeartbeat } from "./lib/presence";
 import { ShareButton } from "./components/ShareButton";
-import { RandomGameButton, RANDOM_GAME_EVENT } from "./components/RandomGameButton";
+import { RANDOM_GAME_EVENT } from "./components/RandomGameButton";
 import { NotificationsButton } from "./components/NotificationsButton";
 import { CommandPalette, type CommandPaletteItem } from "./components/CommandPalette";
 import { SiteLock } from "./components/SiteLock";
@@ -37,6 +37,7 @@ import {
   Link2,
   Menu,
   MessageCircle,
+  MoreHorizontal,
   Puzzle,
   ScrollText,
   Search,
@@ -96,16 +97,18 @@ const ChangelogModal = React.lazy(() =>
   import("./components/ChangelogModal").then((module) => ({ default: module.ChangelogModal }))
 );
 
+const HAIRLINE = "1px solid rgba(255, 255, 255, 0.07)";
+
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
-  background: "rgba(255, 255, 255, 0.04)",
-  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
+  background: "transparent",
+  border: HAIRLINE,
 };
 
 const ICON_BUTTON_STYLE: React.CSSProperties = {
   borderRadius: 999,
-  background: "rgba(255, 255, 255, 0.06)",
-  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.06)",
+  background: "transparent",
+  border: HAIRLINE,
 };
 
 function BackgroundWrapper({
@@ -241,6 +244,9 @@ export function App() {
     }
   });
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
+  // The header keeps four actions; everything else lives behind this menu.
+  const [headerMenuOpen, setHeaderMenuOpen] = React.useState(false);
+  const headerMenuRef = React.useRef<HTMLDivElement>(null);
   // Chat opened from the side navigation takes over the middle of the screen,
   // instead of living in its usual narrow column.
   const [chatFocusOpen, setChatFocusOpen] = React.useState(false);
@@ -638,6 +644,25 @@ export function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // The header's overflow menu closes on a click elsewhere or Escape.
+  React.useEffect(() => {
+    if (!headerMenuOpen) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(event.target as Node)) {
+        setHeaderMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setHeaderMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [headerMenuOpen]);
+
   const toggleSideNav = React.useCallback(() => {
     setSideNavExpanded((expanded) => {
       const next = !expanded;
@@ -855,7 +880,10 @@ export function App() {
         <BotChallengeGate onVerified={() => setBotChallengePending(false)} />
       )}
 
-      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+      <div
+        className="flex h-full min-h-0 w-full flex-col overflow-hidden"
+        style={{ backgroundColor: "#161616" }}
+      >
         <a
           href="#main"
           className="sr-only rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50"
@@ -870,9 +898,7 @@ export function App() {
             style={{
               background: "#1d1d1d",
               borderRadius: 20,
-              boxShadow:
-                "inset 0 0 0 1px rgba(44,47,54,0.52), inset 0 0 50px 0 rgba(255,255,255,0.02), 0 10px 24px -6px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3)",
-              fontFamily: "system-ui, -apple-system, sans-serif",
+              border: HAIRLINE,
             }}
           >
             <button
@@ -899,7 +925,7 @@ export function App() {
                   background: "rgba(255, 255, 255, 0.06)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
                 }}
-                className="whitespace-nowrap px-2 py-1 font-mono text-[10.5px] font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white sm:px-3 sm:text-[11.5px]"
+                className="whitespace-nowrap px-2 py-1 font-mono text-[11px] font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white sm:px-3 sm:text-xs"
               >
                 math_games
               </span>
@@ -940,7 +966,7 @@ export function App() {
                     borderRadius: 14,
                     background: "rgba(255, 255, 255, 0.03)",
                   }}
-                  className="h-8 w-full appearance-none pl-8 pr-11 text-xs text-zinc-100 transition-colors placeholder:text-zinc-500 focus:outline-none sm:h-10 sm:pl-9 sm:pr-16 sm:text-[13px] [&::-webkit-search-cancel-button]:appearance-none"
+                  className="h-8 w-full appearance-none pl-8 pr-11 text-xs text-zinc-100 transition-colors placeholder:text-zinc-500 focus:outline-none sm:h-10 sm:pl-9 sm:pr-16 sm:text-sm [&::-webkit-search-cancel-button]:appearance-none"
                 />
                 {searchQuery ? (
                   <button
@@ -957,7 +983,7 @@ export function App() {
                 ) : (
                   <kbd
                     aria-hidden="true"
-                    className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] leading-none text-zinc-500 sm:block"
+                    className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[11px] leading-none text-zinc-500 sm:block"
                   >
                     /
                   </kbd>
@@ -966,31 +992,11 @@ export function App() {
             </div>
 
             <div className="relative z-10 order-2 col-start-3 row-start-1 ml-auto flex shrink-0 items-center gap-1 justify-self-end sm:col-auto sm:row-auto sm:gap-2">
-              {streak.current > 0 && (
-                <button
-                  type="button"
-                  onClick={() => openSettings("streak")}
-                  title={`${streak.current}-day streak — keep it going`}
-                  aria-label={`${streak.current}-day streak. Open streak settings.`}
-                  aria-haspopup="dialog"
-                  style={ICON_BUTTON_STYLE}
-                  className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 text-amber-300 transition-colors hover:bg-white/[0.12] hover:text-amber-200 active:scale-[0.98] max-[359px]:hidden sm:h-9"
-                >
-                  <Flame
-                    aria-hidden="true"
-                    className="h-4 w-4 fill-amber-400/25 drop-shadow-[0_0_5px_rgba(251,191,36,0.35)]"
-                  />
-                  <span className="font-mono text-xs font-semibold tabular-nums text-zinc-100">
-                    {streak.current}
-                  </span>
-                </button>
-              )}
               <NotificationsButton
                 onOpenChangelog={() => setChangelogOpen(true)}
                 onOpenChat={openChatFromNotification}
               />
               <ShareButton />
-              <RandomGameButton />
               <button
                 type="button"
                 data-tour-target="settings"
@@ -1005,6 +1011,78 @@ export function App() {
                 <Settings aria-hidden="true" className="h-4 w-4" />
               </button>
               <PanicButton />
+              <div ref={headerMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setHeaderMenuOpen((open) => !open)}
+                  title="More"
+                  aria-label="More actions"
+                  aria-haspopup="menu"
+                  aria-expanded={headerMenuOpen}
+                  style={ICON_BUTTON_STYLE}
+                  className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full p-0 text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:h-9 sm:w-9"
+                >
+                  <MoreHorizontal aria-hidden="true" className="h-4 w-4" />
+                </button>
+                {headerMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-label="More actions"
+                    className="absolute right-0 top-[calc(100%+0.5rem)] z-40 w-56 overflow-hidden rounded-xl border border-white/[0.07] bg-[#1d1d1d] p-1 text-left"
+                  >
+                    {streak.current > 0 && (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setHeaderMenuOpen(false);
+                          openSettings("streak");
+                        }}
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                      >
+                        <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
+                        <span className="tabular-nums">{streak.current}-day streak</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setHeaderMenuOpen(false);
+                        window.dispatchEvent(new CustomEvent(RANDOM_GAME_EVENT));
+                      }}
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                    >
+                      <Shuffle aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+                      Random game
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setHeaderMenuOpen(false);
+                        setSubmitModalOpen(true);
+                      }}
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                    >
+                      <Send aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+                      Submit a game
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setHeaderMenuOpen(false);
+                        openBugReport();
+                      }}
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                    >
+                      <Bug aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+                      Report a bug
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
@@ -1043,7 +1121,7 @@ export function App() {
               onClick={() => {
                 applyUpdate().catch(() => window.location.reload());
               }}
-              className="rounded-full bg-emerald-500/20 px-3 py-1 font-medium text-emerald-300 transition-colors hover:bg-emerald-500/30"
+              className="rounded-full bg-amber-400/20 px-3 py-1 font-medium text-amber-300 transition-colors hover:bg-amber-400/30"
             >
               Update now
             </button>
@@ -1178,7 +1256,7 @@ export function App() {
         </nav>
 
         {/* Bottom Footer with Bug Report and Admin Panel; hidden until Settings shows it. */}
-        {!footerHidden && <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[10.5px] text-black/70" : "text-[10.5px] text-zinc-500"}`}>
+        {!footerHidden && <footer className={`shrink-0 px-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-1.5 ${footerIsLight ? "text-[11px] text-black/70" : "text-[11px] text-zinc-500"}`}>
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
             <span className={`hidden font-medium sm:inline ${footerIsLight ? "text-black/85" : "text-zinc-400"}`}>
               Built by {siteMeta.builtBy}
@@ -1212,7 +1290,7 @@ export function App() {
                 style={footerChipStyle}
                 title="Admin panel (protected by Vercel ADMIN_PASSWORD)"
               >
-                <Shield aria-hidden="true" className="w-3.5 h-3.5 text-blue-400" />
+                <Shield aria-hidden="true" className="w-3.5 h-3.5 text-amber-300" />
                 <span>Admin</span>
               </button>
             </div>

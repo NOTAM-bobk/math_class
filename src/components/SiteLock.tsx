@@ -52,8 +52,7 @@ export function SiteLock({ onUnlock }: SiteLockProps) {
           borderRadius: 20,
           border: "none",
           boxShadow:
-            "inset 0 0 0 1px rgba(44, 47, 54, 0.65), inset 0 0 50px 0 rgba(255, 255, 255, 0.02), 0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+            "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
         }}
       >
         <div

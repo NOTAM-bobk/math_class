@@ -24,7 +24,7 @@ const PANEL_STYLE: React.CSSProperties = {
   background: "#1d1d1d",
   borderRadius: 20,
   boxShadow:
-    "inset 0 0 0 1px rgba(44,47,54,0.52), inset 0 0 50px 0 rgba(255,255,255,0.02), 0 24px 60px -12px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.4)",
+    "0 24px 60px -12px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.4)",
 };
 
 export function CommandPalette({ isOpen, onClose, commands, shortcutLabel = "⌘K" }: CommandPaletteProps) {
@@ -123,7 +123,7 @@ export function CommandPalette({ isOpen, onClose, commands, shortcutLabel = "⌘
             className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
             style={{ border: "none", padding: 0 }}
           />
-          <kbd className="shrink-0 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] leading-none text-zinc-500">
+          <kbd className="shrink-0 rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[11px] leading-none text-zinc-500">
             Esc
           </kbd>
         </div>
@@ -131,7 +131,7 @@ export function CommandPalette({ isOpen, onClose, commands, shortcutLabel = "⌘
         <div ref={listRef} id="command-palette-results" role="listbox" aria-label="Commands" className="overflow-y-auto p-2">
           {groups.map(({ group, items }) => (
             <div key={group} className="mb-1 last:mb-0">
-              <div className="px-2.5 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              <div className="px-2.5 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
                 {group}
               </div>
               {items.map(({ command, index }) => {
@@ -156,7 +156,7 @@ export function CommandPalette({ isOpen, onClose, commands, shortcutLabel = "⌘
                     )}
                     <span className="min-w-0 flex-1 truncate font-medium">{command.label}</span>
                     {command.hint && (
-                      <span className="shrink-0 text-[10px] text-zinc-500">{command.hint}</span>
+                      <span className="shrink-0 text-[11px] text-zinc-500">{command.hint}</span>
                     )}
                     {selected && (
                       <CornerDownLeft aria-hidden="true" className="h-3 w-3 shrink-0 text-zinc-500" />
@@ -174,7 +174,7 @@ export function CommandPalette({ isOpen, onClose, commands, shortcutLabel = "⌘
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-white/[0.07] px-4 py-2 text-[10px] text-zinc-500">
+        <div className="flex items-center justify-between gap-3 border-t border-white/[0.07] px-4 py-2 text-[11px] text-zinc-500">
           <span className="flex items-center gap-1.5">
             <kbd className="rounded border border-white/10 bg-white/[0.04] px-1 py-0.5 font-mono">↑</kbd>
             <kbd className="rounded border border-white/10 bg-white/[0.04] px-1 py-0.5 font-mono">↓</kbd>

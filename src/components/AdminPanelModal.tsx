@@ -819,8 +819,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
           borderRadius: 20,
           border: "none",
           boxShadow:
-            "inset 0 0 0 1px rgba(44, 47, 54, 0.65), inset 0 0 50px 0 rgba(255, 255, 255, 0.02), 0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+            "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
           maxHeight: "90vh",
         }}
       >
@@ -978,7 +977,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Verified Games</span>
                 {verifiedIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-emerald-500/30 text-emerald-200">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-emerald-500/30 text-emerald-200">
                     {verifiedIds.size}
                   </span>
                 )}
@@ -1009,7 +1008,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Heart className="w-3.5 h-3.5 text-amber-300" />
                 <span>Editor's Picks</span>
                 {editorPicks.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/30 text-amber-200">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-amber-500/30 text-amber-200">
                     {editorPicks.size}
                   </span>
                 )}
@@ -1027,7 +1026,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Bug className="w-3.5 h-3.5 text-rose-400" />
                 <span>error:bug Tags</span>
                 {buggyIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-rose-500/30 text-rose-200">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-rose-500/30 text-rose-200">
                     {buggyIds.size}
                   </span>
                 )}
@@ -1045,7 +1044,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <span>😿</span>
                 <span>Blocked:😿</span>
                 {blockedIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-purple-500/30 text-purple-200">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-purple-500/30 text-purple-200">
                     {blockedIds.size}
                   </span>
                 )}
@@ -1063,7 +1062,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Smartphone className="w-3.5 h-3.5 text-amber-400" />
                 <span>Not Mobile Optimized</span>
                 {notMobileIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/30 text-amber-200">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-amber-500/30 text-amber-200">
                     {notMobileIds.size}
                   </span>
                 )}
@@ -1081,7 +1080,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Shield className="w-3.5 h-3.5 text-blue-400" />
                 <span>Bug Reports</span>
                 {bugs.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-blue-500/30 text-blue-200">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-blue-500/30 text-blue-200">
                     {bugs.length}
                   </span>
                 )}
@@ -1099,7 +1098,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Send className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Game Requests</span>
                 {submissions.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-cyan-500/30 text-cyan-200">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-cyan-500/30 text-cyan-200">
                     {submissions.length}
                   </span>
                 )}
@@ -1155,7 +1154,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                       )}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[10px] font-semibold uppercase tracking-wide text-amber-300">Current pick</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">Current pick</div>
                       <div className="truncate text-xs font-semibold text-zinc-100">{currentDailyGame.name}</div>
                     </div>
                     <button
@@ -1224,11 +1223,11 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                               <div className={`truncate text-xs font-semibold ${isCurrent ? "text-amber-200" : "text-zinc-200"}`}>
                                 {game.name}
                               </div>
-                              <div className="truncate text-[10px] text-zinc-500">{game.url}</div>
+                              <div className="truncate text-[11px] text-zinc-500">{game.url}</div>
                             </div>
                           </div>
                           <span
-                            className={`shrink-0 text-[10px] font-semibold ${
+                            className={`shrink-0 text-[11px] font-semibold ${
                               isCurrent ? "text-amber-300" : "text-zinc-500"
                             }`}
                           >
@@ -1319,11 +1318,11 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                               >
                                 {game.name}
                               </div>
-                              <div className="truncate text-[10px] text-zinc-500">{game.url}</div>
+                              <div className="truncate text-[11px] text-zinc-500">{game.url}</div>
                             </div>
                           </div>
                           <span
-                            className={`inline-flex shrink-0 items-center gap-1.5 text-[10px] font-semibold ${
+                            className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold ${
                               picked ? "text-amber-300" : "text-zinc-500"
                             }`}
                           >
@@ -1465,7 +1464,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 text-[10px] text-zinc-500 truncate mt-0.5">
+                              <div className="flex items-center gap-2 text-[11px] text-zinc-500 truncate mt-0.5">
                                 <span className="truncate">{game.url}</span>
                                 {game.tags && game.tags.length > 0 && (
                                   <span className="text-zinc-400">· {game.tags.slice(0, 2).join(", ")}</span>
@@ -1619,14 +1618,14 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                       border: "1px solid rgba(239, 68, 68, 0.35)",
                                       color: "#fca5a5",
                                     }}
-                                    className="px-2 py-0.2 text-[10px] font-mono font-bold tracking-wide rounded-full inline-flex items-center gap-1"
+                                    className="px-2 py-0.2 text-[11px] font-mono font-semibold tracking-wide rounded-full inline-flex items-center gap-1"
                                   >
                                     <Bug className="w-2.5 h-2.5 text-rose-400" />
                                     error:bug
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 text-[10px] text-zinc-500 truncate mt-0.5">
+                              <div className="flex items-center gap-2 text-[11px] text-zinc-500 truncate mt-0.5">
                                 <span className="truncate">{game.url}</span>
                                 {game.tags && game.tags.length > 0 && (
                                   <span className="text-zinc-400">· {game.tags.slice(0, 2).join(", ")}</span>
@@ -1780,14 +1779,14 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                       border: "1px solid rgba(245, 158, 11, 0.35)",
                                       color: "#fcd34d",
                                     }}
-                                    className="px-2 py-0.2 text-[10px] font-mono font-bold tracking-wide rounded-full inline-flex items-center gap-1"
+                                    className="px-2 py-0.2 text-[11px] font-mono font-semibold tracking-wide rounded-full inline-flex items-center gap-1"
                                   >
                                     <Smartphone className="w-2.5 h-2.5 text-amber-400" />
                                     no mobile
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 text-[10px] text-zinc-500 truncate mt-0.5">
+                              <div className="flex items-center gap-2 text-[11px] text-zinc-500 truncate mt-0.5">
                                 <span className="truncate">{game.url}</span>
                                 {game.tags && game.tags.length > 0 && (
                                   <span className="text-zinc-400">· {game.tags.slice(0, 2).join(", ")}</span>
@@ -1919,7 +1918,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-mono font-bold ${
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-mono font-semibold ${
                                 isBlocked
                                   ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
                                   : "bg-white/[0.04] text-zinc-500 border border-white/[0.06]"
@@ -1940,13 +1939,13 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                       border: "1px solid rgba(168, 85, 247, 0.45)",
                                       color: "#e9d5ff",
                                     }}
-                                    className="px-1.5 py-0.2 text-[10px] font-mono font-semibold"
+                                    className="px-1.5 py-0.2 text-[11px] font-mono font-semibold"
                                   >
                                     Blocked:😿
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1 text-[10px] text-zinc-500 truncate">
+                              <div className="flex items-center gap-1 text-[11px] text-zinc-500 truncate">
                                 <span>{game.url}</span>
                                 {game.tags && game.tags.length > 0 && (
                                   <>
@@ -2056,7 +2055,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                 #{bug.id}
                               </span>
                               <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-medium border ${
                                   isResolved
                                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                     : "bg-amber-500/10 text-amber-400 border-amber-500/20"
@@ -2067,13 +2066,13 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                               {gameNameByUrl.get(normalizeGameUrl(bug.game_url)) ? (
                                 <span
                                   title={bug.game_url}
-                                  className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-100 font-semibold truncate max-w-[220px]"
+                                  className="px-2 py-0.5 rounded bg-zinc-800 text-[11px] text-zinc-100 font-semibold truncate max-w-[220px]"
                                 >
                                   {gameNameByUrl.get(normalizeGameUrl(bug.game_url))}
                                 </span>
                               ) : (
                                 bug.game_url && (
-                                  <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 font-mono truncate max-w-[200px]">
+                                  <span className="px-2 py-0.5 rounded bg-zinc-800 text-[11px] text-zinc-300 font-mono truncate max-w-[200px]">
                                     {bug.game_url}
                                   </span>
                                 )
@@ -2123,7 +2122,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                             {bug.description}
                           </p>
 
-                          <div className="flex flex-col gap-1 text-[10px] text-zinc-500 pt-1 border-t border-white/[0.04]">
+                          <div className="flex flex-col gap-1 text-[11px] text-zinc-500 pt-1 border-t border-white/[0.04]">
                             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3 shrink-0 text-zinc-600" />
@@ -2191,7 +2190,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                 #{submission.id}
                               </span>
                               {submission.category && (
-                                <span className="rounded border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-300">
+                                <span className="rounded border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[11px] text-cyan-300">
                                   {submission.category}
                                 </span>
                               )}
@@ -2232,7 +2231,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                             </p>
                           )}
 
-                          <div className="flex items-center justify-between border-t border-white/[0.04] pt-1 text-[10px] text-zinc-500">
+                          <div className="flex items-center justify-between border-t border-white/[0.04] pt-1 text-[11px] text-zinc-500">
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3 text-zinc-600" />
                               {new Date(submission.created_at).toLocaleString()}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, SmilePlus, Sparkles, X, CornerDownRight, ImagePlus, Loader2 } from "lucide-react";
+import { Send, Radio, RefreshCw, AlertTriangle, ArrowDown, SmilePlus, Sparkles, X, ImagePlus, Loader2 } from "lucide-react";
 import { HubMessage, loadMessages, loadReactions, sendMessage, sendReaction, uploadChatImage } from "@/lib/hubApi";
 import { CHAT_IMAGE_ACCEPT, prepareChatImage } from "@/lib/chatImages";
 import { notifyNewChatMessage } from "@/lib/chatNotifications";
@@ -503,9 +503,7 @@ export function LiveMessageBoard({
       style={{
         background: "#1d1d1d",
         borderRadius: 20,
-        boxShadow:
-          "inset 0 0 0 1px rgba(44,47,54,0.52), inset 0 0 50px 0 rgba(255,255,255,0.02), 0 14px 30px -8px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
+        border: "1px solid rgba(255, 255, 255, 0.07)",
       }}
     >
       {/* Chat Top Header */}
@@ -517,24 +515,21 @@ export function LiveMessageBoard({
           <h2 className={`font-semibold text-zinc-200 ${onClose ? "text-sm" : "text-xs"}`}>{title}</h2>
         </div>
         <div className="flex items-center gap-1.5">
-          <span
-            role="status"
-            aria-label={
-              onlineCount === null ? "Counting people online" : `${onlineCount} people online now`
-            }
-            title="People on the site right now"
-            style={CHIP_STYLE}
-            className="flex shrink-0 items-center gap-1 px-2 py-0.5"
-          >
+          {/* One merged label, and nothing at all until the first heartbeat answers. */}
+          {onlineCount !== null && (
             <span
-              aria-hidden="true"
-              className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.85)]"
-            />
-            <span className="font-mono text-[10px] font-semibold tabular-nums text-emerald-200">
-              {onlineCount === null ? "–" : onlineCount}
+              role="status"
+              aria-label={`Live chat, ${onlineCount} ${onlineCount === 1 ? "person" : "people"} online`}
+              title="People on the site right now"
+              style={CHIP_STYLE}
+              className="flex shrink-0 items-center gap-1.5 px-2 py-1"
+            >
+              <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+              <span className="text-[11px] font-medium tabular-nums text-zinc-200">
+                Live · {onlineCount}
+              </span>
             </span>
-            <span className="text-[10px] text-zinc-400">online</span>
-          </span>
+          )}
           <button
             type="button"
             onClick={() => void refreshMessages()}
@@ -546,17 +541,12 @@ export function LiveMessageBoard({
           >
             <RefreshCw aria-hidden="true" className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
           </button>
-          <span role="status" className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/30 border border-white/[0.04]">
-            <span
-              aria-hidden="true"
-              className={`w-1.5 h-1.5 rounded-full ${
-                loading ? "bg-amber-400 animate-pulse" : error ? "bg-red-400" : "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]"
-              }`}
-            />
-            <span className="text-[10px] font-medium text-zinc-400">
-              {loading ? "Connecting…" : error ? "Offline" : "Live"}
+          {error && (
+            <span role="status" className="flex items-center gap-1.5 rounded-full border border-white/[0.07] px-2 py-1">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
+              <span className="text-[11px] font-medium text-zinc-400">Offline</span>
             </span>
-          </span>
+          )}
           {onClose && (
             <button
               type="button"
@@ -576,8 +566,7 @@ export function LiveMessageBoard({
       <div
         className="flex-1 min-h-0 relative flex flex-col"
         style={{
-          background: "rgba(0, 0, 0, 0.22)",
-          boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.4)",
+          background: "rgba(0, 0, 0, 0.16)",
         }}
       >
         <div
@@ -616,7 +605,7 @@ export function LiveMessageBoard({
                 type="button"
                 onClick={loadOlderMessages}
                 style={CHIP_STYLE}
-                className="inline-flex min-h-6 cursor-pointer items-center gap-1.5 px-3 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                className="inline-flex min-h-6 cursor-pointer items-center gap-1.5 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
               >
                 <ArrowDown aria-hidden="true" className="h-3 w-3 rotate-180" />
                 <span>Load older messages</span>
@@ -631,15 +620,15 @@ export function LiveMessageBoard({
             return (
               <div
                 key={message.id}
-                className={`flex flex-col transition duration-200 ${
+                className={`group flex flex-col transition duration-200 ${
                   isUser ? "items-end" : "items-start"
                 }`}
               >
-                <div className="flex items-center gap-1.5 px-1 mb-1 text-[10px]">
+                <div className="flex items-center gap-1.5 px-1 mb-1 text-[11px]">
                   <span className="font-semibold text-zinc-300">
                     {message.author}
                   </span>
-                  <span className="text-zinc-500 text-[9.5px]">
+                  <span className="text-zinc-500 text-[11px]">
                     {message.timestamp}
                   </span>
                 </div>
@@ -647,17 +636,16 @@ export function LiveMessageBoard({
                 <div
                   className={`max-w-[88%] whitespace-pre-wrap px-3 py-2 text-xs leading-relaxed break-words shadow-sm transition ${
                     isUser
-                      ? "bg-white text-zinc-950 rounded-2xl rounded-tr-xs font-medium shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
-                      : "text-[#d4d4d8] rounded-2xl rounded-tl-xs"
+                      ? "bg-white text-zinc-950 rounded-2xl font-medium"
+                      : "text-[#d4d4d8] rounded-2xl"
                   }`}
                   style={
                     isUser
                       ? {}
-                      : {
-                          background: "rgba(255, 255, 255, 0.055)",
-                          boxShadow:
-                            "inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 6px rgba(0, 0, 0, 0.25)",
-                        }
+                                              : {
+                            background: "rgba(255, 255, 255, 0.055)",
+                            border: "1px solid rgba(255, 255, 255, 0.06)",
+                          }
                   }
                 >
                   {message.image && (
@@ -679,7 +667,7 @@ export function LiveMessageBoard({
                   {message.text ? formatChatText(message.text) : null}
                 </div>
 
-                <div className={`mt-1 flex flex-wrap items-center gap-1 ${isUser ? "justify-end" : "justify-start"}`}>
+                <div className={`chat-reactions mt-1 flex flex-wrap items-center gap-1 ${isUser ? "justify-end" : "justify-start"}`}>
                   {reactionEntries.map(([emoji, authors]) => {
                     const mine = authors.includes(myName);
                     return (
@@ -696,9 +684,8 @@ export function LiveMessageBoard({
                             : "border-white/[0.06] bg-white/[0.05] text-zinc-300 hover:border-white/15 hover:bg-white/[0.09] hover:text-white"
                         }`}
                       >
-                        <CornerDownRight aria-hidden="true" className="h-2.5 w-2.5 opacity-60" />
                         <span>{emoji}</span>
-                        <span className="font-mono text-[9.5px] tabular-nums opacity-80">{authors.length}</span>
+                        <span className="text-[11px] tabular-nums text-zinc-400">{authors.length}</span>
                       </button>
                     );
                   })}
@@ -738,7 +725,7 @@ export function LiveMessageBoard({
                           aria-pressed={chosen}
                           aria-label={`React with ${emoji}`}
                           title={`React with ${emoji}`}
-                          className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg px-1 text-[13px] transition-transform hover:bg-white/[0.1] active:scale-90 ${
+                          className={`flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg px-1 text-sm transition-transform hover:bg-white/[0.1] active:scale-90 ${
                             chosen ? "bg-amber-400/20" : ""
                           }`}
                         >
@@ -761,10 +748,10 @@ export function LiveMessageBoard({
             onClick={() => scrollToBottom(true)}
             className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/95 hover:bg-zinc-700 text-white border border-white/10 text-xs font-semibold shadow-lg backdrop-blur-md transition active:scale-95 cursor-pointer z-10 animate-in fade-in zoom-in-90 duration-150"
           >
-            <ArrowDown className="w-3.5 h-3.5 text-amber-300 animate-bounce" />
+            <ArrowDown className="w-3.5 h-3.5 text-amber-300" />
             <span>Latest messages</span>
             {unreadCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-400 text-zinc-950 font-bold">
+              <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-zinc-950">
                 +{unreadCount}
               </span>
             )}
@@ -797,7 +784,7 @@ export function LiveMessageBoard({
           className={`shrink-0 border-t border-white/[0.04] px-3 py-1 ${adVisible ? "" : "hidden"}`}
         >
           <div className="flex items-center justify-center gap-2 overflow-hidden">
-            <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.14em] text-zinc-400">
+            <span className="shrink-0 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-400">
               Ad
             </span>
             <BidvertiserAd slot="chat" showClose={false} className="flex items-center justify-center" />
@@ -830,7 +817,7 @@ export function LiveMessageBoard({
             </button>
           ))}
         </div>
-        <span className="text-[10px] text-zinc-500 font-mono shrink-0 pl-1">
+        <span className="text-[11px] text-zinc-500 font-mono shrink-0 pl-1">
           {remainingChars <= 40 ? `${remainingChars} left` : ""}
         </span>
       </div>

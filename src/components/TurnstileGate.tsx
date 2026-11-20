@@ -101,7 +101,7 @@ export function TurnstileGate({ onVerified }: { onVerified: () => void }) {
       </div>
       <div ref={containerRef} className="mt-2 min-h-[65px]" />
       {state === "error" && message && (
-        <p role="status" className="mt-1 text-[10.5px] leading-snug text-amber-200">
+        <p role="status" className="mt-1 text-[11px] leading-snug text-amber-200">
           {message}
         </p>
       )}

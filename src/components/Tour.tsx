@@ -287,7 +287,7 @@ export function Tour({
               </button>
             </div>
 
-            <div className="mt-1.5 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <div className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
               {step.content}
             </div>
 
@@ -316,7 +316,7 @@ export function Tour({
                   <button
                     type="button"
                     onClick={back}
-                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                   >
                     <IconArrow className="rotate-180" />
                     Back
@@ -326,7 +326,7 @@ export function Tour({
                   type="button"
                   data-tour-primary
                   onClick={next}
-                  className="inline-flex items-center gap-1 rounded-lg bg-zinc-900 px-3 py-1.5 text-[12.5px] font-medium text-white transition-colors hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-900"
+                  className="inline-flex items-center gap-1 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-900"
                 >
                   {isLast ? "Done" : "Next"}
                   {!isLast && <IconArrow />}

@@ -73,7 +73,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
           borderRadius: 20,
           border: "none",
           boxShadow:
-            "inset 0 0 0 1px rgba(44, 47, 54, 0.65), inset 0 0 50px 0 rgba(255, 255, 255, 0.02), 0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
+            "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
           fontFamily: "var(--app-font, system-ui, -apple-system, sans-serif)",
         }}
       >
@@ -115,7 +115,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-zinc-200">System Updates</span>
-                <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-zinc-400">
+                <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[11px] text-zinc-400">
                   v{SITE_VERSION}
                 </span>
               </div>
@@ -190,7 +190,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
                     v{entry.version}
                   </h3>
                   {index === 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
                       <Sparkles aria-hidden="true" className="h-3 w-3" />
                       Latest
                     </span>
@@ -200,7 +200,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
                 <p className="text-xs font-medium text-zinc-300">{entry.title}</p>
                 <ul className="flex flex-col gap-1.5">
                   {entry.changes.map((change) => (
-                    <li key={change} className="flex gap-2 text-[11.5px] leading-relaxed text-[#9BA1AA]">
+                    <li key={change} className="flex gap-2 text-xs leading-relaxed text-[#9BA1AA]">
                       <span aria-hidden="true" className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-zinc-600" />
                       <span>{change}</span>
                     </li>
@@ -211,7 +211,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
           </div>
         </div>
 
-        <p className="border-t border-white/[0.06] pt-3 text-[10.5px] leading-relaxed text-zinc-500">
+        <p className="border-t border-white/[0.06] pt-3 text-[11px] leading-relaxed text-zinc-500">
           Every major update adds an entry here. Older entries stay so you can see how the hub changed.
         </p>
       </div>

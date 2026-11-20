@@ -120,8 +120,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
           borderRadius: 20,
           border: "none",
           boxShadow:
-            "inset 0 0 0 1px rgba(44, 47, 54, 0.65), inset 0 0 50px 0 rgba(255, 255, 255, 0.02), 0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+            "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
         }}
       >
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
@@ -256,7 +255,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
                 <label htmlFor="submit-game-notes" className="text-[11px] font-medium text-zinc-400">
                   Notes for the admin
                 </label>
-                <span className="text-[10px] text-zinc-500">{description.length}/1000</span>
+                <span className="text-[11px] text-zinc-500">{description.length}/1000</span>
               </div>
               <textarea
                 id="submit-game-notes"
@@ -314,7 +313,7 @@ export function GameSubmitModal({ isOpen, onClose }: GameSubmitModalProps) {
             )}
 
             <div className="flex items-center justify-between gap-2 border-t border-white/[0.08] pt-3">
-              <span className="text-[10px] text-zinc-500">Rate limited: 5 / 10 min</span>
+              <span className="text-[11px] text-zinc-500">Rate limited: 5 / 10 min</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"

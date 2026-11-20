@@ -200,14 +200,14 @@ export function GameCoverArt({
                 loading={eager ? "eager" : "lazy"}
                 decoding="async"
                 onError={() => setIconFailed(true)}
-                className={`game-card-cover-soft object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] ${
+                className={`game-card-cover-soft object-contain ${
                   compact ? "h-5 w-5 rounded" : "h-12 w-12 rounded-xl"
                 }`}
               />
             ) : (
               <span
-                className={`game-card-cover-soft select-none font-black tracking-tight text-white/90 drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] ${
-                  compact ? "text-[13px]" : "text-4xl"
+                className={`game-card-cover-soft select-none font-semibold tracking-tight text-white/90 ${
+                  compact ? "text-sm" : "text-4xl"
                 }`}
               >
                 {initials}

@@ -162,8 +162,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
           borderRadius: 20,
           border: "none",
           boxShadow:
-            "inset 0 0 0 1px rgba(44, 47, 54, 0.65), inset 0 0 50px 0 rgba(255, 255, 255, 0.02), 0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+            "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
         }}
       >
         {/* Header */}
@@ -249,7 +248,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
                 className="w-full px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
               />
               {initialGame?.trim() && gameUrl.trim() === initialGame.trim() && (
-                <p className="text-[10px] text-emerald-400/90">Added from the game you were playing.</p>
+                <p className="text-[11px] text-emerald-400/90">Added from the game you were playing.</p>
               )}
             </div>
 
@@ -281,7 +280,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
                 <label htmlFor="bug-description" className="text-[11px] font-medium text-zinc-400">
                   What happened? <span className="text-amber-400">*</span>
                 </label>
-                <span className="text-[10px] text-zinc-500">{description.length}/3000</span>
+                <span className="text-[11px] text-zinc-500">{description.length}/3000</span>
               </div>
               <textarea
                 id="bug-description"

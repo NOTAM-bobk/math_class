@@ -20,7 +20,7 @@ function SegmentDigit({ digit }: { digit: number }) {
   return (
     <svg
       aria-hidden="true"
-      className="h-7 w-[17px] shrink-0 drop-shadow-[0_0_3px_rgba(250,250,250,0.22)] sm:h-8 sm:w-5"
+      className="h-7 w-[17px] shrink-0 sm:h-8 sm:w-5"
       viewBox="0 0 12 21"
     >
       {SEGMENT_PATHS.map((path, i) => (
@@ -77,8 +77,8 @@ function NumberTicker({ end }: { end: number }) {
 
 const CHIP_STYLE: React.CSSProperties = {
   borderRadius: 36,
-  background: "rgba(255, 255, 255, 0.04)",
-  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
+  background: "transparent",
+  border: "1px solid rgba(255, 255, 255, 0.07)",
 };
 
 export function VisitorCounter() {
@@ -104,9 +104,7 @@ export function VisitorCounter() {
       style={{
         background: "#1d1d1d",
         borderRadius: 20,
-        boxShadow:
-          "inset 0 0 0 1px rgba(44,47,54,0.52), inset 0 0 50px 0 rgba(255,255,255,0.02), 0 10px 24px -6px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
+        border: "1px solid rgba(255, 255, 255, 0.07)",
       }}
       title={offline ? "Showing the last saved total" : "Total visits to this site"}
     >
@@ -121,8 +119,8 @@ export function VisitorCounter() {
       <div
         style={{
           borderRadius: 12,
-          background: "rgba(0, 0, 0, 0.28)",
-          boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.4)",
+          background: "rgba(0, 0, 0, 0.22)",
+          border: "1px solid rgba(255, 255, 255, 0.06)",
           padding: "3px 8px",
         }}
         className={`flex items-center transition-opacity ${count === null ? "opacity-40 animate-pulse" : ""}`}

@@ -216,7 +216,7 @@ export function ShareButton() {
                 onClick={handleCopy}
                 className="flex min-h-11 w-full items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-sm text-zinc-200 hover:bg-white/[0.08]"
               >
-                {state === "copied" ? <Check aria-hidden="true" className="h-4 w-4 text-emerald-400" /> : <Copy aria-hidden="true" className="h-4 w-4 text-zinc-400" />}
+                {state === "copied" ? <Check aria-hidden="true" className="h-4 w-4 text-amber-300" /> : <Copy aria-hidden="true" className="h-4 w-4 text-zinc-400" />}
                 {state === "copied" ? "Link copied" : "Copy link"}
               </button>
               <button
@@ -296,7 +296,7 @@ export function ShareButton() {
                   <p
                     role={emailStatus === "error" ? "alert" : "status"}
                     className={`mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed ${
-                      emailStatus === "error" ? "text-red-400" : "text-emerald-400"
+                      emailStatus === "error" ? "text-red-400" : "text-amber-300"
                     }`}
                   >
                     {emailStatus === "error" ? (
@@ -307,7 +307,7 @@ export function ShareButton() {
                     <span>{emailMessage}</span>
                   </p>
                 )}
-                <p className="mt-2 text-[10px] text-zinc-500">Limited to a few sends per person per hour.</p>
+                <p className="mt-2 text-[11px] text-zinc-500">Limited to a few sends per person per hour.</p>
               </form>
             </div>
 

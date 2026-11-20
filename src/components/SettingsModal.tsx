@@ -988,8 +988,7 @@ export function SettingsModal({
           borderRadius: 20,
           border: "none",
           boxShadow:
-            "inset 0 0 0 1px rgba(44, 47, 54, 0.65), inset 0 0 50px 0 rgba(255, 255, 255, 0.02), 0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+            "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
         }}
       >
         <div
@@ -1234,7 +1233,7 @@ export function SettingsModal({
                       {option.name}
                       {active && <Check aria-hidden="true" className="h-3 w-3 text-emerald-400" />}
                     </span>
-                    <span className="mt-0.5 block text-[10.5px] leading-snug text-zinc-500">
+                    <span className="mt-0.5 block text-[11px] leading-snug text-zinc-500">
                       {option.description}
                     </span>
                   </button>
@@ -1304,7 +1303,7 @@ export function SettingsModal({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-semibold text-zinc-100">Updates & Version</span>
-                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-zinc-400">
+                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[11px] text-zinc-400">
                       v{SITE_VERSION}
                     </span>
                   </div>
@@ -1489,7 +1488,7 @@ export function SettingsModal({
                 className={`flex items-center justify-between gap-3 px-3 py-2.5 ${index > 0 ? "border-t border-white/[0.06]" : ""}`}
               >
                 <span className="text-xs text-zinc-300">{shortcut.label}</span>
-                <kbd className="shrink-0 rounded-md border border-white/10 bg-white/[0.05] px-2 py-1 font-mono text-[10px] leading-none text-zinc-200">
+                <kbd className="shrink-0 rounded-md border border-white/10 bg-white/[0.05] px-2 py-1 font-mono text-[11px] leading-none text-zinc-200">
                   {shortcut.keys}
                 </kbd>
               </div>
@@ -1520,7 +1519,7 @@ export function SettingsModal({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                 <span id="account-title">Account</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
                   Coming soon
                 </span>
               </div>
@@ -1540,7 +1539,7 @@ export function SettingsModal({
               </div>
               <div className="min-w-0">
                 <div className="text-sm font-medium text-zinc-300">Sign in</div>
-                <p className="mt-0.5 text-[11.5px] leading-relaxed text-zinc-500">
+                <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
                   Sign in to save your settings and game data to your account, then pick them up on any device.
                 </p>
               </div>
@@ -1591,7 +1590,7 @@ export function SettingsModal({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                 <span id="stats-title">Your statistics</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
                   On this device
                 </span>
               </div>
@@ -1604,7 +1603,7 @@ export function SettingsModal({
               <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
                 Always count
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
                     statsEnabled
                       ? "border border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
                       : "border border-white/10 bg-white/[0.04] text-zinc-400"
@@ -1651,7 +1650,7 @@ export function SettingsModal({
                   }}
                   className="p-2.5"
                 >
-                  <div className="flex items-center gap-1 text-[10.5px] font-medium text-zinc-500">
+                  <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-500">
                     <Icon aria-hidden="true" className={`h-3 w-3 ${tile.tone}`} />
                     {tile.label}
                   </div>
@@ -1674,7 +1673,7 @@ export function SettingsModal({
               <span>{sharingStats ? "Preparing…" : "Share my stats"}</span>
             </button>
             {statsShareNote && (
-              <span role="status" aria-live="polite" className="text-[10.5px] text-zinc-400">
+              <span role="status" aria-live="polite" className="text-[11px] text-zinc-400">
                 {statsShareNote}
               </span>
             )}
@@ -1687,7 +1686,7 @@ export function SettingsModal({
                 Most played
               </div>
               {playStats.lastPlayedAt ? (
-                <span className="text-[10.5px] text-zinc-500">
+                <span className="text-[11px] text-zinc-500">
                   Last played {new Date(playStats.lastPlayedAt).toLocaleDateString()}
                 </span>
               ) : null}
@@ -1702,10 +1701,10 @@ export function SettingsModal({
                     <li key={game.id} className="min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="truncate text-xs text-zinc-200">
-                          <span className="mr-1 font-mono text-[10px] text-zinc-500">{index + 1}.</span>
+                          <span className="mr-1 font-mono text-[11px] text-zinc-500">{index + 1}.</span>
                           {game.name}
                         </span>
-                        <span className="shrink-0 text-[10.5px] text-zinc-500">
+                        <span className="shrink-0 text-[11px] text-zinc-500">
                           {game.playMs > 0 ? `${formatPlayTime(game.playMs)} · ` : ""}
                           {game.clicks} click{game.clicks === 1 ? "" : "s"}
                         </span>
@@ -1721,7 +1720,7 @@ export function SettingsModal({
               <p className="text-[11px] text-zinc-500">Play a game and your top games will show up here.</p>
             )}
 
-            <p className="text-[10px] leading-relaxed text-zinc-500">
+            <p className="text-[11px] leading-relaxed text-zinc-500">
               Time counts every second while the hub is open or a game is running, and stops when Always count is off.
               Statistics stay on this device.
             </p>
@@ -1746,7 +1745,7 @@ export function SettingsModal({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                 <span id="streak-title">Daily streak</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
                   On this device
                 </span>
               </div>
@@ -1787,20 +1786,20 @@ export function SettingsModal({
               <span>{sharingStreak ? "Building card…" : "Share streak card"}</span>
             </button>
             {streakMilestone && (
-              <span className="rounded-full bg-white/[0.05] px-2 py-1 text-[10px] font-medium text-zinc-400">
+              <span className="rounded-full bg-white/[0.05] px-2 py-1 text-[11px] font-medium text-zinc-400">
                 {streakMilestone.name} unlocked
               </span>
             )}
           </div>
           {streakShareNote && (
-            <p role="status" aria-live="polite" className="text-[10.5px] leading-relaxed text-zinc-400">
+            <p role="status" aria-live="polite" className="text-[11px] leading-relaxed text-zinc-400">
               {streakShareNote}
             </p>
           )}
 
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl bg-black/30 p-2.5 ring-1 ring-inset ring-white/[0.04]">
-              <div className="flex items-center gap-1 text-[10.5px] font-medium text-zinc-500">
+              <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-500">
                 <Trophy aria-hidden="true" className="h-3 w-3 text-amber-400" />
                 Longest streak
               </div>
@@ -1812,7 +1811,7 @@ export function SettingsModal({
               </div>
             </div>
             <div className="rounded-xl bg-black/30 p-2.5 ring-1 ring-inset ring-white/[0.04]">
-              <div className="flex items-center gap-1 text-[10.5px] font-medium text-zinc-500">
+              <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-500">
                 <CalendarDays aria-hidden="true" className="h-3 w-3 text-sky-400" />
                 Total days
               </div>
@@ -1826,7 +1825,7 @@ export function SettingsModal({
           <div className="rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-semibold text-zinc-200">Milestones</span>
-              <span className="text-[10.5px] text-zinc-500">
+              <span className="text-[11px] text-zinc-500">
                 {nextMilestone
                   ? `${nextMilestone.days - streak.current} more ${nextMilestone.days - streak.current === 1 ? "day" : "days"} to ${nextMilestone.name}`
                   : "Every milestone unlocked"}
@@ -1861,7 +1860,7 @@ export function SettingsModal({
                       {milestone.days}
                     </span>
                     <span
-                      className={`w-full truncate text-[9px] ${
+                      className={`w-full truncate text-[11px] ${
                         reached ? "text-amber-200/80" : "text-zinc-500"
                       }`}
                     >
@@ -1871,7 +1870,7 @@ export function SettingsModal({
                 );
               })}
             </div>
-            <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">
+            <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">
               Milestones belong to the current run, so a missed day starts them over from 1.
             </p>
           </div>
@@ -1879,7 +1878,7 @@ export function SettingsModal({
           <div className="rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-semibold text-zinc-200">Last 30 days</span>
-              <span className="text-[10.5px] text-zinc-500">{streakDaysVisited} visited</span>
+              <span className="text-[11px] text-zinc-500">{streakDaysVisited} visited</span>
             </div>
             <div
               role="img"
@@ -1899,7 +1898,7 @@ export function SettingsModal({
                 />
               ))}
             </div>
-            <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">
+            <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">
               {streak.lastVisit
                 ? `Last visit ${new Date(`${streak.lastVisit}T00:00:00`).toLocaleDateString()}. `
                 : "No visit recorded yet. "}
@@ -1969,7 +1968,7 @@ export function SettingsModal({
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                   <span id="site-lock-title">Site Lock (Classroom Mode)</span>
                   {siteLockEnabled && (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
                       Active
                     </span>
                   )}
@@ -2119,7 +2118,7 @@ export function SettingsModal({
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                   <span id="background-controls-title">Background Style</span>
                   {bgNotice && (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300 animate-fade-in">
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-fade-in">
                       {bgNotice}
                     </span>
                   )}
@@ -2211,7 +2210,7 @@ export function SettingsModal({
                         </div>
                       </div>
                       {isSelected ? (
-                        <div className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300 border border-emerald-500/30">
+                        <div className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 border border-emerald-500/30">
                           <Check className="w-3 h-3" />
                           <span>Active</span>
                         </div>
@@ -2323,7 +2322,7 @@ export function SettingsModal({
                         )}
                       </div>
                       <div className="truncate text-xs font-medium text-zinc-200">{preset.name}</div>
-                      <div className="truncate text-[10px] text-zinc-500">{preset.description}</div>
+                      <div className="truncate text-[11px] text-zinc-500">{preset.description}</div>
                     </button>
                   );
                 })}
@@ -2348,7 +2347,7 @@ export function SettingsModal({
                   <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                     <span>System Font</span>
                     {fontNotice && (
-                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300 animate-fade-in">
+                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-fade-in">
                         {fontNotice}
                       </span>
                     )}
@@ -2392,7 +2391,7 @@ export function SettingsModal({
                 }}
                 className="flex flex-col gap-1 transition-all"
               >
-                <div className="flex items-center justify-between text-[10px] font-sans text-zinc-500">
+                <div className="flex items-center justify-between text-[11px] font-sans text-zinc-500">
                   <span>LIVE TYPOGRAPHY PREVIEW</span>
                   <span className="font-mono font-medium text-indigo-400">
                     {SYSTEM_FONTS.find((f) => f.id === currentFontId)?.name}
@@ -2443,7 +2442,7 @@ export function SettingsModal({
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span className="truncate text-xs font-semibold text-zinc-100">{font.name}</span>
                           {font.badge && (
-                            <span className="shrink-0 rounded-full bg-white/[0.07] px-1.5 py-0.5 text-[9px] font-medium text-zinc-300">
+                            <span className="shrink-0 rounded-full bg-white/[0.07] px-1.5 py-0.5 text-[11px] font-medium text-zinc-300">
                               {font.badge}
                             </span>
                           )}
@@ -2453,7 +2452,7 @@ export function SettingsModal({
                             <Check className="h-3 w-3" />
                           </span>
                         ) : (
-                          <span className="shrink-0 text-[10px] text-zinc-500">{font.category}</span>
+                          <span className="shrink-0 text-[11px] text-zinc-500">{font.category}</span>
                         )}
                       </div>
                       <div
@@ -2462,7 +2461,7 @@ export function SettingsModal({
                       >
                         {font.sample}
                       </div>
-                      <div className="text-[10.5px] text-zinc-400 line-clamp-1">{font.description}</div>
+                      <div className="text-[11px] text-zinc-400 line-clamp-1">{font.description}</div>
                     </button>
                   );
                 })}
@@ -2533,7 +2532,7 @@ export function SettingsModal({
               <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
                 <span>New game notifications</span>
                 <span
-                  className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                  className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${
                     notificationsOn
                       ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
                       : permission === "denied"
@@ -2608,7 +2607,7 @@ export function SettingsModal({
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                 <span id="offline-title">Offline copy</span>
                 {offlineStatus?.cachedFiles ? (
-                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
                     Downloaded
                   </span>
                 ) : null}
@@ -2636,7 +2635,7 @@ export function SettingsModal({
                           : "No offline copy on this device."}
                     </span>
                     {offlineStatus?.cachedAt && !offlineBusy ? (
-                      <span className="text-[10.5px] text-zinc-500">
+                      <span className="text-[11px] text-zinc-500">
                         Downloaded {new Date(offlineStatus.cachedAt).toLocaleString()}
                       </span>
                     ) : null}
@@ -2687,7 +2686,7 @@ export function SettingsModal({
                   </button>
                 </div>
 
-                <p className="text-[10.5px] leading-relaxed text-zinc-500">
+                <p className="text-[11px] leading-relaxed text-zinc-500">
                   Keep this page open while the download runs. The site has to be reachable once to download it; after
                   that, cached pages open without a connection.
                 </p>
@@ -2699,7 +2698,7 @@ export function SettingsModal({
                     <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-zinc-200">
                       <Clock aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
                       <span>Auto-use cached backup</span>
-                      <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300">
+                      <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-300">
                         Advanced
                       </span>
                     </div>
@@ -2743,7 +2742,7 @@ export function SettingsModal({
                   </label>
                 </div>
 
-                <p className="text-[10.5px] leading-relaxed text-zinc-500">
+                <p className="text-[11px] leading-relaxed text-zinc-500">
                   Overnight windows work too, for example 22:00 to 07:00. The schedule only applies after the offline
                   copy has been downloaded.
                 </p>
@@ -2795,7 +2794,7 @@ export function SettingsModal({
 
                 {packProgress && (
                   <div role="status" className="flex flex-col gap-1">
-                    <span className="text-[10.5px] text-zinc-400">
+                    <span className="text-[11px] text-zinc-400">
                       Saving {packProgress.name}: {packProgress.done}/{packProgress.total} files ·{" "}
                       {formatPackSize(packProgress.bytes)}
                     </span>
@@ -2834,7 +2833,7 @@ export function SettingsModal({
                         <div key={pack.gameId} className="flex items-center gap-2 py-1.5">
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-xs text-zinc-200">{pack.name}</span>
-                            <span className="block text-[10px] text-zinc-500">
+                            <span className="block text-[11px] text-zinc-500">
                               {formatPackSize(pack.bytes)} · {pack.files.length}{" "}
                               {pack.files.length === 1 ? "file" : "files"}
                               {installed ? " · saved" : ""}
@@ -2867,7 +2866,7 @@ export function SettingsModal({
                   )}
                 </div>
 
-                <p className="text-[10.5px] leading-relaxed text-zinc-500">
+                <p className="text-[11px] leading-relaxed text-zinc-500">
                   {downloadedPacks.length} game{downloadedPacks.length === 1 ? "" : "s"} saved for offline play on
                   this device. Removing a pack only deletes its files, not your progress in the game.
                 </p>
@@ -2968,7 +2967,7 @@ export function SettingsModal({
                     className="w-full rounded-lg bg-white/[0.04] px-3 py-2 font-mono text-xs text-zinc-100 ring-1 ring-inset ring-white/[0.08] placeholder:text-zinc-500 focus:outline-none"
                   />
                   {!tabIconUrl.trim() && tabCloakEnabled && (
-                    <p className="text-[10px] leading-relaxed text-amber-200/80">Add an icon URL or select Default icon.</p>
+                    <p className="text-[11px] leading-relaxed text-amber-200/80">Add an icon URL or select Default icon.</p>
                   )}
                 </div>
               )}
@@ -2976,7 +2975,7 @@ export function SettingsModal({
 
             {tabCloakError && <p role="alert" className="text-xs font-medium text-red-400">{tabCloakError}</p>}
             <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-2">
-              <p className="text-[10px] leading-relaxed text-zinc-500">Applies to this browser only.</p>
+              <p className="text-[11px] leading-relaxed text-zinc-500">Applies to this browser only.</p>
               <button type="submit" className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100">
                 {tabCloakSaved ? "Saved" : "Save tab"}
               </button>
@@ -3005,7 +3004,7 @@ export function SettingsModal({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                 <span id="panic-title">Emergency Panic Redirect</span>
-                <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
+                <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[11px] text-zinc-300">
                   ]
                 </kbd>
               </div>
@@ -3106,7 +3105,7 @@ export function SettingsModal({
                 <div>
                   <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                     <span>Update History & Activity</span>
-                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-[#caccd2]">
+                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[11px] text-[#caccd2]">
                       v{SITE_VERSION}
                     </span>
                   </div>
@@ -3168,7 +3167,7 @@ export function SettingsModal({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-semibold text-zinc-100">Updates & Version</span>
-                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[10.5px] text-zinc-400">
+                    <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[11px] text-zinc-400">
                       v{SITE_VERSION}
                     </span>
                   </div>
@@ -3244,7 +3243,7 @@ export function SettingsModal({
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Total Updates</div>
+                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Total Updates</div>
                 <div className="mt-0.5 font-mono text-base font-semibold text-emerald-400">
                   {activityDays.reduce((acc, d) => acc + d.count, 0)}
                 </div>
@@ -3257,7 +3256,7 @@ export function SettingsModal({
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Active Days</div>
+                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Active Days</div>
                 <div className="mt-0.5 font-mono text-base font-semibold text-zinc-200">
                   {activityDays.filter((d) => d.count > 0).length} days
                 </div>
@@ -3270,7 +3269,7 @@ export function SettingsModal({
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Current Release</div>
+                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Current Release</div>
                 <div className="mt-0.5 font-mono text-base font-semibold text-sky-400">
                   v{SITE_VERSION}
                 </div>
@@ -3283,7 +3282,7 @@ export function SettingsModal({
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Releases</div>
+                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Releases</div>
                 <div className="mt-0.5 font-mono text-base font-semibold text-purple-400">
                   {CHANGELOG.length} versions
                 </div>
@@ -3313,7 +3312,7 @@ export function SettingsModal({
                         v{entry.version}
                       </span>
                       {index === 0 && (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
                           <Sparkles aria-hidden="true" className="h-3 w-3" />
                           Latest
                         </span>
@@ -3342,7 +3341,7 @@ export function SettingsModal({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="text-sm font-semibold text-zinc-100">Source code</div>
-              <p className="mt-0.5 text-[10.5px] leading-relaxed text-zinc-500">
+              <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
                 Read the code that runs this site.
               </p>
             </div>
@@ -3394,7 +3393,7 @@ export function SettingsModal({
                       rel="noopener noreferrer"
                       title={`${mirror.url} — ${statusLabel}`}
                       style={CHIP_STYLE}
-                      className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1 text-[10.5px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                      className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
                     >
                       <Globe aria-hidden="true" className="h-3 w-3 shrink-0 text-sky-400" />
                       <span className="truncate">{mirror.name}</span>
@@ -3416,21 +3415,21 @@ export function SettingsModal({
                 })}
               </div>
 
-              <p role="status" className="text-[10.5px] leading-relaxed text-zinc-500">
+              <p role="status" className="text-[11px] leading-relaxed text-zinc-500">
                 {Object.values(proxyStatus).some((status) => status === "checking")
                   ? "Checking which proxies load from this network…"
                   : Object.values(proxyStatus).length > 0
                     ? `${SITE_MIRRORS.filter((mirror) => proxyStatus[mirror.url] === "reachable").length} reachable · ${SITE_MIRRORS.filter((mirror) => proxyStatus[mirror.url] === "blocked").length} blocked`
                     : "Scroll here to check the proxies from this network."}
               </p>
-              <p className="text-[10px] leading-relaxed text-zinc-500">
+              <p className="text-[11px] leading-relaxed text-zinc-500">
                 The check loads each proxy in a hidden frame. “Blocked” means the frame did not load, so a filter can
                 also be the cause.
               </p>
             </div>
           </div>
 
-          <p className="text-[10.5px] text-zinc-500" title={`Build ${LAST_UPDATED_ISO}`}>
+          <p className="text-[11px] text-zinc-500" title={`Build ${LAST_UPDATED_ISO}`}>
             Last updated {formatLastUpdated()}
           </p>
                 </section>
@@ -3453,7 +3452,7 @@ export function SettingsModal({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                 <span id="admin-title">Admin</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
                   Read-only
                 </span>
               </div>
@@ -3503,7 +3502,7 @@ export function SettingsModal({
             </button>
           </div>
 
-          <p className="text-[10.5px] leading-relaxed text-zinc-500">
+          <p className="text-[11px] leading-relaxed text-zinc-500">
             These values are read-only and match the lines in the footer.
           </p>
         </section>
@@ -3534,7 +3533,7 @@ export function SettingsModal({
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                   <span>Turn off ads</span>
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
                     Ultra only
                   </span>
                 </div>
@@ -3571,7 +3570,7 @@ export function SettingsModal({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
                   <span>math_games Ultra</span>
-                  <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                  <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
                     $1
                   </span>
                 </div>
@@ -3589,7 +3588,7 @@ export function SettingsModal({
             >
               Pay $1 — coming soon
             </button>
-            <p className="text-[10.5px] leading-relaxed text-zinc-500">
+            <p className="text-[11px] leading-relaxed text-zinc-500">
               Checkout isn’t open yet. The button unlocks when Ultra launches.
             </p>
           </div>
@@ -3636,7 +3635,7 @@ export function SettingsModal({
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-medium text-zinc-100">{referral.title}</span>
                         {referral.badge && (
-                          <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                          <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
                             {referral.badge}
                           </span>
                         )}
@@ -3657,7 +3656,7 @@ export function SettingsModal({
             </ul>
           )}
 
-          <p className="text-[10.5px] leading-relaxed text-zinc-500">
+          <p className="text-[11px] leading-relaxed text-zinc-500">
             Some links are referrals: using them may earn math_games a reward at no extra cost to you.
           </p>
         </section>

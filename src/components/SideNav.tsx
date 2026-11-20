@@ -17,9 +17,7 @@ export interface SideNavSection {
 const PANEL_STYLE: React.CSSProperties = {
   background: "#1d1d1d",
   borderRadius: 20,
-  boxShadow:
-    "inset 0 0 0 1px rgba(44, 47, 54, 0.52), inset 0 0 50px 0 rgba(255, 255, 255, 0.02), 0 10px 24px -6px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3)",
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  border: "1px solid rgba(255, 255, 255, 0.07)",
 };
 
 /** A small label bubble shown while a rail button is held down. */
@@ -55,7 +53,7 @@ function HoldTooltip({ label, button }: { label: string; button: React.RefObject
           <span
             role="tooltip"
             style={{ left: pos.x, top: pos.y }}
-            className="pointer-events-none fixed z-[120] -translate-y-1/2 whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-[11px] font-medium text-zinc-100 shadow-[0_6px_20px_rgba(0,0,0,0.5)] ring-1 ring-white/10 animate-in fade-in duration-100"
+            className="pointer-events-none fixed z-[120] -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[#1d1d1d] px-2 py-1 text-[11px] font-medium text-zinc-100 animate-in fade-in duration-100"
           >
             {label}
           </span>,
@@ -92,11 +90,11 @@ function NavButton({
         aria-current={item.active ? "page" : undefined}
         aria-label={item.label}
         {...(withHoldTooltip ? hold.handlers : {})}
-        className={`group flex h-9 w-full shrink-0 select-none items-center gap-2.5 rounded-xl text-left text-[12.5px] transition-colors [-webkit-touch-callout:none] ${
+        className={`group flex h-9 w-full shrink-0 select-none items-center gap-2.5 rounded-xl text-left text-xs transition-colors [-webkit-touch-callout:none] ${
           expanded ? "px-2.5" : "justify-center px-0"
         } ${
           item.active
-            ? "bg-white font-semibold text-zinc-950 shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
+            ? "bg-white font-semibold text-zinc-950"
             : "font-medium text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-100"
         }`}
       >
@@ -222,7 +220,7 @@ export function SideNav({
           aria-expanded={expanded}
           aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
           title={expanded ? "Collapse navigation" : "Expand navigation"}
-          className={`flex h-9 w-full items-center gap-2.5 rounded-xl text-[12.5px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 ${
+          className={`flex h-9 w-full items-center gap-2.5 rounded-xl text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 ${
             expanded ? "px-2.5" : "justify-center px-0"
           }`}
         >

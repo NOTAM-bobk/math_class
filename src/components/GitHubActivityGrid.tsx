@@ -213,7 +213,7 @@ export function GitHubActivityGrid({
             {grid.monthLabels.map((m) => (
               <span
                 key={`${m.col}-${m.label}`}
-                className="absolute top-0 text-[9px] font-medium uppercase tracking-[0.06em] text-zinc-400"
+                className="absolute top-0 text-[11px] font-medium uppercase tracking-[0.06em] text-zinc-400"
                 style={{ left: m.col * (fittedCellSize + fittedCellGap) }}
               >
                 {m.label}
@@ -227,7 +227,7 @@ export function GitHubActivityGrid({
               {WEEKDAYS.map((wd, i) => (
                 <span
                   key={i}
-                  className="flex items-center text-[9px] font-medium tracking-tight text-zinc-500"
+                  className="flex items-center text-[11px] font-medium tracking-tight text-zinc-500"
                   style={{ height: fittedCellSize, width: WEEKDAY_LABEL_WIDTH }}
                 >
                   {wd}
@@ -339,7 +339,7 @@ export function GitHubActivityGrid({
 
 function Legend() {
   return (
-    <div className="flex items-center gap-1.5 text-[10px] text-zinc-400">
+    <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
       <span>Less</span>
       {LEVEL_BG.map((bg, i) => (
         <span

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, CheckCircle2, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, BadgeCheck, Ban, Star, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff, ChevronLeft, ChevronRight, LayoutGrid, Zap, Car, Trophy, Puzzle, Coffee, Users, Crosshair, Swords, Hourglass, Wrench, Layers } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
@@ -69,25 +69,25 @@ function loadFavorites(): string[] {
 
 export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
-  { id: "recent", label: "🕘 Recently played" },
-  { id: "favorites", label: "❤️ Favorites" },
-  { id: "editors", label: "✨ Editor’s Pick" },
-  { id: "verified", label: "✅ Verified" },
-  { id: "hidden", label: "🙈 Hidden" },
-  { id: "trending", label: "🔥 Trending" },
-  { id: "offline", label: "📥 Offline" },
-  { id: "flash", label: "⚡ Flash" },
-  { id: "action", label: "⚔️ Action" },
-  { id: "driving", label: "🏎️ Driving" },
-  { id: "sports", label: "🏈 Sports" },
-  { id: "arcade", label: "🕹️ Arcade" },
-  { id: "puzzle", label: "🧩 Puzzle" },
-  { id: "casual", label: "🎮 Casual" },
-  { id: "multiplayer", label: "👥 Multiplayer" },
-  { id: "shooting", label: "🎯 Shooting" },
-  { id: "strategy", label: "♟️ Strategy" },
-  { id: "idle", label: "⏳ Idle" },
-  { id: "tools", label: "🧰 Tools" },
+  { id: "recent", label: "Recently played" },
+  { id: "favorites", label: "Favorites" },
+  { id: "editors", label: "Editor’s picks" },
+  { id: "verified", label: "Verified" },
+  { id: "hidden", label: "Hidden" },
+  { id: "trending", label: "Trending" },
+  { id: "offline", label: "Offline" },
+  { id: "flash", label: "Flash" },
+  { id: "action", label: "Action" },
+  { id: "driving", label: "Driving" },
+  { id: "sports", label: "Sports" },
+  { id: "arcade", label: "Arcade" },
+  { id: "puzzle", label: "Puzzle" },
+  { id: "casual", label: "Casual" },
+  { id: "multiplayer", label: "Multiplayer" },
+  { id: "shooting", label: "Shooting" },
+  { id: "strategy", label: "Strategy" },
+  { id: "idle", label: "Idle" },
+  { id: "tools", label: "Tools" },
 ] as const;
 
 // The home catalog is a stack of genre shelves. Each shelf shows one row on
@@ -123,20 +123,21 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   tools: "#84cc16",
 };
 
-// Each genre's heading carries an emoji instead of a colour dot.
-const CATEGORY_EMOJIS: Record<string, string> = {
-  flash: "💾",
-  action: "⚡",
-  driving: "🏎️",
-  sports: "⚽",
-  arcade: "👾",
-  puzzle: "🧩",
-  casual: "🎈",
-  multiplayer: "👥",
-  shooting: "🎯",
-  strategy: "♟️",
-  idle: "⏳",
-  tools: "🛠️",
+// Each genre's heading carries its line icon instead of an emoji, which keeps
+// the shelves on the same drawing system as the rest of the chrome.
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  flash: Layers,
+  action: Zap,
+  driving: Car,
+  sports: Trophy,
+  arcade: Gamepad2,
+  puzzle: Puzzle,
+  casual: Coffee,
+  multiplayer: Users,
+  shooting: Crosshair,
+  strategy: Swords,
+  idle: Hourglass,
+  tools: Wrench,
 };
 
 // The cover layout mixes wide, tall and square boxes; dense flow fills the gaps.
@@ -198,10 +199,10 @@ function TopTenChart({
           className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200"
         >
           <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
-          Top 10 <span aria-hidden="true">🔥</span> today
+          Top 10 today
         </h3>
         <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-        <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+        <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-300">
           Most played
         </span>
       </div>
@@ -217,16 +218,16 @@ function TopTenChart({
             aria-label={`Number ${index + 1}: ${game.name}`}
             className="group flex shrink-0 snap-start items-stretch gap-1 rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
-            <span
-              aria-hidden="true"
-              className="flex w-11 items-end justify-center pb-6 text-4xl font-black leading-none tabular-nums text-white/20 transition-colors group-hover:text-amber-300/80"
-            >
+                          <span
+                aria-hidden="true"
+                className="flex w-11 items-end justify-center pb-6 text-4xl font-semibold leading-none tabular-nums text-white/20 transition-colors group-hover:text-amber-300/80"
+              >
               {index + 1}
             </span>
             <span className="relative block aspect-[3/4] w-24 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition-colors group-hover:border-amber-300/40">
               <GameCoverArt game={game} accent={gameAccent(game)} compact />
               <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/75 to-transparent px-1.5 pb-1.5 pt-5">
-                <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-white">
+                <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-white">
                   {game.name}
                 </span>
               </span>
@@ -244,7 +245,7 @@ function TopTenChart({
 function GameRail({
   id,
   title,
-  emoji,
+  icon,
   total,
   games,
   onSeeAll,
@@ -252,7 +253,7 @@ function GameRail({
 }: {
   id: string;
   title: string;
-  emoji?: string;
+  icon?: React.ComponentType<{ className?: string }>;
   total: number;
   games: GameItem[];
   onSeeAll: () => void;
@@ -296,6 +297,7 @@ function GameRail({
   };
 
   const headingId = `catalog-shelf-${id}`;
+  const Icon = icon;
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
@@ -304,14 +306,10 @@ function GameRail({
           id={headingId}
           className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-zinc-200"
         >
-          {emoji && (
-            <span aria-hidden="true" className="shrink-0 text-[13px] leading-none">
-              {emoji}
-            </span>
-          )}
+          {Icon && <Icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-400" />}
           <span className="truncate">{title}</span>
         </h3>
-        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-zinc-400">
           {total}
         </span>
         <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
@@ -408,12 +406,16 @@ type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 const DEFAULT_SORT: SortOption = "popular";
 
 const TAG_FILTERS = [
-  { id: "editors", emoji: "✨", label: "Editor’s Pick" },
-  { id: "verified", emoji: "✅", label: "Verified" },
-  { id: "hidden", emoji: "🙈", label: "Hidden" },
-  { id: "buggy", emoji: "🐛", label: "Error: bug" },
-  { id: "blocked", emoji: "😿", label: "Blocked" },
-] as const satisfies readonly { id: CategoryId; emoji: string; label: string }[];
+  { id: "editors", icon: Star, label: "Editor’s Pick" },
+  { id: "verified", icon: BadgeCheck, label: "Verified" },
+  { id: "hidden", icon: EyeOff, label: "Hidden" },
+  { id: "buggy", icon: Bug, label: "Error: bug" },
+  { id: "blocked", icon: Ban, label: "Blocked" },
+] as const satisfies readonly {
+  id: CategoryId;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  label: string;
+}[];
 
 type TagFilterId = (typeof TAG_FILTERS)[number]["id"];
 
@@ -820,18 +822,15 @@ function VerifiedBadge() {
         onMouseLeave={() => {
           if (canHover()) setOpen(false);
         }}
-        className="inline-flex cursor-help items-center justify-center text-emerald-400"
+        className="inline-flex cursor-help items-center justify-center text-amber-300"
       >
-        <CheckCircle2
-          aria-hidden="true"
-          className="h-3.5 w-3.5 fill-emerald-500/20 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.35)]"
-        />
+        <BadgeCheck aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
       </button>
       {open && (
         <span
           id={tipId}
           role="tooltip"
-          className="absolute left-1/2 top-full z-30 mt-1.5 w-40 -translate-x-1/2 rounded-lg border border-white/10 bg-[#1c1c1e] px-2 py-1.5 text-[10.5px] font-normal leading-snug text-zinc-300 shadow-[0_8px_24px_rgba(0,0,0,0.6)] sm:w-44"
+          className="absolute left-1/2 top-full z-30 mt-1.5 w-40 -translate-x-1/2 rounded-lg border border-white/10 bg-[#1c1c1e] px-2 py-1.5 text-[11px] font-normal leading-snug text-zinc-300 shadow-[0_8px_24px_rgba(0,0,0,0.6)] sm:w-44"
         >
           Checked by an admin — this game loads and plays.
         </span>
@@ -853,12 +852,12 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
       className={`catalog-native-ad col-span-full mx-auto w-full max-w-sm flex-col gap-1 px-2.5 py-1.5 ${hidden ? "hidden" : "flex"}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
           Ad
         </span>
         <a
           href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
-          className="text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
+          className="text-[11px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
         >
           Advertise
         </a>
@@ -911,7 +910,7 @@ function GameCard({
   const genreAccent = gameAccent(game);
 
   if (variant === "mosaic") {
-    const compactChip = "inline-flex h-5 shrink-0 items-center gap-1 rounded-full bg-black/45 px-1.5 text-[9.5px] font-medium leading-none text-zinc-200 backdrop-blur-sm";
+    const compactChip = "inline-flex h-5 shrink-0 items-center gap-1 rounded-full bg-black/45 px-1.5 text-[11px] font-medium leading-none text-zinc-200 backdrop-blur-sm";
     return (
       <article
         key={game.id}
@@ -926,12 +925,12 @@ function GameCard({
             {isVerified && <VerifiedBadge />}
             {isPopular && (
               <span title="Most played" className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
-                <Flame aria-hidden="true" className="h-3 w-3 fill-orange-400/20 text-orange-400" />
+                <Flame aria-hidden="true" className="h-3 w-3 text-amber-300" />
               </span>
             )}
             {isEditorPick && (
               <span title="Editor's Pick" className={compactChip}>
-                <span aria-hidden="true">✨</span> Pick
+                <Star aria-hidden="true" className="h-2.5 w-2.5 text-amber-300" /> Pick
               </span>
             )}
             {isRecent && (
@@ -950,8 +949,8 @@ function GameCard({
               </span>
             )}
             {isBlocked && (
-              <span title="Blocked site or game" className={`${compactChip} text-purple-200`}>
-                Blocked:{blockedEmoji}
+              <span title="Blocked site or game" className={`${compactChip} text-zinc-200`}>
+                <Ban aria-hidden="true" className="h-2.5 w-2.5 text-amber-300" /> Blocked
               </span>
             )}
             {hiddenInfo && (
@@ -977,7 +976,7 @@ function GameCard({
               aria-hidden="true"
               className={`pointer-events-none h-3.5 w-3.5 ${
                 isFavorite
-                  ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
+                  ? "fill-amber-400 text-amber-400"
                   : "stroke-[1.75]"
               }`}
             />
@@ -986,19 +985,19 @@ function GameCard({
 
         <div className="relative z-10 mt-auto p-3">
           <h4
-            className="line-clamp-2 min-w-0 text-sm font-semibold leading-snug text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-base"
+            className="line-clamp-2 min-w-0 text-sm font-semibold leading-snug text-white sm:text-base"
             title={game.name}
           >
             <HighlightText text={game.name} query={searchQuery} />
           </h4>
           <div className="mt-1.5 flex items-center justify-between gap-2">
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[10px] text-zinc-300/80">
+              <span className="truncate text-[11px] text-zinc-300/80">
                 {game.disabled ? "Coming soon" : game.tags[0] || (opensInHub ? "In the hub" : "New tab")}
               </span>
               {!game.disabled && plays > 0 && (
                 <span
-                  className="font-mono text-[9.5px] leading-tight tabular-nums text-zinc-300/60"
+                  className="font-mono text-[11px] leading-tight tabular-nums text-zinc-300/60"
                   title={`${plays.toLocaleString()} plays`}
                 >
                   {formatPlays(plays)} plays
@@ -1014,19 +1013,19 @@ function GameCard({
                   onRestoreHidden(game.id);
                 }}
                 title="Put this game back in the main catalog"
-                className="relative z-20 inline-flex h-6 shrink-0 cursor-pointer items-center rounded-full bg-white/15 px-2 text-[10px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25"
+                className="relative z-20 inline-flex h-6 shrink-0 cursor-pointer items-center rounded-full bg-white/15 px-2 text-[11px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25"
               >
                 Restore
               </button>
             )}
             {game.disabled ? (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2 text-[10px] font-medium text-zinc-200 backdrop-blur-sm">
+              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2 text-[11px] font-medium text-zinc-200 backdrop-blur-sm">
                 <Clock3 aria-hidden="true" className="h-2.5 w-2.5" /> Soon
               </span>
             ) : (
               <span
                 aria-hidden="true"
-                className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white px-2.5 text-[10px] font-semibold text-zinc-950 shadow-sm transition-colors group-hover:bg-zinc-100"
+                className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white px-2.5 text-[11px] font-semibold text-zinc-950 shadow-sm transition-colors group-hover:bg-zinc-100"
               >
                 <Play className="h-2.5 w-2.5 fill-current" />
                 Play
@@ -1097,7 +1096,7 @@ function GameCard({
                   border: "1px solid rgba(239, 68, 68, 0.45)",
                   color: "#fca5a5"
                 }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[10.5px] font-semibold tracking-wide font-mono"
+                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
               >
                 <Bug aria-hidden="true" className="h-3 w-3 text-red-400 shrink-0" />
                 <span>error:bug</span>
@@ -1112,7 +1111,7 @@ function GameCard({
                   border: "1px solid rgba(245, 158, 11, 0.4)",
                   color: "#fcd34d"
                 }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[10.5px] font-semibold tracking-wide font-mono"
+                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
               >
                 <Smartphone aria-hidden="true" className="h-3 w-3 text-amber-400 shrink-0" />
                 <span>no mobile</span>
@@ -1127,9 +1126,10 @@ function GameCard({
                   border: "1px solid rgba(168, 85, 247, 0.45)",
                   color: "#e9d5ff"
                 }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[10.5px] font-semibold tracking-wide font-mono"
+                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
               >
-                <span>Blocked:{blockedEmoji}</span>
+                <Ban aria-hidden="true" className="h-3 w-3 shrink-0 text-amber-300" />
+                <span>Blocked</span>
               </span>
             )}
             {hiddenInfo && (
@@ -1141,7 +1141,7 @@ function GameCard({
                   border: "1px solid rgba(161, 161, 170, 0.35)",
                   color: "#d4d4d8"
                 }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[10.5px] font-semibold tracking-wide font-mono"
+                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
               >
                 <EyeOff aria-hidden="true" className="h-3 w-3 shrink-0 text-zinc-400" />
                 <span>auto-hidden</span>
@@ -1192,7 +1192,7 @@ function GameCard({
                 aria-hidden="true"
                 className={`h-4 w-4 pointer-events-none transition-colors ${
                   isFavorite
-                    ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
+                    ? "fill-amber-400 text-amber-400"
                     : "stroke-[1.75] text-zinc-400 group-hover/fav:text-amber-300"
                 }`}
               />
@@ -1200,7 +1200,7 @@ function GameCard({
           </div>
         </div>
 
-        <p className="mb-2.5 line-clamp-2 flex-1 text-[12.5px] leading-[17px] text-[#8B9099] sm:mb-4 sm:text-[13px] sm:leading-[18px]">
+        <p className="mb-2.5 line-clamp-2 flex-1 text-xs leading-[17px] text-[#8B9099] sm:mb-4 sm:text-sm sm:leading-[18px]">
           <HighlightText text={game.description} query={searchQuery} />
         </p>
 
@@ -1210,7 +1210,7 @@ function GameCard({
               <span
                 key={tag}
                 style={CHIP_STYLE}
-                className="inline-flex h-5 shrink-0 items-center px-2 text-[10.5px] leading-[13px] text-[#caccd2] sm:h-6 sm:px-2.5 sm:text-[11px] sm:leading-[14px]"
+                className="inline-flex h-5 shrink-0 items-center px-2 text-[11px] leading-[13px] text-[#caccd2] sm:h-6 sm:px-2.5 sm:text-[11px] sm:leading-[14px]"
               >
                 <HighlightText text={tag} query={searchQuery} />
               </span>
@@ -1220,7 +1220,7 @@ function GameCard({
           <div className="flex shrink-0 items-center gap-2">
             {!game.disabled && plays > 0 && (
               <span
-                className="text-[10px] font-mono tabular-nums text-zinc-500"
+                className="text-[11px] font-mono tabular-nums text-zinc-500"
                 title={`${plays.toLocaleString()} plays`}
               >
                 {formatPlays(plays)} plays
@@ -1286,12 +1286,12 @@ function BlockedCheckRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span>
-        <span className="block truncate text-[10px] text-zinc-500">{game.url}</span>
+        <span className="block truncate text-[11px] text-zinc-500">{game.url}</span>
       </span>
       <span
-        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
           status === "unblocked"
-            ? "bg-emerald-500/15 text-emerald-300"
+            ? "bg-amber-400/15 text-amber-300"
             : "bg-red-500/15 text-red-300"
         }`}
       >
@@ -2254,7 +2254,7 @@ export function GameCatalog({
       return {
         id,
         title: CATEGORY_NAMES[id],
-        emoji: CATEGORY_EMOJIS[id],
+        icon: CATEGORY_ICONS[id],
         total: matches.length,
         games: matches.slice(0, SHELF_GAME_LIMIT),
       };
@@ -2304,13 +2304,14 @@ export function GameCatalog({
           <div className="flex min-w-0 items-center gap-2">
             <h2
               aria-live="polite"
-              className="flex min-w-0 items-baseline gap-1.5 truncate text-sm font-semibold text-zinc-100 sm:text-[15px]"
+              className="flex min-w-0 items-baseline gap-1.5 truncate text-sm font-semibold text-zinc-100 sm:text-base"
             >
-              {CATEGORY_EMOJIS[selectedCategory] && (
-                <span aria-hidden="true" className="shrink-0 self-center text-[13px] leading-none">
-                  {CATEGORY_EMOJIS[selectedCategory]}
-                </span>
-              )}
+              {(() => {
+                const CategoryIcon = CATEGORY_ICONS[selectedCategory];
+                return CategoryIcon ? (
+                  <CategoryIcon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 self-center text-zinc-400" />
+                ) : null;
+              })()}
               {serverSearching ? (
                 <span className="font-normal text-zinc-400">Searching…</span>
               ) : (
@@ -2323,7 +2324,7 @@ export function GameCatalog({
                 </>
               )}
               {!serverSearching && searchQuery.trim() && (
-                <span className="truncate text-[12px] font-normal text-zinc-500">
+                <span className="truncate text-xs font-normal text-zinc-500">
                   for “{searchQuery.trim()}”
                 </span>
               )}
@@ -2364,7 +2365,7 @@ export function GameCatalog({
                   onKeyDown={handleFilterMenuKeyDown}
                   className="absolute right-0 top-full z-30 mt-2 min-w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#1d1d1d] p-1.5 shadow-2xl"
                 >
-                  <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
                     Sort by
                   </div>
                   {SORT_OPTIONS.map((option) => {
@@ -2394,7 +2395,7 @@ export function GameCatalog({
 
                   <div className="my-1 border-t border-white/[0.08]" />
 
-                  <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
                     Tag filters
                   </div>
                   {TAG_FILTERS.map((tag) => {
@@ -2420,10 +2421,10 @@ export function GameCatalog({
                         }`}
                       >
                         <span className="flex items-center gap-1.5">
-                          <span>{tag.id === "blocked" ? blockedEmoji || tag.emoji : tag.emoji}</span>
+                          <tag.icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
                           <span>{tag.label}</span>
                           {count > 0 && (
-                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[10px] font-mono text-zinc-400">
+                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[11px] font-mono text-zinc-400">
                               {count}
                             </span>
                           )}
@@ -2435,7 +2436,7 @@ export function GameCatalog({
 
                   <div className="my-1 border-t border-white/[0.08]" />
 
-                  <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
                     Checks
                   </div>
                   <button
@@ -2448,10 +2449,10 @@ export function GameCatalog({
                     className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-xs text-zinc-200 transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                   >
                     <span className="flex items-center gap-1.5">
-                      <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5 text-emerald-400" />
+                      <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
                       <span>Run Blocked Check</span>
                     </span>
-                    <span className="font-mono text-[10px] tabular-nums text-zinc-500">
+                    <span className="font-mono text-[11px] tabular-nums text-zinc-500">
                       {blockedCheck.running
                         ? `${blockedCheck.checked}/${blockedCheck.total}`
                         : games.length}
@@ -2488,7 +2489,7 @@ export function GameCatalog({
                 onMouseLeave={() => setHeroPaused(false)}
                 onFocusCapture={() => setHeroPaused(true)}
                 onBlurCapture={() => setHeroPaused(false)}
-                className="relative h-[12.5rem] overflow-hidden rounded-2xl border border-amber-400/25 bg-white/[0.04] sm:h-[16rem]"
+                className="relative h-[13rem] overflow-hidden rounded-2xl border border-white/[0.07] bg-[#1a1a1a]"
               >
                 {heroGames.map((game, index) => {
                   const active = index === heroIndex % heroGames.length;
@@ -2501,43 +2502,46 @@ export function GameCatalog({
                       onClick={(event) => launchGame(game, event)}
                       aria-hidden={!active}
                       tabIndex={active ? undefined : -1}
-                      className={`group absolute inset-0 flex items-end p-3 transition-[opacity,transform] duration-500 ease-out sm:p-5 ${
+                      className={`group absolute inset-0 transition-[opacity,transform] duration-500 ease-out ${
                         active
                           ? "z-10 translate-x-0 opacity-100"
                           : "pointer-events-none z-0 translate-x-3 opacity-0"
                       }`}
                     >
-                      <GameCoverArt
-                        game={game}
-                        accent={gameAccent(game)}
-                        eager={index === 0}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
-                      <div className="relative z-10 flex w-full flex-wrap items-end justify-between gap-3">
-                        <div className="min-w-0">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+                      {/* The cover takes the right third; the title keeps the rest. */}
+                      <div className="absolute inset-y-0 right-0 w-1/3 overflow-hidden">
+                        <GameCoverArt
+                          game={game}
+                          accent={gameAccent(game)}
+                          eager={index === 0}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#1a1a1a]/40 to-[#1a1a1a]" />
+                      </div>
+                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-3 sm:p-4">
+                        <div className="min-w-0 max-w-[62%]">
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />
                             {isEditorPick(game) ? "Editor’s pick" : "#1 game today"}
                           </span>
                           <h2
                             id={active ? "top-game-heading" : undefined}
-                            className="mt-1 truncate text-2xl font-bold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-3xl"
+                            className="mt-1 line-clamp-2 text-[28px] font-semibold leading-tight tracking-tight text-white"
                           >
                             {game.name}
                           </h2>
-                          <p className="mt-1 line-clamp-2 max-w-xl text-xs leading-snug text-zinc-300 sm:text-sm">
+                          <p className="mt-1 line-clamp-2 text-[14px] leading-snug text-zinc-400">
                             {game.description}
                           </p>
                           {totalPlays(game) > 0 && (
-                            <p className="mt-1 text-[10px] font-medium text-zinc-400">
+                            <p className="mt-1 text-[11px] font-medium tabular-nums text-zinc-500">
                               {totalPlays(game).toLocaleString()} plays
                             </p>
                           )}
+                          <span className="mt-1.5 inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-300">
+                            <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
+                            Play
+                          </span>
                         </div>
-                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-zinc-950 transition group-hover:bg-amber-200">
-                          <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
-                          Play
-                        </span>
                       </div>
                     </a>
                   );
@@ -2566,7 +2570,7 @@ export function GameCatalog({
                           aria-hidden="true"
                           className={`block rounded-full transition-all duration-300 ${
                             active
-                              ? "h-2 w-2 bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.55)]"
+                              ? "h-2 w-2 bg-amber-300"
                               : "h-1.5 w-1.5 bg-white/25 group-hover/dot:bg-white/50"
                           }`}
                         />
@@ -2610,7 +2614,7 @@ export function GameCatalog({
                     <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
                       <GameCoverArt game={game} accent={gameAccent(game)} compact />
                     </span>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span><span className="mt-0.5 block text-[10px] text-zinc-500">Play again</span></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium text-zinc-100">{game.name}</span><span className="mt-0.5 block text-[11px] text-zinc-500">Play again</span></span>
                     <Play className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition group-hover:text-zinc-200" />
                   </a>
                 ))}
@@ -2630,13 +2634,13 @@ export function GameCatalog({
               }}
               className={`flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
             >
-              <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+              <span className="shrink-0 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
                 Ad
               </span>
               <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
-                className="shrink-0 text-[10px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
+                className="shrink-0 text-[11px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
               >
                 Advertise
               </a>
@@ -2667,7 +2671,7 @@ export function GameCatalog({
                   <GameRail
                     id={shelf.id}
                     title={shelf.title}
-                    emoji={shelf.emoji}
+                    icon={shelf.icon}
                     total={shelf.total}
                     games={shelf.games}
                     onSeeAll={() => seeAllCategory(shelf.id)}
@@ -2715,7 +2719,7 @@ export function GameCatalog({
                     Back to categories
                   </button>
                 )}
-                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-zinc-400">
                   {playableGames.length}
                 </span>
               </div>
@@ -2743,7 +2747,7 @@ export function GameCatalog({
                   Coming soon
                 </h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-zinc-400">
                   {comingSoonGames.length}
                 </span>
               </div>
@@ -2761,7 +2765,7 @@ export function GameCatalog({
             <div className="flex flex-col items-center gap-2 py-12 text-center">
               {selectedCategory === "hidden" ? (
                 <>
-                  <CheckCircle2 className="h-8 w-8 text-emerald-400/50" aria-hidden="true" />
+                  <CheckCircle2 className="h-8 w-8 text-amber-300/50" aria-hidden="true" />
                   <p className="text-sm font-medium text-zinc-300">No hidden games</p>
                   <p className="max-w-[20rem] text-xs leading-relaxed text-zinc-500">
                     Every game passed the broken-game check. Games are hidden when they 404, error out, load blank, or fail inside the launcher.
@@ -2845,7 +2849,7 @@ export function GameCatalog({
                   <div className="truncate text-xs font-semibold text-zinc-100 sm:text-sm">
                     {launcherGame.name}
                   </div>
-                  <div className="hidden truncate text-[10px] text-zinc-500 sm:block">
+                  <div className="hidden truncate text-[11px] text-zinc-500 sm:block">
                     Playing inside the hub
                   </div>
                 </div>
@@ -2865,7 +2869,7 @@ export function GameCatalog({
                     aria-hidden="true"
                     className={`h-4 w-4 ${
                       favoriteIds.has(launcherGame.id)
-                        ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
+                        ? "fill-amber-400 text-amber-400"
                         : "stroke-[1.75]"
                     }`}
                   />
@@ -2961,14 +2965,14 @@ export function GameCatalog({
                     role="status"
                     className="absolute bottom-3 left-1/2 z-20 flex w-[min(94%,27rem)] -translate-x-1/2 items-center gap-2 rounded-xl border border-white/12 bg-[#171717]/95 px-3 py-2 text-zinc-200 shadow-[0_12px_32px_rgba(0,0,0,0.55)] backdrop-blur"
                   >
-                    <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" />
-                    <span className="min-w-0 flex-1 text-[11.5px] font-semibold leading-tight text-zinc-100">
+                    <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-300" />
+                    <span className="min-w-0 flex-1 text-xs font-semibold leading-tight text-zinc-100">
                       Did this work?
                     </span>
                     <button
                       type="button"
                       onClick={() => answerFeedback("worked")}
-                      className="shrink-0 cursor-pointer rounded-full bg-emerald-500/20 px-3 py-1 text-[11px] font-semibold text-emerald-200 transition-colors hover:bg-emerald-500/30"
+                      className="shrink-0 cursor-pointer rounded-full bg-amber-400/20 px-3 py-1 text-[11px] font-semibold text-amber-200 transition-colors hover:bg-amber-400/30"
                     >
                       Yes
                     </button>
@@ -2997,7 +3001,7 @@ export function GameCatalog({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={dismissLauncher}
-                      className="font-semibold text-sky-300 underline decoration-sky-400/40 underline-offset-2"
+                      className="font-semibold text-amber-300 underline decoration-sky-400/40 underline-offset-2"
                     >
                       Open in a new tab
                     </a>
@@ -3026,7 +3030,7 @@ export function GameCatalog({
                       id="blocked-check-heading"
                       className="flex items-center gap-1.5 text-sm font-semibold text-zinc-100"
                     >
-                      <ShieldCheck aria-hidden="true" className="h-4 w-4 text-emerald-400" />
+                      <ShieldCheck aria-hidden="true" className="h-4 w-4 text-amber-300" />
                       Run Blocked Check
                     </h3>
                     <p
@@ -3078,12 +3082,12 @@ export function GameCatalog({
                       <div className="flex items-center gap-2">
                         <h4
                           id="blocked-check-unblocked-heading"
-                          className="text-xs font-semibold text-emerald-300"
+                          className="text-xs font-semibold text-amber-300"
                         >
                           Unblocked
                         </h4>
                         <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-zinc-400">
                           {blockedCheckGroups.unblocked.length}
                         </span>
                       </div>
@@ -3118,7 +3122,7 @@ export function GameCatalog({
                           Blocked
                         </h4>
                         <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
-                        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-zinc-400">
+                        <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-zinc-400">
                           {blockedCheckGroups.blocked.length}
                         </span>
                       </div>
@@ -3145,7 +3149,7 @@ export function GameCatalog({
                   </div>
                 </div>
 
-                <p className="shrink-0 border-t border-white/[0.08] px-3 py-2 text-[10px] leading-relaxed text-zinc-500">
+                <p className="shrink-0 border-t border-white/[0.08] px-3 py-2 text-[11px] leading-relaxed text-zinc-500">
                   Each game is loaded once in an invisible frame. “Blocked” means the frame did not
                   load, so a network filter — or a site that refuses to be embedded — shows up here.
                 </p>

@@ -245,7 +245,7 @@ function StatusTimeline({ monitor }: { monitor: UptimeMonitor }) {
         })}
       </div>
 
-      <div className="mt-1.5 flex items-center justify-between text-[9.5px] text-zinc-500">
+      <div className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500">
         <span>{days[0] ? dayLabel(days[0].date) : ""}</span>
         <span>Today</span>
       </div>
@@ -259,7 +259,7 @@ function StatusTimeline({ monitor }: { monitor: UptimeMonitor }) {
             <span className="text-[11px] font-semibold text-zinc-100">
               {dayLabel(selectedDay.date, true)}
             </span>
-            <span className="text-[9.5px] text-zinc-500">
+            <span className="text-[11px] text-zinc-500">
               {selectedDay.uptime == null ? "No checks" : uptimeLabel(selectedDay.uptime)}
             </span>
           </div>
@@ -270,7 +270,7 @@ function StatusTimeline({ monitor }: { monitor: UptimeMonitor }) {
                 <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
                 Uptime
               </span>
-              <span className="font-mono text-[10.5px] text-zinc-400">
+              <span className="font-mono text-[11px] text-zinc-400">
                 {selectedDay.uptime == null ? "No data" : uptimeLabel(selectedDay.uptime)}
               </span>
             </div>
@@ -280,7 +280,7 @@ function StatusTimeline({ monitor }: { monitor: UptimeMonitor }) {
                   <span className="h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />
                   Downtime
                 </span>
-                <span className="font-mono text-[10.5px] text-zinc-400">
+                <span className="font-mono text-[11px] text-zinc-400">
                   {formatDuration(selectedDay.downSeconds)}
                 </span>
               </div>
@@ -291,14 +291,14 @@ function StatusTimeline({ monitor }: { monitor: UptimeMonitor }) {
             <div className="mt-2 space-y-1.5 border-t border-white/[0.08] pt-2">
               {selectedDay.events.slice(0, 3).map((event) => (
                 <div key={event.id} className="min-w-0">
-                  <div className="truncate text-[10.5px] text-zinc-300">{event.name}</div>
-                  <div className="text-[9.5px] text-zinc-500">
+                  <div className="truncate text-[11px] text-zinc-300">{event.name}</div>
+                  <div className="text-[11px] text-zinc-500">
                     {timeLabel(event.from)}–{timeLabel(event.to)} · {formatDuration(event.seconds)}
                   </div>
                 </div>
               ))}
               {selectedDay.events.length > 3 && (
-                <div className="text-[9.5px] text-zinc-500">
+                <div className="text-[11px] text-zinc-500">
                   +{selectedDay.events.length - 3} more
                 </div>
               )}
@@ -306,7 +306,7 @@ function StatusTimeline({ monitor }: { monitor: UptimeMonitor }) {
           )}
 
           {pinned && (
-            <div className="mt-2 border-t border-white/[0.08] pt-1.5 text-[9px] text-zinc-500">
+            <div className="mt-2 border-t border-white/[0.08] pt-1.5 text-[11px] text-zinc-500">
               Click the day again to unpin
             </div>
           )}
@@ -359,14 +359,14 @@ export function UptimeMonitor() {
             <h3 id="uptime-heading" className="text-xs font-semibold text-zinc-100">
               Uptime monitor
             </h3>
-            <p className="text-[10px] text-zinc-500">
+            <p className="text-[11px] text-zinc-500">
               Live checks from UptimeRobot · {data?.days ?? 45} days
             </p>
           </div>
         </div>
 
         {status === "ready" && configured && data?.updatedAt && (
-          <span className="inline-flex items-center gap-1 text-[9.5px] text-zinc-500">
+          <span className="inline-flex items-center gap-1 text-[11px] text-zinc-500">
             <ShieldCheck aria-hidden="true" className="h-3 w-3 text-emerald-400/80" />
             {monitors.length} {monitors.length === 1 ? "monitor" : "monitors"}
           </span>
@@ -385,7 +385,7 @@ export function UptimeMonitor() {
           <button
             type="button"
             onClick={reload}
-            className="inline-flex h-6 cursor-pointer items-center gap-1 rounded-full border border-amber-400/30 px-2 text-[10px] font-medium text-amber-200 transition-colors hover:bg-amber-400/10"
+            className="inline-flex h-6 cursor-pointer items-center gap-1 rounded-full border border-amber-400/30 px-2 text-[11px] font-medium text-amber-200 transition-colors hover:bg-amber-400/10"
           >
             <RefreshCw aria-hidden="true" className="h-3 w-3" />
             Try again
@@ -396,9 +396,9 @@ export function UptimeMonitor() {
       {status === "ready" && !configured && (
         <div className="flex flex-col gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 py-2.5 sm:flex-row sm:items-center">
           <Link2 aria-hidden="true" className="h-4 w-4 shrink-0 text-zinc-400" />
-          <p className="min-w-0 flex-1 text-[10.5px] leading-relaxed text-zinc-400">
+          <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-zinc-400">
             UptimeRobot is not connected yet. Add a read-only API key as{" "}
-            <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[10px] text-zinc-300">
+            <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[11px] text-zinc-300">
               UPTIMEROBOT_API_KEY
             </code>{" "}
             to the deployment to show live checks here.
@@ -407,7 +407,7 @@ export function UptimeMonitor() {
             href={INTEGRATIONS_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-6 shrink-0 items-center gap-1 self-start rounded-full border border-white/15 px-2.5 text-[10px] font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] sm:self-auto"
+            className="inline-flex h-6 shrink-0 items-center gap-1 self-start rounded-full border border-white/15 px-2.5 text-[11px] font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] sm:self-auto"
           >
             Integrations
             <ExternalLink aria-hidden="true" className="h-2.5 w-2.5" />
@@ -434,16 +434,16 @@ export function UptimeMonitor() {
                     className="h-1.5 w-1.5 shrink-0 rounded-full"
                     style={{ backgroundColor: meta.dot }}
                   />
-                  <span className="truncate text-[11.5px] font-medium text-zinc-200">
+                  <span className="truncate text-xs font-medium text-zinc-200">
                     {monitor.name}
                   </span>
-                  <span className={`shrink-0 text-[10px] ${meta.text}`}>{meta.label}</span>
+                  <span className={`shrink-0 text-[11px] ${meta.text}`}>{meta.label}</span>
                 </div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className={`font-mono text-[12px] tabular-nums ${uptimeTone(monitor.uptime)}`}>
+                  <span className={`font-mono text-xs tabular-nums ${uptimeTone(monitor.uptime)}`}>
                     {uptimeLabel(monitor.uptime)}
                   </span>
-                  <span className="text-[9.5px] uppercase tracking-[0.12em] text-zinc-500">
+                  <span className="text-[11px] uppercase tracking-[0.12em] text-zinc-500">
                     45d
                   </span>
                 </div>

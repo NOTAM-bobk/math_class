@@ -160,7 +160,7 @@ export function GameCoverArt({
           loading={eager ? "eager" : "lazy"}
           decoding="async"
           onError={() => setCoverFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="game-card-cover absolute inset-0 h-full w-full object-cover"
         />
       ) : showShot ? (
         <img
@@ -169,7 +169,7 @@ export function GameCoverArt({
           loading={eager ? "eager" : "lazy"}
           decoding="async"
           onError={() => setShotIndex((index) => index + 1)}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="game-card-cover absolute inset-0 h-full w-full object-cover"
         />
       ) : showArt ? (
         <img
@@ -178,7 +178,7 @@ export function GameCoverArt({
           loading={eager ? "eager" : "lazy"}
           decoding="async"
           onError={() => setArtFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="game-card-cover absolute inset-0 h-full w-full object-cover"
         />
       ) : (
         <>
@@ -200,13 +200,13 @@ export function GameCoverArt({
                 loading={eager ? "eager" : "lazy"}
                 decoding="async"
                 onError={() => setIconFailed(true)}
-                className={`object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110 ${
+                className={`game-card-cover-soft object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] ${
                   compact ? "h-5 w-5 rounded" : "h-12 w-12 rounded-xl"
                 }`}
               />
             ) : (
               <span
-                className={`select-none font-black tracking-tight text-white/90 drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-105 ${
+                className={`game-card-cover-soft select-none font-black tracking-tight text-white/90 drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)] ${
                   compact ? "text-[13px]" : "text-4xl"
                 }`}
               >

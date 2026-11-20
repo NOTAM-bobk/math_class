@@ -52,6 +52,7 @@ import { loadSiteMeta, type SiteMeta } from "./lib/siteMeta";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
 import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
+import { loadStreak, recordVisit, subscribeStreak, type StreakData } from "./lib/streak";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
 import { hasPassedBotChallenge, startStartupBotCheck } from "./lib/botDetection";
 import { loadCatalog } from "./lib/catalog";
@@ -155,6 +156,9 @@ export function App() {
     return typeof performance !== "undefined" && performance.now() > 250;
   });
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+  // The flame opens Settings straight on the streak pane; the gear opens General.
+  const [settingsSection, setSettingsSection] = React.useState<"streak" | null>(null);
+  const [streak, setStreak] = React.useState<StreakData>(loadStreak);
   const [adsNudgeOpen, setAdsNudgeOpen] = React.useState(false);
   const visitCountedRef = React.useRef(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(bugReportOpenFromUrl);
@@ -279,6 +283,23 @@ export function App() {
     } catch {
       // The visit prompt is optional when browser storage is unavailable.
     }
+  }, []);
+
+  // One streak day per local calendar day: a fresh load counts, and so does
+  // coming back to a tab that was left open across midnight.
+  React.useEffect(() => {
+    setStreak(recordVisit());
+    const stopListening = subscribeStreak(setStreak);
+    const sync = () => {
+      if (document.visibilityState === "visible") setStreak(recordVisit());
+    };
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      stopListening();
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("focus", sync);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -701,12 +722,37 @@ export function App() {
             </div>
 
             <div className="relative z-10 order-2 ml-auto flex shrink-0 items-center gap-1 sm:order-4 sm:gap-2">
+              {streak.current > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSettingsSection("streak");
+                    setSettingsOpen(true);
+                  }}
+                  title={`${streak.current}-day streak — keep it going`}
+                  aria-label={`${streak.current}-day streak. Open streak settings.`}
+                  aria-haspopup="dialog"
+                  style={ICON_BUTTON_STYLE}
+                  className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full px-2 text-amber-300 transition-colors hover:bg-white/[0.12] hover:text-amber-200 active:scale-[0.98]"
+                >
+                  <Flame
+                    aria-hidden="true"
+                    className="h-4 w-4 fill-amber-400/25 drop-shadow-[0_0_5px_rgba(251,191,36,0.35)]"
+                  />
+                  <span className="font-mono text-xs font-semibold tabular-nums text-zinc-100">
+                    {streak.current}
+                  </span>
+                </button>
+              )}
               <ShareButton />
               <RandomGameButton />
               <button
                 type="button"
                 data-tour-target="settings"
-                onClick={() => setSettingsOpen(true)}
+                onClick={() => {
+                  setSettingsSection(null);
+                  setSettingsOpen(true);
+                }}
                 title="Settings & Site Lock"
                 aria-label="Settings"
                 aria-haspopup="dialog"
@@ -937,6 +983,7 @@ export function App() {
         <React.Suspense fallback={null}>
       <SettingsModal
         isOpen={settingsOpen}
+        initialSection={settingsSection}
         loadingRevealEnabled={loadingRevealEnabled}
         onLoadingRevealChange={(enabled) => {
           try {

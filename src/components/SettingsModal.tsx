@@ -1,5 +1,5 @@
 import * as React from "react";
-import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink } from "lucide-react";
+import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink } from "lucide-react";
 import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
@@ -67,6 +67,7 @@ import {
   type GameCardLayout,
 } from "@/lib/gameCardLayout";
 import { hardResetSite } from "@/lib/hardReset";
+import { dayKey, loadStreak, recordVisit, subscribeStreak, type StreakData } from "@/lib/streak";
 import type { SiteMeta } from "@/lib/siteMeta";
 
 interface SettingsModalProps {
@@ -88,6 +89,8 @@ interface SettingsModalProps {
   onLoadingRevealChange?: (enabled: boolean) => void;
   footerHidden?: boolean;
   onFooterHiddenChange?: (hidden: boolean) => void;
+  /** Opens the dialog straight to a pane, e.g. from the top-bar streak chip. */
+  initialSection?: DesktopTab | null;
 }
 
 const PANIC_PRESETS = [
@@ -151,7 +154,7 @@ function testMirrorFrame(
   });
 }
 
-type DesktopTab = "account" | "general" | "stats" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "offline" | "proxies" | "changelog" | "admin";
+type DesktopTab = "account" | "general" | "stats" | "streak" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "offline" | "proxies" | "changelog" | "admin";
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
   { heading: "Account", items: [
@@ -160,6 +163,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
   { heading: "General", items: [
     { id: "general", label: "Layout & startup", icon: LayoutGrid, keywords: "loading animation side chat visitor counter ad space layout startup" },
     { id: "stats", label: "Your stats", icon: BarChart3, keywords: "play time clicks most played games stats" },
+    { id: "streak", label: "Daily streak", icon: Flame, keywords: "streak fire flame daily visit days login keep going record" },
     { id: "security", label: "Site lock", icon: Lock, keywords: "password lock security site" },
     { id: "notifications", label: "Notifications", icon: Bell, keywords: "notifications new games chat alerts" },
   ] },
@@ -243,8 +247,11 @@ export function SettingsModal({
     0
   );
   React.useEffect(() => {
-    if (isOpen) setMobileSection(null);
-  }, [isOpen]);
+    if (!isOpen) return;
+    // A requested pane (the streak chip) wins; otherwise start at General.
+    setDesktopTab(initialSection ?? "general");
+    setMobileSection(initialSection ?? null);
+  }, [isOpen, initialSection]);
 
   // Referral cards come from referrals.json; load them the first time the dialog
   // opens instead of on every page load.
@@ -376,6 +383,32 @@ export function SettingsModal({
     setStatsEnabled(isPlayStatsEnabled());
     return subscribePlayStats(setPlayStats);
   }, [isOpen]);
+
+  // Daily streak, refreshed every time the dialog opens.
+  const [streak, setStreak] = React.useState<StreakData>(loadStreak);
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setStreak(recordVisit());
+    return subscribeStreak(setStreak);
+  }, [isOpen]);
+
+  const streakDays = React.useMemo(() => {
+    const visited = new Set(streak.history);
+    const days: { key: string; label: string; visited: boolean; today: boolean }[] = [];
+    const now = new Date();
+    for (let offset = 29; offset >= 0; offset -= 1) {
+      const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset);
+      const key = dayKey(date);
+      days.push({
+        key,
+        label: date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        visited: visited.has(key),
+        today: offset === 0,
+      });
+    }
+    return days;
+  }, [streak]);
+  const streakDaysVisited = streakDays.filter((day) => day.visited).length;
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -1364,6 +1397,111 @@ export function SettingsModal({
             <p className="text-[10px] leading-relaxed text-zinc-500">
               Time counts every second while the hub is open or a game is running, and stops when Always count is off.
               Statistics stay on this device.
+            </p>
+          </div>
+        </section>
+        </div>
+
+        {/* Daily streak */}
+        <div style={paneStyle("streak")}>
+        <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="streak-title">
+          <div className="flex items-start gap-2">
+            <div
+              style={{
+                borderRadius: 36,
+                background: "rgba(251, 191, 36, 0.14)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              }}
+              className="p-1.5 text-amber-300"
+            >
+              <Flame aria-hidden="true" className="h-4 w-4 fill-amber-400/30" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+                <span id="streak-title">Daily streak</span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                  On this device
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400">
+                Every day you open math_games adds one day to your streak
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] p-3">
+            <span className="font-mono text-3xl font-semibold leading-none tabular-nums text-amber-300">
+              {streak.current}
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-zinc-100">
+                {streak.current === 1 ? "day" : "days"} in a row
+              </div>
+              <div className="text-[11px] text-zinc-400">
+                {streak.lastVisit === dayKey()
+                  ? "Today is counted — come back tomorrow to keep it going."
+                  : "Open the site today to add a day."}
+              </div>
+            </div>
+            <Flame
+              aria-hidden="true"
+              className="ml-auto h-7 w-7 shrink-0 fill-amber-400/20 text-amber-300"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl bg-black/30 p-2.5 ring-1 ring-inset ring-white/[0.04]">
+              <div className="flex items-center gap-1 text-[10.5px] font-medium text-zinc-500">
+                <Trophy aria-hidden="true" className="h-3 w-3 text-amber-400" />
+                Longest streak
+              </div>
+              <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
+                {streak.longest.toLocaleString()}
+                <span className="ml-1 text-xs font-normal text-zinc-500">
+                  {streak.longest === 1 ? "day" : "days"}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-black/30 p-2.5 ring-1 ring-inset ring-white/[0.04]">
+              <div className="flex items-center gap-1 text-[10.5px] font-medium text-zinc-500">
+                <CalendarDays aria-hidden="true" className="h-3 w-3 text-sky-400" />
+                Total days
+              </div>
+              <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
+                {streak.totalDays.toLocaleString()}
+                <span className="ml-1 text-xs font-normal text-zinc-500">visited</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-zinc-200">Last 30 days</span>
+              <span className="text-[10.5px] text-zinc-500">{streakDaysVisited} visited</span>
+            </div>
+            <div
+              role="img"
+              aria-label={`${streakDaysVisited} of the last 30 days visited`}
+              className="mt-2 grid grid-cols-10 gap-1"
+            >
+              {streakDays.map((day) => (
+                <span
+                  key={day.key}
+                  aria-hidden="true"
+                  title={`${day.label} — ${day.visited ? "visited" : "missed"}${
+                    day.today ? " (today)" : ""
+                  }`}
+                  className={`h-4 rounded-[4px] ${day.visited ? "bg-amber-400/80" : "bg-white/[0.05]"} ${
+                    day.today ? "ring-1 ring-inset ring-white/70" : ""
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">
+              {streak.lastVisit
+                ? `Last visit ${new Date(`${streak.lastVisit}T00:00:00`).toLocaleDateString()}. `
+                : "No visit recorded yet. "}
+              Streaks stay in this browser; a hard reset clears them.
             </p>
           </div>
         </section>

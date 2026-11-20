@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.7";
+export const SITE_VERSION = "1.6.8";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.8",
+    date: "November 2026",
+    title: "Daily streaks with a flame in the top bar",
+    changes: [
+      "Every day you open math_games adds one day to your streak.",
+      "A flame and your day count now sit in the top bar; tap it to open your streak.",
+      "Settings has a Daily streak page with your best run, total days and a look at the last 30 days.",
+    ],
+  },
   {
     version: "1.6.7",
     date: "November 2026",

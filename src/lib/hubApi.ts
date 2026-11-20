@@ -4,6 +4,31 @@ import { loadBlockedGameIds } from "./blockedGames";
 const HUB_API = "/api/hub";
 const WORKER_ORIGIN = "https://polytrack-hub-api.sawyerbobk563.workers.dev";
 
+// The Worker historically returned a path relative to itself. That path works
+// on the direct Worker mirror, but the main Vercel site exposes the Worker
+// through /api/hub, so a bare /api/chat/images/... URL 404s there. Resolve
+// stored paths to the Worker origin so old and new photo messages work on every
+// supported mirror without changing the database rows.
+function resolveChatImage(image: unknown): string | undefined {
+  if (typeof image !== "string" || !image) return undefined;
+  if (/^https?:\/\//i.test(image)) return image;
+  if (/^\/api\/chat\/images\/[a-zA-Z0-9-]{8,64}$/.test(image)) {
+    return `${WORKER_ORIGIN}${image}`;
+  }
+  return image;
+}
+
+function normalizeMessage(message: any): HubMessage {
+  const image = resolveChatImage(message?.image);
+  return {
+    id: String(message?.id || ""),
+    createdAt: String(message?.createdAt || ""),
+    author: String(message?.author || "Guest"),
+    text: String(message?.text || ""),
+    ...(image ? { image } : {}),
+  };
+}
+
 // A backend deployed before the "not mobile optimized" tag existed omits it from
 // its responses, so keep the tags already stored on this device instead of
 // wiping them on every read or save.
@@ -70,7 +95,7 @@ export async function loadMessages(limit = 50): Promise<HubMessage[]> {
   const response = await hubRequest(`/messages?limit=${safeLimit}`, { headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error("Message service unavailable");
   const data = await response.json();
-  return Array.isArray(data.messages) ? data.messages : [];
+  return Array.isArray(data.messages) ? data.messages.map(normalizeMessage) : [];
 }
 
 export async function sendMessage(author: string, text: string, image?: string): Promise<HubMessage> {
@@ -81,7 +106,7 @@ export async function sendMessage(author: string, text: string, image?: string):
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.message) throw new Error(data.error || "Message could not be sent");
-  return data.message;
+  return normalizeMessage(data.message);
 }
 
 /**

@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.6.5";
+export const SITE_VERSION = "1.6.7";
 
 export interface ChangelogEntry {
   version: string;
@@ -12,13 +12,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.6.5",
+    version: "1.6.7",
     date: "November 2026",
     title: "Message reactions and a full-screen phone chat",
     changes: [
       "Tap the smiley under any chat message to drop a quick reaction on it.",
       "Reactions sit under the message as a little arrow and the emoji with a count, and tapping one adds or removes yours.",
       "On phones, opening Chat now hides the search bar so the conversation gets the whole screen.",
+    ],
+  },
+  {
+    version: "1.6.6",
+    date: "November 2026",
+    title: "Ads further down, proxied ad scripts and editable Editor's picks",
+    changes: [
+      "The larger ad unit now appears further down the home game grid instead of above it.",
+      "Opening a category from the side navigation only loads the top banner ad, not the larger unit.",
+      "Ad scripts load through the site's own proxy, so they also appear on networks that block the ad hosts.",
+      "Admins can change which games are Editor's picks, and the choice applies to every device.",
+    ],
+  },
+  {
+    version: "1.6.5",
+    date: "November 2026",
+    title: "Real screenshots for games without cover art",
+    changes: [
+      "Games that ship no cover art now show a live screenshot of their game page.",
+      "Games that already have real cover art keep using it.",
+      "If a screenshot cannot be captured, the genre artwork still fills in.",
     ],
   },
   {

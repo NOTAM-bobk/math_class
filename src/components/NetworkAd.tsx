@@ -40,7 +40,9 @@ function appendBanner(size: PartnerBannerSize, host: HTMLElement): Promise<void>
         // The loader reads the global above and its own script element, so keep
         // this request in order instead of firing it off unsequenced.
         script.async = false;
-        script.src = `https://bauval.org/22/${key}`;
+        // Same-origin path: vercel.json rewrites it to the ad host, so the
+        // loader still arrives on networks that block the ad domain.
+        script.src = `/api/proxy/ads/bauval/22/${key}`;
         script.onload = () => resolve();
         script.onerror = () => resolve();
         host.appendChild(script);
@@ -99,7 +101,7 @@ export function PartnerNativeAd({ className = "" }: { className?: string }) {
     const script = document.createElement("script");
     script.async = true;
     script.dataset.cfasync = "false";
-    script.src = `https://bauval.org/21/${NATIVE_KEY}`;
+    script.src = `/api/proxy/ads/bauval/21/${NATIVE_KEY}`;
     host.appendChild(script);
   }, []);
 

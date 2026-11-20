@@ -22,6 +22,8 @@ import {
   Send,
   Gamepad2,
   Heart,
+  Globe,
+  MonitorSmartphone,
 } from "lucide-react";
 import type { GameItem } from "@/data/gameItem";
 import { loadCatalog } from "@/lib/catalog";
@@ -55,7 +57,36 @@ interface BugReport {
   game_url: string;
   page_url: string;
   browser_info: string;
+  ip: string;
   status: string;
+}
+
+// The backend replies in camelCase while this panel renders the stored column
+// names, so read either shape once here instead of losing the game and the date.
+function normalizeBugRecord(record: any): BugReport {
+  return {
+    id: Number(record?.id),
+    created_at: String(record?.created_at ?? record?.createdAt ?? ""),
+    title: String(record?.title || ""),
+    description: String(record?.description || ""),
+    game_url: String(record?.game_url ?? record?.gameUrl ?? ""),
+    page_url: String(record?.page_url ?? record?.pageUrl ?? ""),
+    browser_info: String(record?.browser_info ?? record?.browserInfo ?? ""),
+    ip: String(record?.ip ?? ""),
+    status: String(record?.status || "open"),
+  };
+}
+
+function formatBugDate(value: string): string {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.getTime())) return "Unknown date";
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 interface GameSubmission {
@@ -297,9 +328,11 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
         return false;
       }
 
-      const rawBugs = Array.isArray(data.bugs) ? data.bugs : (Array.isArray(data.items) ? data.items : []);
+      const rawBugs = (Array.isArray(data.bugs) ? data.bugs : (Array.isArray(data.items) ? data.items : [])).map(
+        normalizeBugRecord
+      );
       const userBugs = rawBugs.filter(
-        (b: any) => b.title !== "__POLYTRACK_GAME_FLAGS__" && !isSubmissionRecord(b)
+        (b: BugReport) => b.title !== "__POLYTRACK_GAME_FLAGS__" && !isSubmissionRecord(b)
       );
       setBugs(userBugs);
       setSubmissions(rawBugs.filter(isSubmissionRecord).map(parseSubmission));
@@ -2090,16 +2123,33 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                             {bug.description}
                           </p>
 
-                          <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-white/[0.04]">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-zinc-600" />
-                              {new Date(bug.created_at).toLocaleString()}
-                            </span>
-                            {bug.browser_info && (
-                              <span className="truncate max-w-[220px]" title={bug.browser_info}>
-                                {bug.browser_info}
+                          <div className="flex flex-col gap-1 text-[10px] text-zinc-500 pt-1 border-t border-white/[0.04]">
+                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3 shrink-0 text-zinc-600" />
+                                {formatBugDate(bug.created_at)}
                               </span>
-                            )}
+                              {bug.browser_info && (
+                                <span
+                                  className="flex items-center gap-1 truncate max-w-[240px]"
+                                  title={bug.browser_info}
+                                >
+                                  <MonitorSmartphone className="w-3 h-3 shrink-0 text-zinc-600" />
+                                  {bug.browser_info}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                              <span className="flex items-center gap-1 font-mono" title="IP address">
+                                <Globe className="w-3 h-3 shrink-0 text-zinc-600" />
+                                {bug.ip || "IP not recorded"}
+                              </span>
+                              {bug.page_url && (
+                                <span className="truncate max-w-[240px] font-mono" title={bug.page_url}>
+                                  {bug.page_url}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );

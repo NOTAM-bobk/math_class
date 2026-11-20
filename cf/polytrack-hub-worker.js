@@ -90,7 +90,7 @@ function schema(e) {
         "CREATE TABLE IF NOT EXISTS game_clicks(game_id TEXT PRIMARY KEY,game_name TEXT NOT NULL,game_url TEXT NOT NULL DEFAULT '',clicks INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL)"
       ),
       e.DB.prepare(
-        "CREATE TABLE IF NOT EXISTS bug_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,created_at TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',description TEXT NOT NULL,game_url TEXT NOT NULL DEFAULT '',page_url TEXT NOT NULL DEFAULT '',browser_info TEXT NOT NULL DEFAULT '',ip_hash TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'open')"
+        "CREATE TABLE IF NOT EXISTS bug_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,created_at TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',description TEXT NOT NULL,game_url TEXT NOT NULL DEFAULT '',page_url TEXT NOT NULL DEFAULT '',browser_info TEXT NOT NULL DEFAULT '',ip_hash TEXT NOT NULL DEFAULT '',ip TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'open')"
       ),
       e.DB.prepare(
         "CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY,count INTEGER NOT NULL DEFAULT 1,first_seen INTEGER NOT NULL,last_seen INTEGER NOT NULL)"
@@ -107,6 +107,11 @@ function schema(e) {
       .then(async () => {
         try {
           await e.DB.prepare("ALTER TABLE game_flags ADD COLUMN not_mobile INTEGER NOT NULL DEFAULT 0").run();
+        } catch {}
+        // Reports used to keep only a hash of the address, so add the column the
+        // admin panel reads once instead of failing every report read.
+        try {
+          await e.DB.prepare("ALTER TABLE bug_reports ADD COLUMN ip TEXT NOT NULL DEFAULT ''").run();
         } catch {}
       })
       .catch((x) => {
@@ -364,10 +369,11 @@ async function bugs(r, e) {
   const browserInfo = clean(b?.browserInfo || b?.browser_info, 300);
 
   const createdAt = new Date().toISOString();
+  const ipAddress = clean(clientIp, 100, "unknown");
   const q = await e.DB.prepare(
-    "INSERT INTO bug_reports (created_at, title, description, game_url, page_url, browser_info, ip_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'open')"
+    "INSERT INTO bug_reports (created_at, title, description, game_url, page_url, browser_info, ip_hash, ip, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open')"
   )
-    .bind(createdAt, title, description, gameUrl, pageUrl, browserInfo, ipHash)
+    .bind(createdAt, title, description, gameUrl, pageUrl, browserInfo, ipHash, ipAddress)
     .run();
 
   return json(
@@ -426,7 +432,7 @@ async function adminBugs(r, e) {
 
   // Fetch bugs
   const q = await e.DB.prepare(
-    "SELECT id, created_at, title, description, game_url, page_url, browser_info, status FROM bug_reports ORDER BY id DESC LIMIT 200"
+    "SELECT id, created_at, title, description, game_url, page_url, browser_info, ip, status FROM bug_reports ORDER BY id DESC LIMIT 200"
   ).all();
   const t = await e.DB.prepare("SELECT COUNT(*) as total FROM bug_reports").first();
 
@@ -441,6 +447,7 @@ async function adminBugs(r, e) {
       gameUrl: x.game_url,
       pageUrl: x.page_url,
       browserInfo: x.browser_info,
+      ip: x.ip || "",
       status: x.status,
     })),
   });

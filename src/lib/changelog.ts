@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.1";
+export const SITE_VERSION = "1.7.2";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.2",
+    date: "November 2026",
+    title: "Manual update checker and instant update controls",
+    changes: [
+      "Added a 'Check for updates' button in Settings to check for new releases and engine builds on demand.",
+      "Displays real-time update status with an 'Update now' button as soon as an update is detected.",
+      "Safely applies the newest release without clearing game progress, high scores, or custom tracks.",
+    ],
+  },
   {
     version: "1.7.1",
     date: "November 2026",

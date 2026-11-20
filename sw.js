@@ -20,7 +20,7 @@ try {
 // Offline copy
 // ---------------------------------------------------------------------------
 
-const OFFLINE_CACHE = "polytrack-offline-v1.5.0";
+const OFFLINE_CACHE = "polytrack-offline-v1";
 const OFFLINE_META_CACHE = "polytrack-offline-meta-v1";
 // Per-game packs downloaded from Settings live in their own cache so one game
 // can be removed without touching the full offline copy.
@@ -242,7 +242,7 @@ self.addEventListener("fetch", (event) => {
 	const url = new URL(request.url);
 
 	if (url.origin === self.location.origin) {
-		if (url.pathname === "/sw.js" || url.pathname === OFFLINE_MANIFEST_URL) return;
+		if (url.pathname === "/sw.js" || url.pathname === OFFLINE_MANIFEST_URL || url.pathname === "/version.json") return;
 		if (url.pathname.startsWith("/api/")) return;
 		// A per-game pack fetch is stored by the page in its own cache; caching
 		// it here too would keep it after the pack is removed.
@@ -264,5 +264,7 @@ self.addEventListener("message", (event) => {
 
 	if (data.type === "OFFLINE_CONFIG") {
 		event.waitUntil(saveConfig(data.config));
+	} else if (data.type === "SKIP_WAITING") {
+		self.skipWaiting();
 	}
 });

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-20T01:51:35.659Z",
-  "totalBytes": 346912256,
+  "generatedAt": "2026-11-20T01:54:32.370Z",
+  "totalBytes": 346912243,
   "files": [
     {
       "url": "/index.html",
@@ -32,16 +32,16 @@
       "bytes": 14051
     },
     {
-      "url": "/dist/chunks/SettingsModal-DUD5PU5G.js",
-      "bytes": 94340
+      "url": "/dist/chunks/SettingsModal-QZUXRZBC.js",
+      "bytes": 94327
+    },
+    {
+      "url": "/dist/chunks/chunk-57VJXF2M.js",
+      "bytes": 25475
     },
     {
       "url": "/dist/chunks/chunk-GUNXYQCP.js",
       "bytes": 23838
-    },
-    {
-      "url": "/dist/chunks/chunk-IFRHMW4U.js",
-      "bytes": 25475
     },
     {
       "url": "/dist/chunks/chunk-OWHWZMXH.js",

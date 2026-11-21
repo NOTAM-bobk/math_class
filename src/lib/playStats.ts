@@ -181,18 +181,42 @@ export function subscribePlayStats(listener: (stats: PlayStats) => void): () => 
   };
 }
 
+export interface TickInput {
+  elapsedMs: number;
+  enabled: boolean;
+  visible: boolean;
+  hasSession: boolean;
+}
+
+/**
+ * Whether a tick's elapsed time belongs to the totals: the hub counts while it
+ * is on screen, a game counts while its session is open, sleep and frozen tabs
+ * never count, and the always-count switch stops everything.
+ */
+export function shouldCountTick({ elapsedMs, enabled, visible, hasSession }: TickInput): boolean {
+  if (!(elapsedMs > 0) || elapsedMs > MAX_TICK_MS) return false;
+  if (!enabled) return false;
+  return visible || hasSession;
+}
+
 /** Counts the time since the last tick, to the millisecond, when it should count. */
 function tick() {
   const now = Date.now();
   const elapsed = now - lastTickAt;
   lastTickAt = now;
-  if (elapsed <= 0 || elapsed > MAX_TICK_MS) return;
-  if (!isPlayStatsEnabled()) return;
 
   const session = readSession();
   const visible = typeof document === "undefined" || document.visibilityState === "visible";
-  // The hub counts while it is on screen; a game counts while its session is open.
-  if (!visible && !session) return;
+  if (
+    !shouldCountTick({
+      elapsedMs: elapsed,
+      enabled: isPlayStatsEnabled(),
+      visible,
+      hasSession: !!session,
+    })
+  ) {
+    return;
+  }
 
   const stats = currentStats();
   stats.totalPlayMs += elapsed;

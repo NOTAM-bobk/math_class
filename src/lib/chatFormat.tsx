@@ -6,8 +6,14 @@ import * as React from "react";
 const LINK_CLASS =
   "break-all font-medium underline decoration-current/40 underline-offset-2 transition-opacity hover:opacity-80";
 
+// A module-wide regex with the `g` flag cannot be shared with the recursive
+// calls below: a nested call resets `lastIndex`, so the outer loop would match
+// its first token again and never finish. Each call builds its own matcher.
+// The bold group accepts a single `*` inside as long as it does not start a
+// closing `**`, so `**bold and *italic***` nests instead of rendering a stray
+// star. The optional trailing `*` lets the inner italic keep its closer.
 const TOKEN_PATTERN =
-  /\*\*([^*\n]+)\*\*|~~([^~\n]+)~~|`([^`\n]+)`|\*(?!\s)([^*\n]+?)\*|\[([^\]\n]+)\]\(((?:https?:\/\/|\/)[^)\s]+)\)|(https?:\/\/[^\s<>"'`]+)/g;
+  /\*\*((?:[^*\n]|\*(?!\*))+?\*?)\*\*|~~([^~\n]+)~~|`([^`\n]+)`|\*(?!\s)([^*\n]+?)\*|\[([^\]\n]+)\]\(((?:https?:\/\/|\/)[^)\s]+)\)|(https?:\/\/[^\s<>"'`]+)/;
 
 const TRAILING_PUNCTUATION = /[.,!?;:]+$/;
 
@@ -35,10 +41,10 @@ export function formatChatText(text: string): React.ReactNode {
   const nodes: React.ReactNode[] = [];
   let lastIndex = 0;
   let tokenIndex = 0;
-  TOKEN_PATTERN.lastIndex = 0;
+  const pattern = new RegExp(TOKEN_PATTERN, "g");
 
   let match: RegExpExecArray | null;
-  while ((match = TOKEN_PATTERN.exec(text))) {
+  while ((match = pattern.exec(text))) {
     if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
     const key = `fmt-${tokenIndex++}`;
 

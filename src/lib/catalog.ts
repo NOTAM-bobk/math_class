@@ -12,19 +12,30 @@ const CACHE_KEY = "polytrack_catalog_cache";
 
 let catalogPromise: Promise<GameItem[]> | null = null;
 
+function isGameItem(value: unknown): value is GameItem {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    typeof (value as { id?: unknown }).id === "string"
+  );
+}
+
+/** A catalogue payload is only usable when every entry is a game with an id. */
+export function isGameList(value: unknown): value is GameItem[] {
+  return Array.isArray(value) && value.every(isGameItem);
+}
+
 function readCachedCatalog(): GameItem[] {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as GameItem[]) : [];
+    // The cache is written by older builds and can be edited by hand, so it is
+    // filtered instead of trusted: a stray entry must not reach the catalog.
+    return Array.isArray(parsed) ? parsed.filter(isGameItem) : [];
   } catch {
     return [];
   }
-}
-
-function isGameList(value: unknown): value is GameItem[] {
-  return Array.isArray(value) && value.every((item) => !!item && typeof item.id === "string");
 }
 
 /** Loads the catalog once per page; later callers share the same promise. */

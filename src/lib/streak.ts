@@ -37,7 +37,7 @@ export function dayKey(date: Date = new Date()): string {
 }
 
 /** Days since the epoch, or null for an unparseable / impossible date. */
-function dayNumber(key: string | null): number | null {
+export function dayNumber(key: string | null): number | null {
   if (!key) return null;
   const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
   if (!parts) return null;
@@ -61,7 +61,7 @@ function safeCount(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
 }
 
-function sanitize(value: unknown): StreakData {
+export function sanitizeStreak(value: unknown): StreakData {
   if (!value || typeof value !== "object") return { ...EMPTY_STREAK, history: [] };
   const data = value as Partial<StreakData>;
   const history = Array.isArray(data.history)
@@ -93,7 +93,7 @@ function read(): StreakData {
   if (cache) return cache;
   try {
     const raw = localStorage.getItem(STREAK_KEY);
-    cache = raw ? sanitize(JSON.parse(raw)) : { ...EMPTY_STREAK, history: [] };
+    cache = raw ? sanitizeStreak(JSON.parse(raw)) : { ...EMPTY_STREAK, history: [] };
   } catch {
     // Private mode can block storage; the streak still works for this visit.
     cache = { ...EMPTY_STREAK, history: [] };
@@ -119,12 +119,11 @@ export function loadStreak(): StreakData {
 }
 
 /**
- * Counts today for the streak and returns the updated data. Safe to call on
- * every mount or tab focus: the same local day never counts twice, and a clock
- * that moved backwards leaves the saved run alone instead of wiping it.
+ * The streak after a visit at `now`. Returns `previous` itself when this local
+ * day was already counted: the same day never counts twice, and a clock that
+ * moved backwards leaves the saved run alone instead of wiping it.
  */
-export function recordVisit(now: Date = new Date()): StreakData {
-  const previous = read();
+export function computeVisit(previous: StreakData, now: Date = new Date()): StreakData {
   const today = dayKey(now);
   if (previous.lastVisit === today) return previous;
 
@@ -138,14 +137,23 @@ export function recordVisit(now: Date = new Date()): StreakData {
   const history = [...previous.history.filter((day) => day !== today), today].slice(
     -HISTORY_LIMIT
   );
-  const next: StreakData = {
+  return {
     current,
     longest: Math.max(previous.longest, current),
     totalDays: previous.totalDays + 1,
     lastVisit: today,
     history,
   };
-  write(next);
+}
+
+/**
+ * Counts today for the streak and returns the updated data. Safe to call on
+ * every mount or tab focus.
+ */
+export function recordVisit(now: Date = new Date()): StreakData {
+  const previous = read();
+  const next = computeVisit(previous, now);
+  if (next !== previous) write(next);
   return next;
 }
 

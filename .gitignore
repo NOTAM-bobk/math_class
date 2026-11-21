@@ -1,4 +1,6 @@
 node_modules/
+# Compiled output of scripts/run-tests.mjs.
+.test-build/
 # Scanner output; the generated list that ships is src/lib/autoHiddenGames.ts.
 scripts/.game-check-progress.jsonl
 scripts/game-check-report.json

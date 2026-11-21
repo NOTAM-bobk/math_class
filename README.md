@@ -4,7 +4,7 @@ A classroom-friendly browser game hub: hundreds of games in one place, plus Poly
 build archives, favourites, play stats, offline play and the settings a shared computer
 needs (site lock, panic redirect, tab disguise).
 
-**Current version: v1.7.4** — see [`src/lib/changelog.ts`](src/lib/changelog.ts).
+**Current version: v1.7.5** — see [`src/lib/changelog.ts`](src/lib/changelog.ts).
 
 ## Live mirrors
 
@@ -94,7 +94,7 @@ environment settings; never commit them.
 | `npm run build:css` | Tailwind only, into `dist/styles.css`. |
 | `npm run build:catalog` | Regenerates the catalog export in `api/`. |
 | `npm run build:offline-manifest` | Regenerates `offline-manifest.json`. |
-| `npm test` | Placeholder; there is no automated test suite yet. |
+| `npm test` | Bundles every `*.test.ts` under `src/` and `test/` with esbuild, then runs them with Node's built-in test runner (`scripts/run-tests.mjs`). |
 
 The hub is a React app (`src/`) bundled by esbuild into `dist/home.bundle.js`, which
 `index.html` loads (with the root `home.bundle.js` as a fallback). There is no framework

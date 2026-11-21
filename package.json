@@ -9,7 +9,7 @@
     "build:covers": "node scripts/build-game-covers.mjs",
     "build:offline-manifest": "node scripts/export-offline-manifest.mjs",
     "build:packs": "node scripts/export-offline-packs.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node scripts/run-tests.mjs"
   },
   "dependencies": {
     "@fingerprintjs/botd": "^2.0.0",

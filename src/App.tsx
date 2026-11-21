@@ -245,6 +245,20 @@ export function App() {
     // there and stays an icon strip on narrower screens.
     return typeof window !== "undefined" && window.matchMedia("(min-width: 1280px)").matches;
   });
+  // A window widened past 1280px gets the labels too, unless the visitor has
+  // already collapsed the rail themselves (that choice is persisted).
+  React.useEffect(() => {
+    const wide = window.matchMedia("(min-width: 1280px)");
+    const onChange = () => {
+      let saved: string | null = null;
+      try {
+        saved = localStorage.getItem("polytrack_side_nav_expanded");
+      } catch {}
+      if (saved === null && wide.matches) setSideNavExpanded(true);
+    };
+    wide.addEventListener("change", onChange);
+    return () => wide.removeEventListener("change", onChange);
+  }, []);
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   // The header keeps four actions; everything else lives behind this menu.
   const [headerMenuOpen, setHeaderMenuOpen] = React.useState(false);

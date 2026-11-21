@@ -1277,7 +1277,7 @@ function BlockedCheckRow({
       target="_blank"
       rel="noopener noreferrer"
       onClick={(event) => onPlay(game, event)}
-      className="group flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2 transition hover:border-white/[0.16] hover:bg-white/[0.07]"
+      className="group flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 transition hover:border-white/[0.16] hover:bg-white/[0.07]"
     >
       <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
         <GameCoverArt game={game} accent={gameAccent(game)} compact />
@@ -2587,7 +2587,7 @@ export function GameCatalog({
                         />
                         <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#1a1a1a]/40 to-[#1a1a1a]" />
                       </div>
-                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-3 sm:p-4">
+                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-4">
                         <div className="min-w-0 max-w-[62%]">
                           <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />

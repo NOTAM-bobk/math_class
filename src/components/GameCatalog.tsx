@@ -44,7 +44,7 @@ const CATEGORY_PARAM = "c";
 const CATALOG_SCROLL_KEY = "polytrack_catalog_scroll_top";
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -71,7 +71,7 @@ export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
   { id: "recent", label: "Recently played" },
   { id: "favorites", label: "Favorites" },
-  { id: "editors", label: "Editor’s picks" },
+  { id: "editors", label: "Editor's picks" },
   { id: "verified", label: "Verified" },
   { id: "hidden", label: "Hidden" },
   { id: "trending", label: "Trending" },
@@ -142,7 +142,7 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
 
 // Covers are all the same 16:10 size; the two layouts only differ in density.
 const MOSAIC_GRID_CLASS =
-  "grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 xl:grid-cols-4";
+  "grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4";
 const CLASSIC_GRID_CLASS = "grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3";
 
 // Every card is painted and labelled with the game's first matching genre.
@@ -182,7 +182,7 @@ function TopTenChart({
   onLaunch: (game: GameItem, event: React.MouseEvent) => void;
 }) {
   return (
-    <section aria-labelledby="top-ten-heading" className="flex flex-col gap-2.5">
+    <section aria-labelledby="top-ten-heading" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <h3
           id="top-ten-heading"
@@ -290,7 +290,7 @@ function GameRail({
   const Icon = icon;
 
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+    <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <h3
           id={headingId}
@@ -321,7 +321,7 @@ function GameRail({
           aria-label={`${title} games`}
           tabIndex={0}
           onScroll={updateEdges}
-          className="-mx-1 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [&::-webkit-scrollbar]:hidden"
+          className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [&::-webkit-scrollbar]:hidden"
         >
           {games.map((game) => (
             <div
@@ -373,7 +373,7 @@ const CATEGORY_NAMES: Record<CategoryId, string> = {
   all: "All Games",
   recent: "Recently played",
   favorites: "Favorites",
-  editors: "Editor’s picks",
+  editors: "Editor's picks",
   verified: "Verified",
   hidden: "Hidden games",
   trending: "Trending",
@@ -399,7 +399,7 @@ type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 const DEFAULT_SORT: SortOption = "popular";
 
 const TAG_FILTERS = [
-  { id: "editors", icon: Star, label: "Editor’s Pick" },
+  { id: "editors", icon: Star, label: "Editor's picks" },
   { id: "verified", icon: BadgeCheck, label: "Verified" },
   { id: "hidden", icon: EyeOff, label: "Hidden" },
   { id: "buggy", icon: Bug, label: "Error: bug" },
@@ -838,16 +838,14 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
     <div
       aria-label="Advertisement"
       style={{
-        borderRadius: 14,
+        borderRadius: 12,
         background: "rgba(255, 255, 255, 0.015)",
         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
       }}
       className={`catalog-native-ad col-span-full mx-auto w-full max-w-sm flex-col gap-1 px-2.5 py-1.5 ${hidden ? "hidden" : "flex"}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-          Ad
-        </span>
+        <span className="text-[11px] font-medium text-zinc-400">Ad</span>
         <a
           href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
           className="text-[11px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
@@ -1067,7 +1065,7 @@ function BlockedCheckRow({
       target="_blank"
       rel="noopener noreferrer"
       onClick={(event) => onPlay(game, event)}
-      className="group flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2 transition hover:border-white/[0.16] hover:bg-white/[0.07]"
+      className="group flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 transition hover:border-white/[0.16] hover:bg-white/[0.07]"
     >
       <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
         <GameCoverArt game={game} accent={gameAccent(game)} compact />
@@ -1981,6 +1979,11 @@ export function GameCatalog({
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [heroPaused, setHeroPaused] = React.useState(false);
   const [heroCycle, setHeroCycle] = React.useState(0);
+  const heroTouchStart = React.useRef<{ x: number; y: number; time: number } | null>(null);
+  const heroTouchDelta = React.useRef({ dx: 0, dy: 0 });
+  // A swipe still ends in a click on the card underneath it. Swallow that one
+  // click so flicking between cards never launches a game by accident.
+  const heroIgnoreClickUntil = React.useRef(0);
 
   React.useEffect(() => {
     setHeroIndex(0);
@@ -2001,6 +2004,62 @@ export function GameCatalog({
     setHeroIndex(index);
     // Restart the timer so a manual pick gets a full turn on screen.
     setHeroCycle((value) => value + 1);
+  };
+
+  const stepHeroGame = (direction: 1 | -1) => {
+    if (heroGames.length < 2) return;
+    selectHeroGame((heroIndex + direction + heroGames.length) % heroGames.length);
+  };
+
+  const commitHeroSwipe = (dx: number, dy: number, elapsed: number) => {
+    if (heroGames.length < 2) return;
+    // Ignore slow drags and mostly-vertical gestures: those are catalog scrolls.
+    if (elapsed > 700) return;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+
+    heroIgnoreClickUntil.current = Date.now() + 350;
+    stepHeroGame(dx < 0 ? 1 : -1);
+  };
+
+  const onHeroTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    // Hold the auto-rotation still while a finger is on the card.
+    setHeroPaused(true);
+    heroTouchStart.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    heroTouchDelta.current = { dx: 0, dy: 0 };
+  };
+
+  const onHeroTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = heroTouchStart.current;
+    const touch = event.touches[0];
+    if (!start || !touch) return;
+    heroTouchDelta.current = {
+      dx: touch.clientX - start.x,
+      dy: touch.clientY - start.y,
+    };
+  };
+
+  const onHeroTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    setHeroPaused(false);
+    const start = heroTouchStart.current;
+    const touch = event.changedTouches[0];
+    heroTouchStart.current = null;
+    heroTouchDelta.current = { dx: 0, dy: 0 };
+    if (!start || !touch) return;
+    commitHeroSwipe(touch.clientX - start.x, touch.clientY - start.y, Date.now() - start.time);
+  };
+
+  // Safari cancels the touch sequence when it hands a gesture to the scroller;
+  // use the last recorded drag so a horizontal flick still changes the card.
+  const onHeroTouchCancel = () => {
+    const start = heroTouchStart.current;
+    const delta = heroTouchDelta.current;
+    heroTouchStart.current = null;
+    heroTouchDelta.current = { dx: 0, dy: 0 };
+    setHeroPaused(false);
+    if (!start) return;
+    commitHeroSwipe(delta.dx, delta.dy, Date.now() - start.time);
   };
 
   const recentGameItems = React.useMemo(() => {
@@ -2207,7 +2266,7 @@ export function GameCatalog({
                           <tag.icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
                           <span>{tag.label}</span>
                           {count > 0 && (
-                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[11px] font-mono text-zinc-400">
+                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[11px] font-mono text-zinc-400">
                               {count}
                             </span>
                           )}
@@ -2261,10 +2320,10 @@ export function GameCatalog({
           boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.3)",
         }}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8">
           {/* The top games carousel scrolls with the catalog, just below the filters. */}
           {!isFiltered && heroGames.length > 0 && (
-            <section aria-labelledby="top-game-heading" className="flex flex-col gap-2">
+            <section aria-labelledby="top-game-heading" className="flex flex-col gap-3">
               <div
                 role="group"
                 aria-roledescription="carousel"
@@ -2272,6 +2331,11 @@ export function GameCatalog({
                 onMouseLeave={() => setHeroPaused(false)}
                 onFocusCapture={() => setHeroPaused(true)}
                 onBlurCapture={() => setHeroPaused(false)}
+                onTouchStart={onHeroTouchStart}
+                onTouchMove={onHeroTouchMove}
+                onTouchEnd={onHeroTouchEnd}
+                onTouchCancel={onHeroTouchCancel}
+                style={{ touchAction: "pan-y" }}
                 className="relative h-[13rem] overflow-hidden rounded-2xl border border-white/[0.07] bg-[#1a1a1a]"
               >
                 {heroGames.map((game, index) => {
@@ -2282,10 +2346,16 @@ export function GameCatalog({
                       href={game.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(event) => launchGame(game, event)}
+                      onClick={(event) => {
+                        if (Date.now() < heroIgnoreClickUntil.current) {
+                          event.preventDefault();
+                          return;
+                        }
+                        launchGame(game, event);
+                      }}
                       aria-hidden={!active}
                       tabIndex={active ? undefined : -1}
-                      className={`group absolute inset-0 transition-[opacity,transform] duration-500 ease-out ${
+                      className={`group absolute inset-0 transition-[opacity,transform] duration-200 ease-out ${
                         active
                           ? "z-10 translate-x-0 opacity-100"
                           : "pointer-events-none z-0 translate-x-3 opacity-0"
@@ -2300,11 +2370,11 @@ export function GameCatalog({
                         />
                         <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#1a1a1a]/40 to-[#1a1a1a]" />
                       </div>
-                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-3 sm:p-4">
+                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-4">
                         <div className="min-w-0 max-w-[62%]">
                           <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />
-                            {isEditorPick(game) ? "Editor’s pick" : "#1 game today"}
+                            {isEditorPick(game) ? "Editor's pick" : "#1 game today"}
                           </span>
                           <h2
                             id={active ? "top-game-heading" : undefined}
@@ -2317,7 +2387,7 @@ export function GameCatalog({
                           </p>
                           {totalPlays(game) > 0 && (
                             <p className="mt-1 text-[11px] font-medium tabular-nums text-zinc-500">
-                              {totalPlays(game).toLocaleString()} plays
+                              {formatPlays(totalPlays(game))} plays
                             </p>
                           )}
                           <span className="mt-1.5 inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-300">
@@ -2351,7 +2421,7 @@ export function GameCatalog({
                       >
                         <span
                           aria-hidden="true"
-                          className={`block rounded-full transition-all duration-300 ${
+                          className={`block rounded-full transition-[width,height,background-color] duration-150 ease-out ${
                             active
                               ? "h-2 w-2 bg-amber-300"
                               : "h-1.5 w-1.5 bg-white/25 group-hover/dot:bg-white/50"
@@ -2385,7 +2455,7 @@ export function GameCatalog({
           )}
 
           {!isFiltered && recentGameItems.length > 0 && (
-            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">
+            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <h3 id="catalog-recent-heading" className="text-xs font-semibold text-zinc-200">Recently played</h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
@@ -2411,15 +2481,13 @@ export function GameCatalog({
             <div
               aria-label="Advertisement"
               style={{
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "rgba(255, 255, 255, 0.015)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
               }}
               className={`flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
             >
-              <span className="shrink-0 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-                Ad
-              </span>
+              <span className="shrink-0 text-[11px] font-medium text-zinc-400">Ad</span>
               <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
@@ -2448,7 +2516,7 @@ export function GameCatalog({
           )}
 
           {!isFiltered && genreShelves.length > 0 && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-8">
               {genreShelves.map((shelf, index) => (
                 <React.Fragment key={shelf.id}>
                   <GameRail
@@ -2854,7 +2922,7 @@ export function GameCatalog({
                 )}
 
                 <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-8">
                     <section aria-labelledby="blocked-check-unblocked-heading">
                       <div className="flex items-center gap-2">
                         <h4

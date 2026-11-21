@@ -6,6 +6,7 @@ import {
   MessageCircle,
   Play,
   Sparkles,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -27,6 +28,8 @@ const ICON_BUTTON_STYLE: React.CSSProperties = {
 };
 
 const PANEL_WIDTH = 352;
+const PANEL_MAX_HEIGHT = 544;
+const PANEL_GUTTER = 8;
 const MAX_VISIBLE_MESSAGES = 4;
 
 const KIND_ICON: Record<NotificationKind, LucideIcon> = {
@@ -70,7 +73,7 @@ function NotificationRow({
     <button
       type="button"
       onClick={() => onSelect(item)}
-      className="flex min-h-11 w-full items-start gap-2.5 px-3.5 py-2 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white/40"
+      className="flex min-h-12 w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white/40"
     >
       <span
         aria-hidden="true"
@@ -80,7 +83,7 @@ function NotificationRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
-          <span className="min-w-0 truncate text-xs font-semibold text-zinc-100">
+          <span className="min-w-0 truncate text-[13px] font-semibold text-zinc-100 sm:text-xs">
             {item.title}
           </span>
           {item.isNew && (
@@ -90,7 +93,7 @@ function NotificationRow({
             />
           )}
         </span>
-        <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-zinc-400">
+        <span className="mt-0.5 line-clamp-2 block text-[13px] leading-snug text-zinc-400 sm:text-xs">
           {item.body}
         </span>
         <span className="mt-1 block text-[11px] font-medium text-zinc-500">
@@ -109,7 +112,12 @@ export function NotificationsButton({
   onOpenChat: () => void;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [anchor, setAnchor] = React.useState<{ top: number; right: number } | null>(null);
+  const [panelLayout, setPanelLayout] = React.useState<{
+    top: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+  } | null>(null);
   const [local, setLocal] = React.useState(loadLocalFeed);
   const [messages, setMessages] = React.useState<HubNotificationItem[]>([]);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -140,9 +148,44 @@ export function NotificationsButton({
   const positionPanel = React.useCallback(() => {
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setAnchor({
-      top: rect.bottom + 8,
-      right: Math.max(8, window.innerWidth - rect.right),
+
+    // visualViewport is the area a phone actually has on screen: it accounts for
+    // the collapsing URL bar and the keyboard, so the panel never lands off it.
+    const viewport = window.visualViewport;
+    const viewportWidth = viewport?.width ?? window.innerWidth;
+    const viewportHeight = viewport?.height ?? window.innerHeight;
+    const viewportTop = viewport?.offsetTop ?? 0;
+    const viewportLeft = viewport?.offsetLeft ?? 0;
+
+    // Phones get a near edge-to-edge sheet so the rows are wide enough to read;
+    // wider screens keep the compact popover under the bell.
+    const phone = viewportWidth < 640;
+    const width = phone
+      ? viewportWidth - PANEL_GUTTER * 2
+      : Math.min(PANEL_WIDTH, viewportWidth - PANEL_GUTTER * 2);
+    const top = Math.max(PANEL_GUTTER, rect.bottom + PANEL_GUTTER);
+    const spaceBelow = viewportTop + viewportHeight - top - PANEL_GUTTER;
+    const spaceAbove = rect.top - PANEL_GUTTER - viewportTop;
+    // Flip above the bell when there is no room below it (short landscape phones).
+    const openUp = spaceBelow < 220 && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(
+      160,
+      Math.min(PANEL_MAX_HEIGHT, openUp ? spaceAbove : spaceBelow)
+    );
+    const left = phone
+      ? viewportLeft + PANEL_GUTTER
+      : Math.min(
+          Math.max(rect.right - width, viewportLeft + PANEL_GUTTER),
+          viewportLeft + viewportWidth - width - PANEL_GUTTER
+        );
+
+    setPanelLayout({
+      top: openUp
+        ? Math.max(viewportTop + PANEL_GUTTER, rect.top - PANEL_GUTTER - maxHeight)
+        : top,
+      left,
+      width,
+      maxHeight,
     });
   }, []);
 
@@ -183,10 +226,14 @@ export function NotificationsButton({
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("scroll", onResize);
     return () => {
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("scroll", onResize);
     };
   }, [isOpen, closePanel, positionPanel]);
 
@@ -242,7 +289,7 @@ export function NotificationsButton({
       </button>
 
       {isOpen &&
-        anchor &&
+        panelLayout &&
         createPortal(
           <div
             ref={panelRef}
@@ -251,11 +298,12 @@ export function NotificationsButton({
             tabIndex={-1}
             style={{
               position: "fixed",
-              top: anchor.top,
-              right: anchor.right,
-              width: `min(${PANEL_WIDTH}px, calc(100vw - 1rem))`,
+              top: panelLayout.top,
+              left: panelLayout.left,
+              width: panelLayout.width,
+              maxHeight: panelLayout.maxHeight,
             }}
-            className="z-[75] max-h-[min(34rem,calc(100dvh-5rem))] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#1d1d1d] text-zinc-100 shadow-[0_24px_60px_rgba(0,0,0,0.55)] outline-none animate-in fade-in slide-in-from-top-2 duration-150 [scrollbar-width:thin]"
+            className="z-[75] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#1d1d1d] text-zinc-100 shadow-[0_24px_60px_rgba(0,0,0,0.55)] outline-none animate-enter [scrollbar-width:thin]"
           >
             <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-white/[0.08] bg-[#1d1d1d]/95 px-3.5 py-2.5 backdrop-blur">
               <Bell aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
@@ -265,9 +313,20 @@ export function NotificationsButton({
                   {unread} new
                 </span>
               )}
+              <button
+                type="button"
+                onClick={() => closePanel(true)}
+                aria-label="Close notifications"
+                className="ml-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] sm:hidden"
+              >
+                <X aria-hidden="true" className="h-4 w-4" />
+              </button>
             </div>
 
-            <div className="py-1.5">
+            <div
+              className="py-1.5"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.375rem)" }}
+            >
               {local.continueGame && (
                 <section aria-labelledby="notifications-continue">
                   <h3

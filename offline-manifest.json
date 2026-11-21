@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T03:34:15.186Z",
-  "totalBytes": 347284160,
+  "generatedAt": "2026-11-21T03:37:42.566Z",
+  "totalBytes": 347171761,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 15896
+      "bytes": 16205
     },
     {
       "url": "/manifest.json",
-      "bytes": 783
+      "bytes": 795
     },
     {
       "url": "/catalog.json",
@@ -24,64 +24,64 @@
       "bytes": 14387
     },
     {
-      "url": "/dist/chunks/AdminPanelModal-NQQ7IU4E.js",
-      "bytes": 52915
+      "url": "/dist/chunks/AdminPanelModal-KQT6JOWH.js",
+      "bytes": 52910
     },
     {
-      "url": "/dist/chunks/ChangelogModal-4R323ETI.js",
-      "bytes": 16435
+      "url": "/dist/chunks/ChangelogModal-MNRDI4AI.js",
+      "bytes": 16438
     },
     {
-      "url": "/dist/chunks/SettingsModal-L32WC5IZ.js",
-      "bytes": 114612
+      "url": "/dist/chunks/SettingsModal-UFCA3GEN.js",
+      "bytes": 114665
+    },
+    {
+      "url": "/dist/chunks/chunk-2CURLAMA.js",
+      "bytes": 7850
     },
     {
       "url": "/dist/chunks/chunk-6MPVGO3P.js",
       "bytes": 27130
     },
     {
-      "url": "/dist/chunks/chunk-EOMFV6AB.js",
+      "url": "/dist/chunks/chunk-BR4MBYPY.js",
       "bytes": 27841
-    },
-    {
-      "url": "/dist/chunks/chunk-RDO57QKQ.js",
-      "bytes": 7843
     },
     {
       "url": "/dist/chunks/chunk-RL5YIS7W.js",
       "bytes": 56600
     },
     {
-      "url": "/dist/chunks/chunk-UHKOJA47.js",
+      "url": "/dist/chunks/chunk-YUQWDWN2.js",
       "bytes": 182076
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 918611
+      "bytes": 920711
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 73640
+      "bytes": 74042
     },
     {
       "url": "/images/app-icon-192.png",
-      "bytes": 38717
+      "bytes": 22472
     },
     {
       "url": "/images/app-icon-512.png",
-      "bytes": 158038
+      "bytes": 72649
     },
     {
       "url": "/images/app-icon.svg",
-      "bytes": 3106
+      "bytes": 4127
     },
     {
       "url": "/images/apple-touch-icon.png",
-      "bytes": 35078
+      "bytes": 20594
     },
     {
       "url": "/images/favicon-32.png",
-      "bytes": 2355
+      "bytes": 2172
     },
     {
       "url": "/games/2048.html",

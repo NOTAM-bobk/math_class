@@ -69,7 +69,7 @@ import { LAST_UPDATED_ISO } from "./lib/lastUpdated";
 import { loadSiteMeta, type SiteMeta } from "./lib/siteMeta";
 import { maybeNotifyNewGames } from "./lib/gameNotifications";
 import { initOfflineMode } from "./lib/offlineCache";
-import { canInstall, onInstallAvailabilityChange, promptInstall } from "./lib/pwaInstall";
+import { canInstall, isInstalled, onInstallAvailabilityChange, promptInstall } from "./lib/pwaInstall";
 import { finalizePlaySession, startPlayStatsClock } from "./lib/playStats";
 import { loadStreak, recordVisit, subscribeStreak, type StreakData } from "./lib/streak";
 import { areNotificationAdsBlocked } from "./lib/adNotifications";
@@ -198,6 +198,7 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = React.useState(settingsOpenFromUrl);
   const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
   const [installAvailable, setInstallAvailable] = React.useState(canInstall);
+  const [installed, setInstalled] = React.useState(isInstalled);
   // The flame opens Settings straight on the streak pane; the gear opens General.
   const [settingsSection, setSettingsSection] = React.useState<"streak" | null>(null);
   const [streak, setStreak] = React.useState<StreakData>(loadStreak);
@@ -406,7 +407,14 @@ export function App() {
 
   // The browser can hand over its install prompt at any time; the notice and
   // the command palette both follow its availability.
-  React.useEffect(() => onInstallAvailabilityChange(() => setInstallAvailable(canInstall())), []);
+  React.useEffect(
+    () =>
+      onInstallAvailabilityChange(() => {
+        setInstallAvailable(canInstall());
+        setInstalled(isInstalled());
+      }),
+    []
+  );
 
   const handleInstallApp = React.useCallback(async () => {
     const outcome = await promptInstall();
@@ -1127,7 +1135,7 @@ export function App() {
           </div>
         </header>
 
-        {installNoticeVisible && (
+        {installNoticeVisible && !installed && (
           <div className="fixed right-3 top-3 z-50 flex max-w-[min(24rem,calc(100vw-1.5rem))] items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 pr-2.5 text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-enter" role="status">
             <div className="min-w-0 flex-1">
               <p className="text-xs leading-relaxed">Install math_games to use it like an app: its own window, home-screen icon and faster launches.</p>

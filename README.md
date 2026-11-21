@@ -4,7 +4,7 @@ A classroom-friendly browser game hub: hundreds of games in one place, plus Poly
 build archives, favourites, play stats, offline play and the settings a shared computer
 needs (site lock, panic redirect, tab disguise).
 
-**Current version: v1.7.5** — see [`src/lib/changelog.ts`](src/lib/changelog.ts).
+**Current version: v1.7.6** — see [`src/lib/changelog.ts`](src/lib/changelog.ts).
 
 ## Live mirrors
 
@@ -22,9 +22,8 @@ needs (site lock, panic redirect, tab disguise).
 - **Search, filters and sorting** across categories, Editor's Pick, Verified, Trending,
   Flash, Error:bug and Blocked, plus A–Z, recently played and most played orders.
 - **Favourites and recently played**, remembered on the device.
-- **Two card layouts** (Settings → Layout & startup): the classic row cards, or a cover
-  mosaic of different sized boxes where each game's art fills the card and its name sits
-  on the art.
+- **Two card layouts:** the classic row cards, or a cover mosaic of different sized
+  boxes where each game's art fills the card and its name sits on the art.
 - **Badges everywhere:** verified games, known-bug flags, Editor's Picks, desktop-only
   ("no mobile") games and a randomised blocked tag.
 - **Play in the hub or in a new tab.** Same-origin games open in a launcher inside the
@@ -37,8 +36,8 @@ needs (site lock, panic redirect, tab disguise).
 - Stats never leave the browser and a hard reset clears them.
 
 ### Settings
-- **Layout & startup:** loading animation, side chat and visitor counter, footer, game
-  card layout, ad space, and a hard reset that clears the site's local data.
+- **Layout & startup:** loading animation, side chat and visitor counter, footer, ad
+  space, and a hard reset that clears the site's local data.
 - **Appearance:** halftone shader, solid colours or gradient backgrounds.
 - **Tab cloak and panic button:** disguise the tab as Classroom/Docs and jump to a preset
   or custom page with one key.

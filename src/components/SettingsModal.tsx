@@ -61,13 +61,6 @@ import {
   subscribePlayStats,
   type PlayStats,
 } from "@/lib/playStats";
-import {
-  GAME_CARD_LAYOUTS,
-  loadGameCardLayout,
-  onGameCardLayoutChange,
-  saveGameCardLayout,
-  type GameCardLayout,
-} from "@/lib/gameCardLayout";
 import { hardResetSite } from "@/lib/hardReset";
 import {
   dayKey,
@@ -82,6 +75,7 @@ import {
 import { shareStreakCard } from "@/lib/streakCard";
 import type { SiteMeta } from "@/lib/siteMeta";
 import { canInstall, isInstalled, isIos, onInstallAvailabilityChange, promptInstall } from "@/lib/pwaInstall";
+import { canHoverPointer } from "./SideNav";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -163,6 +157,10 @@ const DESKTOP_LIGHT_CSS = `
 }
 `;
 
+// Offline packs are paged so the list stays quick to scroll and every game can
+// still be reached by continuing to the bottom.
+const PACK_PAGE_SIZE = 20;
+
 const KEYBOARD_SHORTCUTS: { label: string; keys: string }[] = [
   { label: "Open the command palette", keys: "⌘ K / Ctrl K" },
   { label: "Jump to the game search", keys: "/" },
@@ -217,6 +215,17 @@ export function SettingsModal({
     return () => mq.removeEventListener("change", update);
   }, []);
   const [desktopTab, setDesktopTab] = React.useState<DesktopTab>("general");
+  // Touch-only devices have no keyboard, so the shortcut reference would list
+  // keys the visitor cannot press.
+  const [hasKeyboard, setHasKeyboard] = React.useState(canHoverPointer);
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const query = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setHasKeyboard(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const [installAvailable, setInstallAvailable] = React.useState(canInstall);
   const [installed, setInstalled] = React.useState(isInstalled);
   const [installing, setInstalling] = React.useState(false);
@@ -249,6 +258,27 @@ export function SettingsModal({
   // Phones get a menu of settings sections instead of one long scroll.
   const [mobileSection, setMobileSection] = React.useState<DesktopTab | null>(null);
   const [settingsSearch, setSettingsSearch] = React.useState("");
+
+  // Installed visitors have no use for the install pane, and devices without a
+  // keyboard have no use for the shortcut list.
+  const navGroups = React.useMemo(
+    () =>
+      DESKTOP_NAV.map((group) => ({
+        ...group,
+        items: group.items.filter(
+          (item) => (item.id !== "shortcuts" || hasKeyboard) && (item.id !== "install" || !installed)
+        ),
+      })).filter((group) => group.items.length > 0),
+    [hasKeyboard, installed]
+  );
+
+  React.useEffect(() => {
+    if (desktopTab === "shortcuts" && !hasKeyboard) setDesktopTab("general");
+    if (desktopTab === "install" && installed) setDesktopTab("general");
+    if (mobileSection === "shortcuts" && !hasKeyboard) setMobileSection(null);
+    if (mobileSection === "install" && installed) setMobileSection(null);
+  }, [hasKeyboard, installed, desktopTab, mobileSection]);
+
   const [checkingUpdate, setCheckingUpdate] = React.useState(false);
   const [updateCheckResult, setUpdateCheckResult] = React.useState<CheckUpdateResult | null>(null);
   const [updatingNow, setUpdatingNow] = React.useState(false);
@@ -288,7 +318,7 @@ export function SettingsModal({
   const settingsQuery = settingsSearch.trim().toLowerCase();
   const matchesSettings = (item: { label: string; keywords: string }) =>
     !settingsQuery || item.label.toLowerCase().includes(settingsQuery) || item.keywords.includes(settingsQuery);
-  const visibleSettingsCount = DESKTOP_NAV.reduce(
+  const visibleSettingsCount = navGroups.reduce(
     (count, group) => count + group.items.filter(matchesSettings).length,
     0
   );
@@ -355,10 +385,6 @@ export function SettingsModal({
   // Local play statistics; the pane updates live while counting runs.
   const [playStats, setPlayStats] = React.useState<PlayStats>(loadPlayStats);
   const [statsEnabled, setStatsEnabled] = React.useState(isPlayStatsEnabled);
-
-  // Game card layout, shared with the catalog through localStorage.
-  const [cardLayout, setCardLayout] = React.useState<GameCardLayout>(loadGameCardLayout);
-  React.useEffect(() => onGameCardLayoutChange(setCardLayout), []);
 
   // Hard reset asks once before wiping everything this browser kept for the site.
   const [resetConfirming, setResetConfirming] = React.useState(false);
@@ -786,11 +812,24 @@ export function SettingsModal({
     () => new Set(downloadedPacks.map((pack) => pack.gameId)),
     [downloadedPacks]
   );
-  const filteredGamePacks = React.useMemo(() => {
+  const matchingGamePacks = React.useMemo(() => {
     const query = packQuery.trim().toLowerCase();
-    const list = query ? gamePacks.filter((pack) => pack.name.toLowerCase().includes(query)) : gamePacks;
-    return list.slice(0, 30);
+    return query ? gamePacks.filter((pack) => pack.name.toLowerCase().includes(query)) : gamePacks;
   }, [gamePacks, packQuery]);
+  const [packVisibleCount, setPackVisibleCount] = React.useState(PACK_PAGE_SIZE);
+  React.useEffect(() => {
+    setPackVisibleCount(PACK_PAGE_SIZE);
+  }, [packQuery, gamePacks]);
+  const filteredGamePacks = matchingGamePacks.slice(0, packVisibleCount);
+  const showMoreGamePacks = filteredGamePacks.length < matchingGamePacks.length;
+  const loadMoreGamePacks = () =>
+    setPackVisibleCount((count) => Math.min(matchingGamePacks.length, count + PACK_PAGE_SIZE));
+  const handlePackListScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    if (!showMoreGamePacks) return;
+    const list = event.currentTarget;
+    if (list.scrollHeight - list.scrollTop - list.clientHeight > 48) return;
+    loadMoreGamePacks();
+  };
 
   const offlinePercent = offlineProgress
     ? offlineProgress.total > 0
@@ -1010,7 +1049,7 @@ export function SettingsModal({
                 style={{ border: "none", padding: 0, background: "transparent" }}
               />
             </label>
-            {DESKTOP_NAV.map((group) => {
+            {navGroups.map((group) => {
               const q = settingsSearch.trim().toLowerCase();
               const items = group.items.filter((item) => !q || item.label.toLowerCase().includes(q) || item.keywords.includes(q));
               if (!items.length) return null;
@@ -1046,7 +1085,7 @@ export function SettingsModal({
               <X aria-hidden="true" className="h-4 w-4" />
             </button>
             <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
-              {DESKTOP_NAV.flatMap((g) => g.items).find((i) => i.id === desktopTab)?.label}
+              {navGroups.flatMap((g) => g.items).find((i) => i.id === desktopTab)?.label}
             </h2>
           </>
         )}
@@ -1064,7 +1103,7 @@ export function SettingsModal({
                 <ArrowLeft aria-hidden="true" className="h-4 w-4" />
               </button>
               <h2 id="settings-title" className="truncate text-base font-semibold tracking-tight text-zinc-100">
-                {DESKTOP_NAV.flatMap((g) => g.items).find((i) => i.id === mobileSection)?.label ?? "Settings"}
+                {navGroups.flatMap((g) => g.items).find((i) => i.id === mobileSection)?.label ?? "Settings"}
               </h2>
             </div>
           ) : (
@@ -1121,7 +1160,7 @@ export function SettingsModal({
               )}
             </label>
 
-            {DESKTOP_NAV.map((group) => {
+            {navGroups.map((group) => {
               const items = group.items.filter(matchesSettings);
               if (!items.length) return null;
               return (
@@ -1185,61 +1224,6 @@ export function SettingsModal({
             >
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${loadingRevealEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </button>
-          </div>
-          <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-sm font-medium text-zinc-200">Game card layout</div>
-                <div className="text-xs text-zinc-500">Choose how games are drawn in the catalog</div>
-              </div>
-              <LayoutGrid aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-            </div>
-            <div role="radiogroup" aria-label="Game card layout" className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {GAME_CARD_LAYOUTS.map((option) => {
-                const active = cardLayout === option.id;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => {
-                      saveGameCardLayout(option.id);
-                      setCardLayout(option.id);
-                    }}
-                    className={`cursor-pointer rounded-lg p-2.5 text-left ring-1 ring-inset transition-colors ${
-                      active
-                        ? "bg-white/[0.08] text-white ring-white/25"
-                        : "bg-black/20 text-zinc-300 ring-white/[0.06] hover:bg-white/[0.05]"
-                    }`}
-                  >
-                    <span aria-hidden="true" className="mb-2 block overflow-hidden rounded-md bg-black/40 p-1.5">
-                      {option.id === "mosaic" ? (
-                        <span className="grid h-12 grid-cols-4 grid-rows-2 gap-1">
-                          <span className="col-span-2 row-span-2 rounded-sm bg-white/25" />
-                          <span className="rounded-sm bg-white/15" />
-                          <span className="rounded-sm bg-white/15" />
-                          <span className="rounded-sm bg-white/15" />
-                          <span className="rounded-sm bg-white/15" />
-                        </span>
-                      ) : (
-                        <span className="flex h-12 flex-col gap-1">
-                          <span className="h-[22px] rounded-sm bg-white/20" />
-                          <span className="h-[22px] rounded-sm bg-white/10" />
-                        </span>
-                      )}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-xs font-semibold">
-                      {option.name}
-                      {active && <Check aria-hidden="true" className="h-3 w-3 text-emerald-400" />}
-                    </span>
-                    <span className="mt-0.5 block text-[11px] leading-snug text-zinc-500">
-                      {option.description}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
           <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
             <div>
@@ -2820,7 +2804,10 @@ export function SettingsModal({
                   </p>
                 )}
 
-                <div className="flex max-h-64 flex-col divide-y divide-white/[0.05] overflow-y-auto">
+                <div
+                  onScroll={handlePackListScroll}
+                  className="flex max-h-64 flex-col divide-y divide-white/[0.05] overflow-y-auto"
+                >
                   {filteredGamePacks.length === 0 ? (
                     <p className="py-2 text-[11px] text-zinc-500">
                       {gamePacks.length ? "No game matches that search." : "No downloadable games are listed yet."}
@@ -2863,6 +2850,15 @@ export function SettingsModal({
                         </div>
                       );
                     })
+                  )}
+                  {showMoreGamePacks && (
+                    <button
+                      type="button"
+                      onClick={loadMoreGamePacks}
+                      className="mt-1 shrink-0 cursor-pointer rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+                    >
+                      Load more games ({matchingGamePacks.length - filteredGamePacks.length} left)
+                    </button>
                   )}
                 </div>
 

@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.5";
+export const SITE_VERSION = "1.7.6";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.6",
+    date: "November 2026",
+    title: "A tidier settings menu and more offline games",
+    changes: [
+      "Settings no longer offers the keyboard shortcut list on touch-only devices that have no keyboard.",
+      "Once math_games is installed, the Install app section and the install reminder stop appearing.",
+      "The game card layout choices are hidden from Layout & startup.",
+      "Per-game offline packs load more games as you reach the bottom of the list, so every downloadable game can be reached.",
+    ],
+  },
   {
     version: "1.7.5",
     date: "November 2026",

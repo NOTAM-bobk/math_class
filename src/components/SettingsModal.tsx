@@ -3623,6 +3623,20 @@ export function SettingsModal({
               />
             </a>
             <a
+              href="https://startupbenchmarks.com/product/poly2-benlaunches"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-lg transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            >
+              <img
+                src="https://startupbenchmarks.com/assets/images/badge-dark.png"
+                alt="Startup Benchmarks"
+                height={54}
+                loading="lazy"
+                className="h-[54px] w-auto max-w-full"
+              />
+            </a>
+            <a
               href="https://launchstreak.dev/games/math-games"
               target="_blank"
               rel="noopener"

@@ -44,7 +44,7 @@ const CATEGORY_PARAM = "c";
 const CATALOG_SCROLL_KEY = "polytrack_catalog_scroll_top";
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -71,7 +71,7 @@ export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
   { id: "recent", label: "Recently played" },
   { id: "favorites", label: "Favorites" },
-  { id: "editors", label: "Editor’s picks" },
+  { id: "editors", label: "Editor's picks" },
   { id: "verified", label: "Verified" },
   { id: "hidden", label: "Hidden" },
   { id: "trending", label: "Trending" },
@@ -140,31 +140,21 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
   tools: Wrench,
 };
 
-// The cover layout mixes wide, tall and square boxes; dense flow fills the gaps.
-const MOSAIC_SPAN_PATTERN = [
-  "col-span-2 row-span-2",
-  "col-span-1 row-span-1",
-  "col-span-1 row-span-1",
-  "col-span-1 row-span-2",
-  "col-span-1 row-span-1",
-  "col-span-1 row-span-1",
-  "col-span-1 row-span-1",
-];
-
+// Covers are all the same 16:10 size; the two layouts only differ in density.
 const MOSAIC_GRID_CLASS =
-  "grid grid-flow-row-dense auto-rows-[148px] grid-cols-2 gap-2.5 sm:auto-rows-[168px] sm:grid-cols-3 sm:gap-3 xl:grid-cols-4";
-const CLASSIC_GRID_CLASS = "grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3";
+  "grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4";
+const CLASSIC_GRID_CLASS = "grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3";
 
-function mosaicSpan(index: number) {
-  return MOSAIC_SPAN_PATTERN[index % MOSAIC_SPAN_PATTERN.length];
+// Every card is painted and labelled with the game's first matching genre.
+function gameCategory(game: GameItem): CategoryId {
+  const match = CATEGORY_FILTERS.map((cat) => cat.id).find(
+    (id) => CATEGORY_ACCENTS[id] && matchesCategory(game, id as CategoryId)
+  );
+  return (match as CategoryId) ?? "arcade";
 }
 
 function gameAccent(game: GameItem) {
-  return (
-    CATEGORY_FILTERS.map((cat) => cat.id)
-      .filter((id) => CATEGORY_ACCENTS[id] && matchesCategory(game, id as CategoryId))
-      .map((id) => CATEGORY_ACCENTS[id])[0] ?? "#6366f1"
-  );
+  return CATEGORY_ACCENTS[gameCategory(game)] ?? "#6366f1";
 }
 
 /** Soft blur over both clipped edges of a sideways scroller. */
@@ -192,7 +182,7 @@ function TopTenChart({
   onLaunch: (game: GameItem, event: React.MouseEvent) => void;
 }) {
   return (
-    <section aria-labelledby="top-ten-heading" className="flex flex-col gap-2.5">
+    <section aria-labelledby="top-ten-heading" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <h3
           id="top-ten-heading"
@@ -300,7 +290,7 @@ function GameRail({
   const Icon = icon;
 
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+    <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <h3
           id={headingId}
@@ -331,10 +321,13 @@ function GameRail({
           aria-label={`${title} games`}
           tabIndex={0}
           onScroll={updateEdges}
-          className="-mx-1 grid snap-x snap-mandatory auto-cols-[9.5rem] auto-rows-[13.5rem] grid-flow-col gap-2.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:auto-cols-[11rem] sm:auto-rows-[15rem] lg:auto-cols-[12rem] lg:auto-rows-[16rem] xl:auto-cols-[10.5rem] xl:grid-rows-[repeat(2,14rem)] 2xl:auto-cols-[11.5rem] 2xl:grid-rows-[repeat(2,15rem)] [&::-webkit-scrollbar]:hidden"
+          className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [&::-webkit-scrollbar]:hidden"
         >
           {games.map((game) => (
-            <div key={game.id} className="h-full min-w-0 snap-start">
+            <div
+              key={game.id}
+              className="w-[9.5rem] shrink-0 snap-start sm:w-[11.5rem] lg:w-[13rem] xl:w-[13.5rem]"
+            >
               {renderGame(game)}
             </div>
           ))}
@@ -380,7 +373,7 @@ const CATEGORY_NAMES: Record<CategoryId, string> = {
   all: "All Games",
   recent: "Recently played",
   favorites: "Favorites",
-  editors: "Editor’s picks",
+  editors: "Editor's picks",
   verified: "Verified",
   hidden: "Hidden games",
   trending: "Trending",
@@ -406,7 +399,7 @@ type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 const DEFAULT_SORT: SortOption = "popular";
 
 const TAG_FILTERS = [
-  { id: "editors", icon: Star, label: "Editor’s Pick" },
+  { id: "editors", icon: Star, label: "Editor's picks" },
   { id: "verified", icon: BadgeCheck, label: "Verified" },
   { id: "hidden", icon: EyeOff, label: "Hidden" },
   { id: "buggy", icon: Bug, label: "Error: bug" },
@@ -845,16 +838,14 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
     <div
       aria-label="Advertisement"
       style={{
-        borderRadius: 14,
+        borderRadius: 12,
         background: "rgba(255, 255, 255, 0.015)",
         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
       }}
       className={`catalog-native-ad col-span-full mx-auto w-full max-w-sm flex-col gap-1 px-2.5 py-1.5 ${hidden ? "hidden" : "flex"}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-          Ad
-        </span>
+        <span className="text-[11px] font-medium text-zinc-400">Ad</span>
         <a
           href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
           className="text-[11px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
@@ -869,7 +860,6 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
 
 function GameCard({
   game,
-  isRecent,
   isPopular,
   isFavorite,
   isBuggy,
@@ -878,14 +868,11 @@ function GameCard({
   isNotMobile,
   isBlocked,
   hiddenInfo,
-  blockedEmoji,
   plays,
   searchQuery,
   onPlay,
   onToggleFavorite,
   onRestoreHidden,
-  variant = "classic",
-  sizeClass
 }: {
   game: GameItem;
   isRecent: boolean;
@@ -907,359 +894,158 @@ function GameCard({
   sizeClass?: string;
 }) {
   const opensInHub = !game.disabled && isSameOriginGame(game.url);
-  const genreAccent = gameAccent(game);
+  const category = gameCategory(game);
+  const CategoryIcon = CATEGORY_ICONS[category] ?? Gamepad2;
+  const accent = CATEGORY_ACCENTS[category] ?? "#6366f1";
 
-  if (variant === "mosaic") {
-    const compactChip = "inline-flex h-5 shrink-0 items-center gap-1 rounded-full bg-black/45 px-1.5 text-[11px] font-medium leading-none text-zinc-200 backdrop-blur-sm";
-    return (
-      <article
-        key={game.id}
-        className={`game-card game-card-mosaic group relative flex h-full w-full flex-col overflow-hidden ${sizeClass ?? ""} ${
-          game.disabled ? "opacity-80" : ""
-        }`}
-      >
-        <GameCoverArt game={game} accent={genreAccent} />
-
-        <div className="relative z-20 flex items-start justify-between gap-1.5 p-2.5">
-          <div className="flex min-w-0 flex-wrap items-center gap-1">
-            {isVerified && <VerifiedBadge />}
-            {isPopular && (
-              <span title="Most played" className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
-                <Flame aria-hidden="true" className="h-3 w-3 text-amber-300" />
-              </span>
-            )}
-            {isEditorPick && (
-              <span title="Editor's Pick" className={compactChip}>
-                <Star aria-hidden="true" className="h-2.5 w-2.5 text-amber-300" /> Pick
-              </span>
-            )}
-            {isRecent && (
-              <span title="Played in the last week" className={compactChip}>
-                Recent
-              </span>
-            )}
-            {isBuggy && (
-              <span title="Known bug or issue reported" className={`${compactChip} text-red-200`}>
-                <Bug aria-hidden="true" className="h-2.5 w-2.5 text-red-400" /> bug
-              </span>
-            )}
-            {isNotMobile && (
-              <span title="Best played on desktop" className={`${compactChip} text-amber-200`}>
-                <Smartphone aria-hidden="true" className="h-2.5 w-2.5 text-amber-400" />
-              </span>
-            )}
-            {isBlocked && (
-              <span title="Blocked site or game" className={`${compactChip} text-zinc-200`}>
-                <Ban aria-hidden="true" className="h-2.5 w-2.5 text-amber-300" /> Blocked
-              </span>
-            )}
-            {hiddenInfo && (
-              <span title={hiddenInfo.detail} className={`${compactChip} text-zinc-200`}>
-                <EyeOff aria-hidden="true" className="h-2.5 w-2.5 text-zinc-400" /> hidden
-              </span>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleFavorite(game.id, e);
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            aria-label={isFavorite ? `Remove ${game.name} from favorites` : `Add ${game.name} to favorites`}
-            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            className="relative z-20 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full bg-black/45 text-zinc-300 backdrop-blur-sm transition hover:bg-black/70 hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 active:scale-90"
-          >
-            <Heart
-              aria-hidden="true"
-              className={`pointer-events-none h-3.5 w-3.5 ${
-                isFavorite
-                  ? "fill-amber-400 text-amber-400"
-                  : "stroke-[1.75]"
-              }`}
-            />
-          </button>
-        </div>
-
-        <div className="relative z-10 mt-auto p-3">
-          <h4
-            className="line-clamp-2 min-w-0 text-sm font-semibold leading-snug text-white sm:text-base"
-            title={game.name}
-          >
-            <HighlightText text={game.name} query={searchQuery} />
-          </h4>
-          <div className="mt-1.5 flex items-center justify-between gap-2">
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[11px] text-zinc-300/80">
-                {game.disabled ? "Coming soon" : game.tags[0] || (opensInHub ? "In the hub" : "New tab")}
-              </span>
-              {!game.disabled && plays > 0 && (
-                <span
-                  className="font-mono text-[11px] leading-tight tabular-nums text-zinc-300/60"
-                  title={`${plays.toLocaleString()} plays`}
-                >
-                  {formatPlays(plays)} plays
-                </span>
-              )}
-            </div>
-            {hiddenInfo && onRestoreHidden && (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onRestoreHidden(game.id);
-                }}
-                title="Put this game back in the main catalog"
-                className="relative z-20 inline-flex h-6 shrink-0 cursor-pointer items-center rounded-full bg-white/15 px-2 text-[11px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25"
-              >
-                Restore
-              </button>
-            )}
-            {game.disabled ? (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2 text-[11px] font-medium text-zinc-200 backdrop-blur-sm">
-                <Clock3 aria-hidden="true" className="h-2.5 w-2.5" /> Soon
-              </span>
-            ) : (
-              <span
-                aria-hidden="true"
-                className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-white px-2.5 text-[11px] font-semibold text-zinc-950 shadow-sm transition-colors group-hover:bg-zinc-100"
-              >
-                <Play className="h-2.5 w-2.5 fill-current" />
-                Play
-              </span>
-            )}
-          </div>
-        </div>
-
-        {!game.disabled && (
-          <a
-            href={game.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(event) => onPlay(game, event)}
-            title={game.name}
-            aria-label={`Open ${game.name} ${opensInHub ? "in the hub" : "in a new tab"}`}
-            className="game-card-link absolute inset-0 z-[15] rounded-[20px]"
-          />
-        )}
-      </article>
-    );
-  }
+  const marks: { key: string; title: string; node: React.ReactNode }[] = [
+    isVerified && {
+      key: "verified",
+      title: "Verified: checked by an admin",
+      node: <BadgeCheck aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />,
+    },
+    isEditorPick && {
+      key: "pick",
+      title: "Editor's pick",
+      node: <Star aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />,
+    },
+    isPopular && {
+      key: "popular",
+      title: "Most played",
+      node: <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />,
+    },
+    isNotMobile && {
+      key: "mobile",
+      title: "Not optimized for mobile",
+      node: <Smartphone aria-hidden="true" className="h-3.5 w-3.5 text-amber-200" />,
+    },
+    isBuggy && {
+      key: "bug",
+      title: "Known bug or issue reported",
+      node: <Bug aria-hidden="true" className="h-3.5 w-3.5 text-red-400" />,
+    },
+    isBlocked && {
+      key: "blocked",
+      title: "Blocked site or game",
+      node: <Ban aria-hidden="true" className="h-3.5 w-3.5 text-zinc-200" />,
+    },
+    hiddenInfo && {
+      key: "hidden",
+      title: hiddenInfo.detail || "Hidden game",
+      node: <EyeOff aria-hidden="true" className="h-3.5 w-3.5 text-zinc-300" />,
+    },
+  ].filter(Boolean) as { key: string; title: string; node: React.ReactNode }[];
 
   return (
     <article
-      key={game.id}
-      className={`game-card group relative flex w-full flex-col overflow-hidden ${
-        game.disabled ? "opacity-80" : ""
+      className={`game-card group relative flex w-full flex-col overflow-hidden rounded-[12px] border border-white/[0.07] bg-[#1d1d1d] transition-transform duration-150 ease-out will-change-transform hover:-translate-y-0.5 hover:scale-[1.01] focus-within:-translate-y-0.5 focus-within:scale-[1.01] ${
+        game.disabled ? "opacity-70" : ""
       }`}
-      style={genreAccent ? { borderLeft: `3px solid ${genreAccent}` } : undefined}
     >
-      <div className="flex flex-1 flex-col p-3 sm:p-5">
-        <div className="mb-1.5 flex items-start justify-between gap-2 sm:mb-2">
-          <h4 className="flex min-w-0 flex-wrap items-center gap-2 text-base font-semibold text-zinc-100">
-            {game.disabled ? (
-              <span className="line-clamp-2" title={game.name}>
-                <HighlightText text={game.name} query={searchQuery} />
-              </span>
-            ) : (
-              <a
-                href={game.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => onPlay(game, event)}
-                title={game.name}
-                className="game-card-link min-w-0 line-clamp-2 transition-colors group-hover:text-white"
-              >
-                <HighlightText text={game.name} query={searchQuery} />
-                <span className="sr-only"> {opensInHub ? "(opens in the hub)" : "(opens in a new tab)"}</span>
-              </a>
-            )}
-            {isVerified && <VerifiedBadge />}
-            {isEditorPick && (
-              <span
-                title="Editor's Pick"
-                style={CHIP_STYLE}
-                className="shrink-0 px-2 py-0.5 text-[11px] font-medium text-amber-300"
-              >
-                Editor's Pick
-              </span>
-            )}
-            {isBuggy && (
-              <span
-                title="Known bug or issue reported for this game"
-                style={{
-                  ...CHIP_STYLE,
-                  background: "linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(185, 28, 28, 0.16))",
-                  border: "1px solid rgba(239, 68, 68, 0.45)",
-                  color: "#fca5a5"
-                }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
-              >
-                <Bug aria-hidden="true" className="h-3 w-3 text-red-400 shrink-0" />
-                <span>error:bug</span>
-              </span>
-            )}
-            {isNotMobile && (
-              <span
-                title="Not optimized for mobile — best played on desktop"
-                style={{
-                  ...CHIP_STYLE,
-                  background: "linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(180, 83, 9, 0.16))",
-                  border: "1px solid rgba(245, 158, 11, 0.4)",
-                  color: "#fcd34d"
-                }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
-              >
-                <Smartphone aria-hidden="true" className="h-3 w-3 text-amber-400 shrink-0" />
-                <span>no mobile</span>
-              </span>
-            )}
-            {isBlocked && (
-              <span
-                title="Blocked site or game"
-                style={{
-                  ...CHIP_STYLE,
-                  background: "linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(126, 34, 206, 0.16))",
-                  border: "1px solid rgba(168, 85, 247, 0.45)",
-                  color: "#e9d5ff"
-                }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
-              >
-                <Ban aria-hidden="true" className="h-3 w-3 shrink-0 text-amber-300" />
-                <span>Blocked</span>
-              </span>
-            )}
-            {hiddenInfo && (
-              <span
-                title={`${hiddenInfo.source === "auto" ? "Automated check" : "Failed to load in this browser"}: ${hiddenInfo.detail}`}
-                style={{
-                  ...CHIP_STYLE,
-                  background: "linear-gradient(135deg, rgba(113, 113, 122, 0.25), rgba(63, 63, 70, 0.18))",
-                  border: "1px solid rgba(161, 161, 170, 0.35)",
-                  color: "#d4d4d8"
-                }}
-                className="inline-flex shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tracking-wide font-mono"
-              >
-                <EyeOff aria-hidden="true" className="h-3 w-3 shrink-0 text-zinc-400" />
-                <span>auto-hidden</span>
-              </span>
-            )}
-            {isRecent && (
-              <span
-                title="You played this in the last week"
-                style={CHIP_STYLE}
-                className="shrink-0 px-2 py-0.5 text-[11px] font-medium text-amber-300"
-              >
-                Recent
-              </span>
-            )}
-            {isPopular && (
-              <span className="shrink-0" title="Most played">
-                <Flame
-                  aria-hidden="true"
-                  className="h-3.5 w-3.5 fill-orange-400/20 text-orange-400"
-                />
-                <span className="sr-only">Most played</span>
-              </span>
-            )}
-          </h4>
-          <div className="relative z-20 flex shrink-0 items-center gap-1.5">
-            {game.version && (
-              <span
-                style={CHIP_STYLE}
-                className="shrink-0 px-2.5 py-0.5 font-mono text-[11px] text-[#caccd2]"
-              >
-                {game.version}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onToggleFavorite(game.id, e);
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-              aria-label={isFavorite ? `Remove ${game.name} from favorites` : `Add ${game.name} to favorites`}
-              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              className="relative z-20 group/fav inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.12] hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 active:scale-90"
-            >
-              <Heart
-                aria-hidden="true"
-                className={`h-4 w-4 pointer-events-none transition-colors ${
-                  isFavorite
-                    ? "fill-amber-400 text-amber-400"
-                    : "stroke-[1.75] text-zinc-400 group-hover/fav:text-amber-300"
-                }`}
-              />
-            </button>
-          </div>
-        </div>
+      <div className="relative aspect-[16/10] w-full overflow-hidden">
+        <GameCoverArt game={game} accent={accent} icon={CategoryIcon} />
 
-        <p className="mb-2.5 line-clamp-2 flex-1 text-xs leading-[17px] text-[#8B9099] sm:mb-4 sm:text-sm sm:leading-[18px]">
-          <HighlightText text={game.description} query={searchQuery} />
-        </p>
-
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.06] pt-2.5 sm:gap-3 sm:pt-3">
-          <div className="flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden sm:flex-wrap">
-            {game.tags.slice(0, 3).map((tag) => (
+        {marks.length > 0 && (
+          <div className="absolute left-2 top-2 z-10 flex flex-wrap items-center gap-1">
+            {marks.map((mark) => (
               <span
-                key={tag}
-                style={CHIP_STYLE}
-                className="inline-flex h-5 shrink-0 items-center px-2 text-[11px] leading-[13px] text-[#caccd2] sm:h-6 sm:px-2.5 sm:text-[11px] sm:leading-[14px]"
+                key={mark.key}
+                title={mark.title}
+                className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/55 backdrop-blur-sm"
               >
-                <HighlightText text={tag} query={searchQuery} />
+                {mark.node}
+                <span className="sr-only">{mark.title}</span>
               </span>
             ))}
           </div>
+        )}
 
-          <div className="flex shrink-0 items-center gap-2">
-            {!game.disabled && plays > 0 && (
-              <span
-                className="text-[11px] font-mono tabular-nums text-zinc-500"
-                title={`${plays.toLocaleString()} plays`}
-              >
-                {formatPlays(plays)} plays
-              </span>
-            )}
-            {hiddenInfo && onRestoreHidden && (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onRestoreHidden(game.id);
-                }}
-                title="Put this game back in the main catalog"
-                className="inline-flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-white/15 px-2.5 text-[11px] font-medium text-zinc-200 transition-colors hover:bg-white/[0.1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-              >
-                Restore
-              </button>
-            )}
-            {game.disabled ? (
-              <span
-                style={CHIP_STYLE}
-                className="inline-flex h-7 items-center justify-center gap-1.5 px-3 text-xs font-medium text-zinc-400"
-              >
-                <Clock3 className="h-3 w-3" aria-hidden="true" />
-                <span>Coming soon</span>
-              </span>
-            ) : (
-              <span
+        {!game.disabled && (
+          <div className="absolute right-2 top-2 z-20 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onToggleFavorite(game.id, event);
+              }}
+              aria-label={isFavorite ? `Remove ${game.name} from favorites` : `Add ${game.name} to favorites`}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-black/60 text-zinc-100 backdrop-blur-sm transition-colors hover:bg-black/80 hover:text-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
+            >
+              <Heart
                 aria-hidden="true"
-                className="inline-flex h-7 items-center justify-center gap-1.5 rounded-full bg-white px-3.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors group-hover:bg-zinc-100"
-              >
-                <Play className="h-3 w-3 fill-current" />
-                <span>Play</span>
-              </span>
-            )}
+                className={`pointer-events-none h-3.5 w-3.5 ${isFavorite ? "fill-amber-400 text-amber-400" : "stroke-[1.75]"}`}
+              />
+            </button>
           </div>
-        </div>
+        )}
+
+        {!game.disabled && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+          >
+            <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-3.5 text-[12px] font-semibold text-zinc-950">
+              <Play className="h-3 w-3 fill-current" />
+              Play
+            </span>
+          </span>
+        )}
       </div>
+
+      <div className="flex min-w-0 items-center gap-2 px-3 pt-2.5">
+        <h4
+          className="min-w-0 flex-1 truncate text-[14px] font-semibold leading-5 text-zinc-100"
+          title={game.name}
+        >
+          <HighlightText text={game.name} query={searchQuery} />
+        </h4>
+        {hiddenInfo && onRestoreHidden && (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onRestoreHidden(game.id);
+            }}
+            title="Put this game back in the main catalog"
+            className="relative z-20 shrink-0 cursor-pointer rounded-full px-1.5 py-0.5 text-[11px] font-medium text-zinc-300 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            Restore
+          </button>
+        )}
+      </div>
+
+      <div className="flex min-w-0 items-center gap-1.5 px-3 pb-2.5 pt-1 text-[12px] leading-4 text-zinc-500">
+        <CategoryIcon aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+        <span className="sr-only">{CATEGORY_NAMES[category]}</span>
+        {game.disabled ? (
+          <span className="truncate">Coming soon</span>
+        ) : (
+          <>
+            <span className="truncate tabular-nums" title={`${plays.toLocaleString()} plays`}>
+              {plays > 0 ? `${formatPlays(plays)} plays` : "No plays yet"}
+            </span>
+            <span aria-hidden="true" className="hidden sm:inline">
+              ·
+            </span>
+            <span className="hidden truncate sm:inline">{opensInHub ? "In the hub" : "New tab"}</span>
+          </>
+        )}
+      </div>
+
+      {!game.disabled && (
+        <a
+          href={game.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => onPlay(game, event)}
+          title={game.name}
+          aria-label={`Open ${game.name} ${opensInHub ? "in the hub" : "in a new tab"}`}
+          className="game-card-link absolute inset-0 z-[15] rounded-[12px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+        />
+      )}
     </article>
   );
 }
@@ -1279,7 +1065,7 @@ function BlockedCheckRow({
       target="_blank"
       rel="noopener noreferrer"
       onClick={(event) => onPlay(game, event)}
-      className="group flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2 transition hover:border-white/[0.16] hover:bg-white/[0.07]"
+      className="group flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.035] p-2.5 transition hover:border-white/[0.16] hover:bg-white/[0.07]"
     >
       <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-inset ring-white/[0.08]">
         <GameCoverArt game={game} accent={gameAccent(game)} compact />
@@ -2327,14 +2113,9 @@ export function GameCatalog({
     catalogScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   };
 
-  const renderGameCard = (
-    game: GameItem,
-    options?: { layout?: GameCardLayout; sizeClass?: string }
-  ) => (
+  const renderGameCard = (game: GameItem) => (
     <GameCard
       key={game.id}
-      variant={options?.layout ?? cardLayout}
-      sizeClass={options?.sizeClass}
       game={game}
       isRecent={recentIds.has(game.id)}
       isPopular={popularGameIds.has(game.id)}
@@ -2485,7 +2266,7 @@ export function GameCatalog({
                           <tag.icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
                           <span>{tag.label}</span>
                           {count > 0 && (
-                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[11px] font-mono text-zinc-400">
+                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[11px] font-mono text-zinc-400">
                               {count}
                             </span>
                           )}
@@ -2539,10 +2320,10 @@ export function GameCatalog({
           boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.3)",
         }}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8">
           {/* The top games carousel scrolls with the catalog, just below the filters. */}
           {!isFiltered && heroGames.length > 0 && (
-            <section aria-labelledby="top-game-heading" className="flex flex-col gap-2">
+            <section aria-labelledby="top-game-heading" className="flex flex-col gap-3">
               <div
                 role="group"
                 aria-roledescription="carousel"
@@ -2574,7 +2355,7 @@ export function GameCatalog({
                       }}
                       aria-hidden={!active}
                       tabIndex={active ? undefined : -1}
-                      className={`group absolute inset-0 transition-[opacity,transform] duration-500 ease-out ${
+                      className={`group absolute inset-0 transition-[opacity,transform] duration-200 ease-out ${
                         active
                           ? "z-10 translate-x-0 opacity-100"
                           : "pointer-events-none z-0 translate-x-3 opacity-0"
@@ -2589,11 +2370,11 @@ export function GameCatalog({
                         />
                         <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#1a1a1a]/40 to-[#1a1a1a]" />
                       </div>
-                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-3 sm:p-4">
+                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-4">
                         <div className="min-w-0 max-w-[62%]">
                           <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />
-                            {isEditorPick(game) ? "Editor’s pick" : "#1 game today"}
+                            {isEditorPick(game) ? "Editor's pick" : "#1 game today"}
                           </span>
                           <h2
                             id={active ? "top-game-heading" : undefined}
@@ -2606,7 +2387,7 @@ export function GameCatalog({
                           </p>
                           {totalPlays(game) > 0 && (
                             <p className="mt-1 text-[11px] font-medium tabular-nums text-zinc-500">
-                              {totalPlays(game).toLocaleString()} plays
+                              {formatPlays(totalPlays(game))} plays
                             </p>
                           )}
                           <span className="mt-1.5 inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-300">
@@ -2640,7 +2421,7 @@ export function GameCatalog({
                       >
                         <span
                           aria-hidden="true"
-                          className={`block rounded-full transition-all duration-300 ${
+                          className={`block rounded-full transition-[width,height,background-color] duration-150 ease-out ${
                             active
                               ? "h-2 w-2 bg-amber-300"
                               : "h-1.5 w-1.5 bg-white/25 group-hover/dot:bg-white/50"
@@ -2674,7 +2455,7 @@ export function GameCatalog({
           )}
 
           {!isFiltered && recentGameItems.length > 0 && (
-            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">
+            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <h3 id="catalog-recent-heading" className="text-xs font-semibold text-zinc-200">Recently played</h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
@@ -2700,15 +2481,13 @@ export function GameCatalog({
             <div
               aria-label="Advertisement"
               style={{
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "rgba(255, 255, 255, 0.015)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
               }}
               className={`flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
             >
-              <span className="shrink-0 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-                Ad
-              </span>
+              <span className="shrink-0 text-[11px] font-medium text-zinc-400">Ad</span>
               <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
@@ -2737,7 +2516,7 @@ export function GameCatalog({
           )}
 
           {!isFiltered && genreShelves.length > 0 && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-8">
               {genreShelves.map((shelf, index) => (
                 <React.Fragment key={shelf.id}>
                   <GameRail
@@ -2747,7 +2526,7 @@ export function GameCatalog({
                     total={shelf.total}
                     games={shelf.games}
                     onSeeAll={() => seeAllCategory(shelf.id)}
-                    renderGame={(game) => renderGameCard(game, { layout: "mosaic" })}
+                    renderGame={(game) => renderGameCard(game)}
                   />
                   {/* The larger ad follows the third shelf on the home view. */}
                   {index === Math.min(2, genreShelves.length - 1) &&
@@ -2803,9 +2582,7 @@ export function GameCatalog({
                   {index === 12 && showAdSpot && lowerAdVisible && !isFiltered && (
                     <CatalogNativeAd hidden={adSpotHidden} />
                   )}
-                  {renderGameCard(game, {
-                    sizeClass: cardLayout === "mosaic" ? mosaicSpan(index) : undefined,
-                  })}
+                  {renderGameCard(game)}
                 </React.Fragment>
               ))}
               </div>
@@ -2824,11 +2601,7 @@ export function GameCatalog({
                 </span>
               </div>
               <div className={cardLayout === "mosaic" ? MOSAIC_GRID_CLASS : CLASSIC_GRID_CLASS}>
-              {comingSoonGames.map((game, index) =>
-                renderGameCard(game, {
-                  sizeClass: cardLayout === "mosaic" ? mosaicSpan(index) : undefined,
-                })
-              )}
+              {comingSoonGames.map((game) => renderGameCard(game))}
               </div>
             </section>
           )}
@@ -3149,7 +2922,7 @@ export function GameCatalog({
                 )}
 
                 <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-8">
                     <section aria-labelledby="blocked-check-unblocked-heading">
                       <div className="flex items-center gap-2">
                         <h4

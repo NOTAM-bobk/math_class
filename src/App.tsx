@@ -100,7 +100,7 @@ const ChangelogModal = React.lazy(() =>
 const HAIRLINE = "1px solid rgba(255, 255, 255, 0.07)";
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "transparent",
   border: HAIRLINE,
 };
@@ -238,11 +238,27 @@ export function App() {
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryId>(initialCategory);
   const [sideNavExpanded, setSideNavExpanded] = React.useState(() => {
     try {
-      return localStorage.getItem("polytrack_side_nav_expanded") === "true";
-    } catch {
-      return false;
-    }
+      const saved = localStorage.getItem("polytrack_side_nav_expanded");
+      if (saved !== null) return saved === "true";
+    } catch {}
+    // A 1280px-wide window has room for the rail's labels, so it starts open
+    // there and stays an icon strip on narrower screens.
+    return typeof window !== "undefined" && window.matchMedia("(min-width: 1280px)").matches;
   });
+  // A window widened past 1280px gets the labels too, unless the visitor has
+  // already collapsed the rail themselves (that choice is persisted).
+  React.useEffect(() => {
+    const wide = window.matchMedia("(min-width: 1280px)");
+    const onChange = () => {
+      let saved: string | null = null;
+      try {
+        saved = localStorage.getItem("polytrack_side_nav_expanded");
+      } catch {}
+      if (saved === null && wide.matches) setSideNavExpanded(true);
+    };
+    wide.addEventListener("change", onChange);
+    return () => wide.removeEventListener("change", onChange);
+  }, []);
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   // The header keeps four actions; everything else lives behind this menu.
   const [headerMenuOpen, setHeaderMenuOpen] = React.useState(false);
@@ -449,7 +465,7 @@ export function App() {
   const [siteMeta] = React.useState<SiteMeta>(loadSiteMeta);
   const footerChipStyle: React.CSSProperties = footerIsLight
     ? {
-        borderRadius: 36,
+        borderRadius: 999,
         background: "rgba(0, 0, 0, 0.06)",
         boxShadow: "inset 0 0 0 1px rgba(0, 0, 0, 0.08)",
       }
@@ -809,7 +825,7 @@ export function App() {
       },
       {
         items: [
-          category("editors", "Editor’s picks", Star),
+          category("editors", "Editor's picks", Star),
           category("verified", "Verified", CheckCircle2),
         ],
       },
@@ -897,7 +913,7 @@ export function App() {
             className="solid-3d-panel relative grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-1.5 gap-y-1.5 px-2 py-1.5 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-1 sm:px-4 sm:py-2 lg:min-h-[3.5rem]"
             style={{
               background: "#1d1d1d",
-              borderRadius: 20,
+              borderRadius: 16,
               border: HAIRLINE,
             }}
           >
@@ -921,7 +937,7 @@ export function App() {
             >
               <span
                 style={{
-                  borderRadius: 36,
+                  borderRadius: 999,
                   background: "rgba(255, 255, 255, 0.06)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
                 }}
@@ -963,7 +979,7 @@ export function App() {
                   spellCheck={false}
                   style={{
                     ...CHIP_STYLE,
-                    borderRadius: 14,
+                    borderRadius: 8,
                     background: "rgba(255, 255, 255, 0.03)",
                   }}
                   className="h-8 w-full appearance-none pl-8 pr-11 text-xs text-zinc-100 transition-colors placeholder:text-zinc-500 focus:outline-none sm:h-10 sm:pl-9 sm:pr-16 sm:text-sm [&::-webkit-search-cancel-button]:appearance-none"
@@ -1088,7 +1104,7 @@ export function App() {
         </header>
 
         {installNoticeVisible && (
-          <div className="fixed right-3 top-3 z-50 flex max-w-[min(24rem,calc(100vw-1.5rem))] items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 pr-2.5 text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300" role="status">
+          <div className="fixed right-3 top-3 z-50 flex max-w-[min(24rem,calc(100vw-1.5rem))] items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 pr-2.5 text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-enter" role="status">
             <div className="min-w-0 flex-1">
               <p className="text-xs leading-relaxed">Install math_games to use it like an app: its own window, home-screen icon and faster launches.</p>
               {installAvailable && (
@@ -1114,7 +1130,7 @@ export function App() {
         )}
 
         {updateReady && (
-          <div className="fixed left-1/2 top-3 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-zinc-900/95 py-1.5 pl-3.5 pr-1.5 text-xs text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300" role="status">
+          <div className="fixed left-1/2 top-3 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-zinc-900/95 py-1.5 pl-3.5 pr-1.5 text-xs text-zinc-100 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-enter" role="status">
             <span className="whitespace-nowrap">New version is ready</span>
             <button
               type="button"
@@ -1172,7 +1188,7 @@ export function App() {
             <aside
               id="chat-panel"
               aria-label="Chat and visitor count"
-              className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-72 lg:w-[22rem] flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full animate-in fade-in slide-in-from-right-2 duration-300`}
+              className={`${mobilePanel === "chat" ? "flex" : "hidden"} md:flex w-full md:w-72 lg:w-[22rem] flex-1 md:flex-none flex-col gap-3 shrink-0 min-h-0 md:h-full md:max-h-full`}
             >
               <div className="flex-1 min-h-0 flex flex-col">
                 <LiveMessageBoard showAds={adsVisible} />
@@ -1197,7 +1213,7 @@ export function App() {
               <div
                 aria-hidden="true"
                 onClick={() => setChatFocusOpen(false)}
-                className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+                className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-enter"
               />
               <div
                 ref={chatDialogRef}
@@ -1205,7 +1221,7 @@ export function App() {
                 aria-modal="true"
                 aria-label="Community chat"
                 tabIndex={-1}
-                className="relative flex h-[min(46rem,calc(100dvh-1rem))] w-full max-w-5xl flex-col overflow-hidden outline-none animate-in fade-in zoom-in-95 duration-200 sm:h-[min(46rem,calc(100dvh-3rem))]"
+                className="relative flex h-[min(46rem,calc(100dvh-1rem))] w-full max-w-5xl flex-col overflow-hidden outline-none animate-enter sm:h-[min(46rem,calc(100dvh-3rem))]"
               >
                 <LiveMessageBoard
                   showAds={adsVisible}

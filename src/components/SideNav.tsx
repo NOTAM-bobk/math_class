@@ -16,7 +16,7 @@ export interface SideNavSection {
 
 const PANEL_STYLE: React.CSSProperties = {
   background: "#1d1d1d",
-  borderRadius: 20,
+  borderRadius: 16,
   border: "1px solid rgba(255, 255, 255, 0.07)",
 };
 
@@ -53,7 +53,7 @@ function HoldTooltip({ label, button }: { label: string; button: React.RefObject
           <span
             role="tooltip"
             style={{ left: pos.x, top: pos.y }}
-            className="pointer-events-none fixed z-[120] -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[#1d1d1d] px-2 py-1 text-[11px] font-medium text-zinc-100 animate-in fade-in duration-100"
+            className="pointer-events-none fixed z-[120] -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[#1d1d1d] px-2 py-1 text-[11px] font-medium text-zinc-100 animate-enter"
           >
             {label}
           </span>,
@@ -272,14 +272,14 @@ export function SideNavDrawer({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-enter"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Game navigation"
-        className="absolute inset-y-0 left-0 flex w-[15rem] max-w-[85vw] flex-col overflow-hidden shadow-[24px_0_60px_-12px_rgba(0,0,0,0.9)] animate-in slide-in-from-left duration-200"
-        style={{ background: "#1d1d1d", borderTopRightRadius: 20, borderBottomRightRadius: 20 }}
+        className="absolute inset-y-0 left-0 flex w-[15rem] max-w-[85vw] flex-col overflow-hidden shadow-[24px_0_60px_-12px_rgba(0,0,0,0.9)] animate-enter"
+        style={{ background: "#1d1d1d", borderTopRightRadius: 16, borderBottomRightRadius: 16 }}
       >
         <div className="flex shrink-0 items-center justify-between px-3 pb-1 pt-3">
           <span className="font-mono text-[11px] font-semibold tracking-tight text-zinc-300">math_games</span>

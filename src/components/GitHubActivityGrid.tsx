@@ -192,7 +192,7 @@ export function GitHubActivityGrid({
             ) : (
               <>
                 <span className="tabular-nums font-mono text-emerald-400">
-                  {totalContributions.toLocaleString()}
+                  {totalContributions.toLocaleString("en-US")}
                 </span>
                 <span className="ml-1.5 font-normal text-zinc-400">{subtitle}</span>
               </>

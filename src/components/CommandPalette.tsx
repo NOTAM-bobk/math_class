@@ -22,7 +22,7 @@ interface CommandPaletteProps {
 
 const PANEL_STYLE: React.CSSProperties = {
   background: "#1d1d1d",
-  borderRadius: 20,
+  borderRadius: 16,
   boxShadow:
     "0 24px 60px -12px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.4)",
 };

@@ -107,7 +107,7 @@ declare global {
 }
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -502,7 +502,7 @@ export function LiveMessageBoard({
       className="solid-3d-panel flex-1 flex flex-col min-h-0 overflow-hidden"
       style={{
         background: "#1d1d1d",
-        borderRadius: 20,
+        borderRadius: 16,
         border: "1px solid rgba(255, 255, 255, 0.07)",
       }}
     >
@@ -620,7 +620,7 @@ export function LiveMessageBoard({
             return (
               <div
                 key={message.id}
-                className={`group flex flex-col transition duration-200 ${
+                className={`group flex flex-col transition-opacity duration-150 ease-out ${
                   isUser ? "items-end" : "items-start"
                 }`}
               >
@@ -713,7 +713,7 @@ export function LiveMessageBoard({
                     role="group"
                     aria-label={`Quick reactions for ${message.author}'s message`}
                     data-reaction-picker
-                    className="mt-1 grid grid-cols-8 gap-0.5 rounded-xl border border-white/10 bg-[#242424] p-1 shadow-[0_10px_24px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-150"
+                    className="mt-1 grid grid-cols-8 gap-0.5 rounded-xl border border-white/10 bg-[#242424] p-1 shadow-[0_10px_24px_rgba(0,0,0,0.5)] animate-enter"
                   >
                     {quickReactions.map((emoji) => {
                       const chosen = (reactions[message.id]?.[emoji] || []).includes(myName);
@@ -746,7 +746,7 @@ export function LiveMessageBoard({
           <button
             type="button"
             onClick={() => scrollToBottom(true)}
-            className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/95 hover:bg-zinc-700 text-white border border-white/10 text-xs font-semibold shadow-lg backdrop-blur-md transition active:scale-95 cursor-pointer z-10 animate-in fade-in zoom-in-90 duration-150"
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/95 hover:bg-zinc-700 text-white border border-white/10 text-xs font-semibold shadow-lg backdrop-blur-md transition-[background-color,transform] duration-150 ease-out active:scale-95 cursor-pointer z-10 animate-enter"
           >
             <ArrowDown className="w-3.5 h-3.5 text-amber-300" />
             <span>Latest messages</span>
@@ -866,44 +866,48 @@ export function LiveMessageBoard({
           spellCheck={false}
           style={{
             ...CHIP_STYLE,
-            borderRadius: 12,
+            borderRadius: 8,
             background: "rgba(255, 255, 255, 0.04)",
           }}
           className="w-20 shrink-0 px-2.5 py-2 text-[11px] font-medium text-[#caccd2] placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/20"
         />
 
-        <label htmlFor="chat-message" className="sr-only">
-          Message
-        </label>
-        <input
-          id="chat-message"
-          name="message"
-          type="text"
-          value={inputText}
-          onChange={(event) => setInputText(event.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void handleSendMessage();
+        <div className="relative min-w-0 flex-1">
+          <label htmlFor="chat-message" className="sr-only">
+            Message
+          </label>
+          <input
+            id="chat-message"
+            name="message"
+            type="text"
+            value={inputText}
+            onChange={(event) => setInputText(event.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void handleSendMessage();
+              }
+            }}
+            placeholder={
+              !chatVerified ? "Verify you're human to chat…" : pendingImage ? "Add a caption" : "Message"
             }
-          }}
-          placeholder={
-            !chatVerified
-              ? "Verify you're human to chat…"
-              : pendingImage
-                ? "Add a caption (Press Enter)…"
-                : "Send a message (Press Enter)…"
-          }
-          maxLength={280}
-          enterKeyHint="send"
-          autoComplete="off"
-          style={{
-            ...CHIP_STYLE,
-            borderRadius: 12,
-            background: "rgba(255, 255, 255, 0.04)",
-          }}
-          className="flex-1 min-w-0 px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/20"
-        />
+            maxLength={280}
+            enterKeyHint="send"
+            autoComplete="off"
+            style={{
+              ...CHIP_STYLE,
+              borderRadius: 8,
+              background: "rgba(255, 255, 255, 0.04)",
+            }}
+            className="w-full px-3 py-2 pr-16 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/20"
+          />
+          <kbd
+            aria-hidden="true"
+            className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 font-mono text-[10px] font-medium text-zinc-500 sm:block"
+          >
+            ↵ Enter
+          </kbd>
+        </div>
 
         <input
           ref={fileInputRef}
@@ -921,7 +925,7 @@ export function LiveMessageBoard({
           disabled={!chatVerified || sending || preparingImage}
           aria-label="Send a photo"
           title="Send a photo"
-          style={{ borderRadius: 12 }}
+          style={{ borderRadius: 8 }}
           className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
         >
           {preparingImage ? (
@@ -936,9 +940,9 @@ export function LiveMessageBoard({
           disabled={(!inputText.trim() && !pendingImage) || sending || !chatVerified}
           aria-label={sending ? "Sending message" : chatVerified ? "Send message" : "Verify to send messages"}
           style={{
-            borderRadius: 12,
+            borderRadius: 8,
           }}
-          className="flex items-center justify-center w-8 h-8 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition active:scale-95 cursor-pointer shrink-0 shadow-sm"
+          className="flex items-center justify-center w-8 h-8 bg-white text-zinc-950 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-[background-color,transform] duration-150 ease-out active:scale-95 cursor-pointer shrink-0 shadow-sm"
         >
           <Send aria-hidden="true" className={`w-3.5 h-3.5 ${sending ? "animate-pulse" : ""}`} />
         </button>

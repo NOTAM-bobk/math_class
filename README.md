@@ -127,9 +127,11 @@ dev server: rebuild and reload the page after changing source.
   visible or a game session is open, writing to storage in batches and skipping long
   gaps (sleep, frozen tabs) so totals aren't inflated.
 - **Card layouts.** `src/lib/gameCardLayout.ts` stores the choice; the catalog listens
-  for changes so the grid switches without a reload. Game art comes from
-  `src/components/GameCoverArt.tsx`, using a game's own icon where it lives on another
-  origin and generated initial art for local pages.
+  for changes so the grid switches without a reload. Every card uses the same 16:10
+  cover from `src/components/GameCoverArt.tsx`: the stored artwork at its largest size
+  with a blur-up placeholder and `srcset`, a live capture when a game has no artwork,
+  then a generated cover with the game name and its category icon. Cover metadata is
+  built by `scripts/refresh-cover-sources.py`.
 
 ## Versioning and the change log
 

@@ -47,7 +47,7 @@ const STATUS_META: Record<MonitorStatus, { label: string; dot: string; text: str
 };
 
 const PANEL_STYLE: React.CSSProperties = {
-  borderRadius: 14,
+  borderRadius: 12,
   background: "rgba(0, 0, 0, 0.3)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
 };
@@ -350,7 +350,7 @@ export function UptimeMonitor() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div
-            style={{ borderRadius: 36, background: "rgba(34, 197, 94, 0.12)" }}
+            style={{ borderRadius: 999, background: "rgba(34, 197, 94, 0.12)" }}
             className="p-1.5 text-emerald-400"
           >
             <Activity aria-hidden="true" className="h-3.5 w-3.5" />

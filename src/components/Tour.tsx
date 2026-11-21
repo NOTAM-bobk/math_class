@@ -297,7 +297,7 @@ export function Tour({
                   {steps.map((_, i) => (
                     <span
                       key={i}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                      className={`h-1.5 rounded-full transition-[width,background-color] duration-150 ease-out ${
                         i === index
                           ? "w-4 bg-zinc-900 dark:bg-zinc-100"
                           : "w-1.5 bg-zinc-200 dark:bg-zinc-700"

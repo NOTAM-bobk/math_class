@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-20T22:13:07.131Z",
-  "totalBytes": 347243575,
+  "generatedAt": "2026-11-21T01:48:10.900Z",
+  "totalBytes": 347128159,
   "files": [
     {
       "url": "/index.html",
-      "bytes": 16577
+      "bytes": 16589
     },
     {
       "url": "/manifest.json",
-      "bytes": 783
+      "bytes": 795
     },
     {
       "url": "/catalog.json",
@@ -28,11 +28,11 @@
       "bytes": 52915
     },
     {
-      "url": "/dist/chunks/ChangelogModal-Q7Z2CAI5.js",
+      "url": "/dist/chunks/ChangelogModal-MJXILAAX.js",
       "bytes": 16435
     },
     {
-      "url": "/dist/chunks/SettingsModal-QGTNREOM.js",
+      "url": "/dist/chunks/SettingsModal-T46SPMHC.js",
       "bytes": 114612
     },
     {
@@ -40,15 +40,15 @@
       "bytes": 27130
     },
     {
-      "url": "/dist/chunks/chunk-A55ACU2K.js",
-      "bytes": 7843
-    },
-    {
-      "url": "/dist/chunks/chunk-M5OY2PGR.js",
+      "url": "/dist/chunks/chunk-JJSVGOTR.js",
       "bytes": 27841
     },
     {
-      "url": "/dist/chunks/chunk-QTTF34Q3.js",
+      "url": "/dist/chunks/chunk-LN2DTCRO.js",
+      "bytes": 7843
+    },
+    {
+      "url": "/dist/chunks/chunk-PFRK2UCB.js",
       "bytes": 182076
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 877744
+      "bytes": 877584
     },
     {
       "url": "/dist/styles.css",
@@ -65,23 +65,23 @@
     },
     {
       "url": "/images/app-icon-192.png",
-      "bytes": 38717
+      "bytes": 22472
     },
     {
       "url": "/images/app-icon-512.png",
-      "bytes": 158038
+      "bytes": 72649
     },
     {
       "url": "/images/app-icon.svg",
-      "bytes": 3106
+      "bytes": 4127
     },
     {
       "url": "/images/apple-touch-icon.png",
-      "bytes": 35078
+      "bytes": 20594
     },
     {
       "url": "/images/favicon-32.png",
-      "bytes": 2355
+      "bytes": 2172
     },
     {
       "url": "/games/2048.html",

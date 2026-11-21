@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T03:37:42.566Z",
-  "totalBytes": 347171761,
+  "generatedAt": "2026-11-21T03:52:12.701Z",
+  "totalBytes": 347188179,
   "files": [
     {
       "url": "/index.html",
@@ -13,7 +13,7 @@
     },
     {
       "url": "/catalog.json",
-      "bytes": 154478
+      "bytes": 162986
     },
     {
       "url": "/offline-packs.json",
@@ -24,40 +24,40 @@
       "bytes": 14387
     },
     {
-      "url": "/dist/chunks/AdminPanelModal-KQT6JOWH.js",
+      "url": "/dist/chunks/AdminPanelModal-Z6GMIC7E.js",
       "bytes": 52910
     },
     {
-      "url": "/dist/chunks/ChangelogModal-MNRDI4AI.js",
+      "url": "/dist/chunks/ChangelogModal-ZQFVMOCX.js",
       "bytes": 16438
     },
     {
-      "url": "/dist/chunks/SettingsModal-UFCA3GEN.js",
+      "url": "/dist/chunks/SettingsModal-KQWWUSI7.js",
       "bytes": 114665
     },
     {
-      "url": "/dist/chunks/chunk-2CURLAMA.js",
-      "bytes": 7850
-    },
-    {
-      "url": "/dist/chunks/chunk-6MPVGO3P.js",
-      "bytes": 27130
-    },
-    {
-      "url": "/dist/chunks/chunk-BR4MBYPY.js",
+      "url": "/dist/chunks/chunk-4ZCFBREV.js",
       "bytes": 27841
+    },
+    {
+      "url": "/dist/chunks/chunk-ISHDOPIK.js",
+      "bytes": 29002
     },
     {
       "url": "/dist/chunks/chunk-RL5YIS7W.js",
       "bytes": 56600
     },
     {
-      "url": "/dist/chunks/chunk-YUQWDWN2.js",
+      "url": "/dist/chunks/chunk-TIFRRRT6.js",
       "bytes": 182076
     },
     {
+      "url": "/dist/chunks/chunk-XN6OBTCN.js",
+      "bytes": 7850
+    },
+    {
       "url": "/dist/home.bundle.js",
-      "bytes": 920711
+      "bytes": 926749
     },
     {
       "url": "/dist/styles.css",

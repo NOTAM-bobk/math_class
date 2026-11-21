@@ -2193,6 +2193,11 @@ export function GameCatalog({
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [heroPaused, setHeroPaused] = React.useState(false);
   const [heroCycle, setHeroCycle] = React.useState(0);
+  const heroTouchStart = React.useRef<{ x: number; y: number; time: number } | null>(null);
+  const heroTouchDelta = React.useRef({ dx: 0, dy: 0 });
+  // A swipe still ends in a click on the card underneath it. Swallow that one
+  // click so flicking between cards never launches a game by accident.
+  const heroIgnoreClickUntil = React.useRef(0);
 
   React.useEffect(() => {
     setHeroIndex(0);
@@ -2213,6 +2218,62 @@ export function GameCatalog({
     setHeroIndex(index);
     // Restart the timer so a manual pick gets a full turn on screen.
     setHeroCycle((value) => value + 1);
+  };
+
+  const stepHeroGame = (direction: 1 | -1) => {
+    if (heroGames.length < 2) return;
+    selectHeroGame((heroIndex + direction + heroGames.length) % heroGames.length);
+  };
+
+  const commitHeroSwipe = (dx: number, dy: number, elapsed: number) => {
+    if (heroGames.length < 2) return;
+    // Ignore slow drags and mostly-vertical gestures: those are catalog scrolls.
+    if (elapsed > 700) return;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+
+    heroIgnoreClickUntil.current = Date.now() + 350;
+    stepHeroGame(dx < 0 ? 1 : -1);
+  };
+
+  const onHeroTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    // Hold the auto-rotation still while a finger is on the card.
+    setHeroPaused(true);
+    heroTouchStart.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    heroTouchDelta.current = { dx: 0, dy: 0 };
+  };
+
+  const onHeroTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = heroTouchStart.current;
+    const touch = event.touches[0];
+    if (!start || !touch) return;
+    heroTouchDelta.current = {
+      dx: touch.clientX - start.x,
+      dy: touch.clientY - start.y,
+    };
+  };
+
+  const onHeroTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    setHeroPaused(false);
+    const start = heroTouchStart.current;
+    const touch = event.changedTouches[0];
+    heroTouchStart.current = null;
+    heroTouchDelta.current = { dx: 0, dy: 0 };
+    if (!start || !touch) return;
+    commitHeroSwipe(touch.clientX - start.x, touch.clientY - start.y, Date.now() - start.time);
+  };
+
+  // Safari cancels the touch sequence when it hands a gesture to the scroller;
+  // use the last recorded drag so a horizontal flick still changes the card.
+  const onHeroTouchCancel = () => {
+    const start = heroTouchStart.current;
+    const delta = heroTouchDelta.current;
+    heroTouchStart.current = null;
+    heroTouchDelta.current = { dx: 0, dy: 0 };
+    setHeroPaused(false);
+    if (!start) return;
+    commitHeroSwipe(delta.dx, delta.dy, Date.now() - start.time);
   };
 
   const recentGameItems = React.useMemo(() => {
@@ -2489,6 +2550,11 @@ export function GameCatalog({
                 onMouseLeave={() => setHeroPaused(false)}
                 onFocusCapture={() => setHeroPaused(true)}
                 onBlurCapture={() => setHeroPaused(false)}
+                onTouchStart={onHeroTouchStart}
+                onTouchMove={onHeroTouchMove}
+                onTouchEnd={onHeroTouchEnd}
+                onTouchCancel={onHeroTouchCancel}
+                style={{ touchAction: "pan-y" }}
                 className="relative h-[13rem] overflow-hidden rounded-2xl border border-white/[0.07] bg-[#1a1a1a]"
               >
                 {heroGames.map((game, index) => {
@@ -2499,7 +2565,13 @@ export function GameCatalog({
                       href={game.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(event) => launchGame(game, event)}
+                      onClick={(event) => {
+                        if (Date.now() < heroIgnoreClickUntil.current) {
+                          event.preventDefault();
+                          return;
+                        }
+                        launchGame(game, event);
+                      }}
                       aria-hidden={!active}
                       tabIndex={active ? undefined : -1}
                       className={`group absolute inset-0 transition-[opacity,transform] duration-500 ease-out ${

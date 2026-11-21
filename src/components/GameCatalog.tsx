@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, BadgeCheck, Ban, Star, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff, ChevronLeft, ChevronRight, LayoutGrid, Zap, Car, Trophy, Puzzle, Coffee, Users, Crosshair, Swords, Hourglass, Wrench, Layers } from "lucide-react";
+import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, BadgeCheck, Ban, Star, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff, ChevronLeft, ChevronRight, LayoutGrid, Zap, Car, Trophy, Puzzle, Coffee, Users, Crosshair, Swords, Hourglass, Wrench, Layers, Compass, Boxes, Footprints, Ghost } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
@@ -81,8 +81,12 @@ export const CATEGORY_FILTERS = [
   { id: "driving", label: "Driving" },
   { id: "sports", label: "Sports" },
   { id: "arcade", label: "Arcade" },
+  { id: "platformer", label: "Platformer" },
+  { id: "adventure", label: "Adventure" },
   { id: "puzzle", label: "Puzzle" },
   { id: "casual", label: "Casual" },
+  { id: "sandbox", label: "Sandbox" },
+  { id: "horror", label: "Horror" },
   { id: "multiplayer", label: "Multiplayer" },
   { id: "shooting", label: "Shooting" },
   { id: "strategy", label: "Strategy" },
@@ -98,12 +102,16 @@ const GENRE_SHELVES = [
   "driving",
   "sports",
   "arcade",
+  "platformer",
   "puzzle",
+  "adventure",
   "casual",
+  "sandbox",
   "multiplayer",
   "shooting",
   "strategy",
   "idle",
+  "horror",
   "flash",
 ] as const;
 
@@ -121,6 +129,10 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   strategy: "#14b8a6",
   idle: "#8b5cf6",
   tools: "#84cc16",
+  platformer: "#10b981",
+  adventure: "#0ea5e9",
+  sandbox: "#f59e0b",
+  horror: "#64748b",
 };
 
 // Each genre's heading carries its line icon instead of an emoji, which keeps
@@ -138,6 +150,10 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
   strategy: Swords,
   idle: Hourglass,
   tools: Wrench,
+  platformer: Footprints,
+  adventure: Compass,
+  sandbox: Boxes,
+  horror: Ghost,
 };
 
 // Covers are all the same 16:10 size; the two layouts only differ in density.
@@ -390,6 +406,10 @@ const CATEGORY_NAMES: Record<CategoryId, string> = {
   strategy: "Strategy",
   idle: "Idle",
   tools: "Tools",
+  platformer: "Platformer",
+  adventure: "Adventure",
+  sandbox: "Sandbox",
+  horror: "Horror",
   buggy: "Error: bug",
   blocked: "Blocked",
 };
@@ -733,6 +753,32 @@ function matchesCategory(game: GameItem, categoryId: CategoryId): boolean {
         nameLower.includes("clicker") ||
         nameLower.includes("tycoon")
       );
+    case "platformer":
+      return (
+        tagsLower.some((t) =>
+          ["platformer", "parkour", "jumper", "runner", "speedrun", "obstacles", "reflex"].includes(t)
+        ) ||
+        nameLower.includes("jump") ||
+        nameLower.includes("run")
+      );
+    case "adventure":
+      return (
+        tagsLower.some((t) =>
+          ["adventure", "escape", "rpg", "quest", "survival", "space"].includes(t)
+        ) ||
+        nameLower.includes("adventure") ||
+        nameLower.includes("quest")
+      );
+    case "sandbox":
+      return tagsLower.some((t) =>
+        ["sandbox", "physics", "building", "creation", "simulation", "3d physics"].includes(t)
+      );
+    case "horror":
+      return (
+        tagsLower.some((t) => ["horror", "scary", "zombie", "survival"].includes(t)) ||
+        nameLower.includes("horror") ||
+        nameLower.includes("zombie")
+      );
     case "tools":
       return tagsLower.includes("tools") || tagsLower.includes("tool");
     default:
@@ -1023,15 +1069,9 @@ function GameCard({
         {game.disabled ? (
           <span className="truncate">Coming soon</span>
         ) : (
-          <>
-            <span className="truncate tabular-nums" title={`${plays.toLocaleString()} plays`}>
-              {plays > 0 ? `${formatPlays(plays)} plays` : "No plays yet"}
-            </span>
-            <span aria-hidden="true" className="hidden sm:inline">
-              ·
-            </span>
-            <span className="hidden truncate sm:inline">{opensInHub ? "In the hub" : "New tab"}</span>
-          </>
+          <span className="truncate tabular-nums" title={`${plays.toLocaleString()} plays`}>
+            {plays > 0 ? `${formatPlays(plays)} plays` : "No plays yet"}
+          </span>
         )}
       </div>
 
@@ -2336,10 +2376,12 @@ export function GameCatalog({
                 onTouchEnd={onHeroTouchEnd}
                 onTouchCancel={onHeroTouchCancel}
                 style={{ touchAction: "pan-y" }}
-                className="relative h-[13rem] overflow-hidden rounded-2xl border border-white/[0.07] bg-[#1a1a1a]"
+                className="relative grid overflow-hidden rounded-2xl border border-white/[0.07] bg-[#1b1b1b]"
               >
                 {heroGames.map((game, index) => {
                   const active = index === heroIndex % heroGames.length;
+                  const heroCategory = gameCategory(game);
+                  const HeroCategoryIcon = CATEGORY_ICONS[heroCategory] ?? Gamepad2;
                   return (
                     <a
                       key={game.id}
@@ -2355,45 +2397,54 @@ export function GameCatalog({
                       }}
                       aria-hidden={!active}
                       tabIndex={active ? undefined : -1}
-                      className={`group absolute inset-0 transition-[opacity,transform] duration-200 ease-out ${
-                        active
-                          ? "z-10 translate-x-0 opacity-100"
-                          : "pointer-events-none z-0 translate-x-3 opacity-0"
+                      className={`group col-start-1 row-start-1 min-w-0 transition-opacity duration-200 ease-out ${
+                        active ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0"
                       }`}
                     >
-                      {/* The cover takes the right third; the title keeps the rest. */}
-                      <div className="absolute inset-y-0 right-0 w-1/3 overflow-hidden">
-                        <GameCoverArt
-                          game={game}
-                          accent={gameAccent(game)}
-                          eager={index === 0}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#1a1a1a]/40 to-[#1a1a1a]" />
-                      </div>
-                      <div className="relative z-10 flex h-full flex-col justify-end gap-1.5 p-4">
-                        <div className="min-w-0 max-w-[62%]">
-                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-300">
+                      {/* The cover sits in its own frame beside the title, so the
+                          art keeps its 16:10 crop at every width. */}
+                      <div className="flex h-full">
+                        <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 p-4 sm:p-5">
+                          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-medium text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />
                             {isEditorPick(game) ? "Editor's pick" : "#1 game today"}
                           </span>
                           <h2
                             id={active ? "top-game-heading" : undefined}
-                            className="mt-1 line-clamp-2 text-[28px] font-semibold leading-tight tracking-tight text-white"
+                            className="line-clamp-2 text-[22px] font-semibold leading-[1.15] text-white sm:text-[28px] lg:text-[30px]"
                           >
                             {game.name}
                           </h2>
-                          <p className="mt-1 line-clamp-2 text-[14px] leading-snug text-zinc-400">
+                          <p className="line-clamp-2 max-w-[46ch] text-[13px] leading-relaxed text-zinc-400">
                             {game.description}
                           </p>
-                          {totalPlays(game) > 0 && (
-                            <p className="mt-1 text-[11px] font-medium tabular-nums text-zinc-500">
-                              {formatPlays(totalPlays(game))} plays
-                            </p>
-                          )}
-                          <span className="mt-1.5 inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-300">
-                            <Play aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
-                            Play
-                          </span>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pt-0.5">
+                            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-950 transition-colors group-hover:bg-zinc-200">
+                              <Play aria-hidden="true" className="h-3 w-3 fill-current" />
+                              Play
+                            </span>
+                            <span className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] tabular-nums text-zinc-500">
+                              <HeroCategoryIcon aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">{CATEGORY_NAMES[heroCategory]}</span>
+                              {totalPlays(game) > 0 && (
+                                <>
+                                  <span aria-hidden="true">·</span>
+                                  <span className="truncate">{formatPlays(totalPlays(game))} plays</span>
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex w-[34%] max-w-[19rem] shrink-0 items-center p-3 pl-0 sm:w-[38%]">
+                          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-white/[0.08] bg-black/30">
+                            <GameCoverArt
+                              game={game}
+                              accent={gameAccent(game)}
+                              eager={index === 0}
+                              sizes="(min-width: 1024px) 20rem, 34vw"
+                            />
+                          </div>
                         </div>
                       </div>
                     </a>
@@ -2405,7 +2456,7 @@ export function GameCatalog({
                 <div
                   role="group"
                   aria-label="Choose the top game"
-                  className="flex items-center justify-center gap-1"
+                  className="flex items-center justify-center gap-1.5"
                 >
                   {heroGames.map((game, index) => {
                     const active = index === heroIndex % heroGames.length;
@@ -2421,10 +2472,10 @@ export function GameCatalog({
                       >
                         <span
                           aria-hidden="true"
-                          className={`block rounded-full transition-[width,height,background-color] duration-150 ease-out ${
+                          className={`block rounded-full transition-[width,background-color] duration-150 ease-out ${
                             active
-                              ? "h-2 w-2 bg-amber-300"
-                              : "h-1.5 w-1.5 bg-white/25 group-hover/dot:bg-white/50"
+                              ? "h-1 w-5 bg-amber-300"
+                              : "h-1 w-1.5 bg-white/20 group-hover/dot:bg-white/40"
                           }`}
                         />
                       </button>

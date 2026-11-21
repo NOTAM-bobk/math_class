@@ -31,6 +31,10 @@ import {
   Ghost,
   Heart,
   History,
+  Footprints,
+  Boxes,
+  Map as MapIcon,
+  Moon,
   Home,
   Hourglass,
   Infinity as InfinityIcon,
@@ -813,12 +817,16 @@ export function App() {
           category("driving", "Driving", Car),
           category("sports", "Sports", Trophy),
           category("arcade", "Arcade", Gamepad2),
+          category("platformer", "Platformer", Footprints),
+          category("adventure", "Adventure", MapIcon),
           category("puzzle", "Puzzle", Puzzle),
           category("casual", "Casual", InfinityIcon),
+          category("sandbox", "Sandbox", Boxes),
           category("multiplayer", "Multiplayer", Users),
           category("shooting", "Shooting", Crosshair),
           category("strategy", "Strategy", Swords),
           category("idle", "Idle", Hourglass),
+          category("horror", "Horror", Moon),
           category("flash", "Flash", Ghost),
           category("tools", "Tools", Wrench),
         ],
@@ -1008,6 +1016,22 @@ export function App() {
             </div>
 
             <div className="relative z-10 order-2 col-start-3 row-start-1 ml-auto flex shrink-0 items-center gap-1 justify-self-end sm:col-auto sm:row-auto sm:gap-2">
+              {/* Wide headers have room for the streak itself; narrower ones keep
+                  it in the More menu. */}
+              {streak.current > 0 && (
+                <button
+                  type="button"
+                  onClick={() => openSettings("streak")}
+                  title="Open your daily streak"
+                  aria-label={`${streak.current}-day streak, open streak details`}
+                  aria-haspopup="dialog"
+                  style={ICON_BUTTON_STYLE}
+                  className="hidden h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300 active:scale-[0.98] xl:inline-flex"
+                >
+                  <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
+                  <span className="whitespace-nowrap tabular-nums">{streak.current}-day streak</span>
+                </button>
+              )}
               <NotificationsButton
                 onOpenChangelog={() => setChangelogOpen(true)}
                 onOpenChat={openChatFromNotification}
@@ -1054,7 +1078,7 @@ export function App() {
                           setHeaderMenuOpen(false);
                           openSettings("streak");
                         }}
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06] xl:hidden"
                       >
                         <Flame aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
                         <span className="tabular-nums">{streak.current}-day streak</span>

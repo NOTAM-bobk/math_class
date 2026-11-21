@@ -119,7 +119,7 @@ const SITE_MIRRORS = [
 
 type ProxyCheckStatus = "idle" | "checking" | "reachable" | "blocked";
 
-type DesktopTab = "account" | "general" | "install" | "shortcuts" | "stats" | "streak" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "offline" | "proxies" | "changelog" | "admin";
+type DesktopTab = "account" | "general" | "install" | "shortcuts" | "stats" | "streak" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "launched" | "offline" | "proxies" | "changelog" | "admin";
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
   { heading: "Account", items: [
@@ -145,6 +145,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
     { id: "changelog", label: "Change log", icon: ScrollText, keywords: "change log updates history check for update version update now" },
     { id: "ads", label: "Ad", icon: Megaphone, keywords: "ad ads notification ads block" },
     { id: "referrals", label: "Referrals", icon: Gift, keywords: "referral referrals reward rewards links partners support exclusive" },
+    { id: "launched", label: "Launched on", icon: Trophy, keywords: "launched on launch streak launchstreak badge listed directory" },
   ] },
   { heading: "Admin", items: [
     { id: "admin", label: "Admin", icon: Shield, keywords: "admin built by ss last updated time footer credit" },
@@ -3587,6 +3588,49 @@ export function SettingsModal({
             <p className="text-[11px] leading-relaxed text-zinc-500">
               Checkout isn’t open yet. The button unlocks when Ultra launches.
             </p>
+          </div>
+        </section>
+        </div>
+
+        {/* Where the hub is listed. The badge links out to the Launch Streak listing. */}
+        <div style={paneStyle("launched")}>
+        <section
+          aria-labelledby="launched-title"
+          className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+            <Trophy aria-hidden="true" className="h-4 w-4 text-zinc-400" />
+            <h3 id="launched-title">Launched on</h3>
+          </div>
+          <p className="text-xs leading-relaxed text-zinc-400">
+            math_games is listed on Launch Streak. Visit the listing to see it alongside other games.
+          </p>
+
+          <div className="flex flex-col items-start gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+            <a
+              href="https://launchstreak.dev/games/math-games"
+              target="_blank"
+              rel="noopener"
+              className="inline-block rounded-lg transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            >
+              <img
+                src="https://launchstreak.dev/badge/launch-streak-badge-light.svg"
+                alt="Launched on Launch Streak"
+                width={248}
+                height={68}
+                loading="lazy"
+                className="h-[68px] w-[248px] max-w-full"
+              />
+            </a>
+            <a
+              href="https://launchstreak.dev/games/math-games"
+              target="_blank"
+              rel="noopener"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-300 transition-colors hover:text-white"
+            >
+              <span>View the listing</span>
+              <ExternalLink aria-hidden="true" className="h-3 w-3" />
+            </a>
           </div>
         </section>
         </div>

@@ -105,7 +105,7 @@ export function BotChallengeGate({ onVerified }: { onVerified: () => void }) {
         className="flex w-full max-w-sm flex-col items-center p-6 text-center sm:p-7"
         style={{
           background: "#1d1d1d",
-          borderRadius: 20,
+          borderRadius: 16,
           boxShadow:
             "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
         }}
@@ -113,7 +113,7 @@ export function BotChallengeGate({ onVerified }: { onVerified: () => void }) {
         <div
           className="mb-4 p-3 text-zinc-300"
           style={{
-            borderRadius: 36,
+            borderRadius: 999,
             background: "rgba(255, 255, 255, 0.05)",
             boxShadow:
               "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",

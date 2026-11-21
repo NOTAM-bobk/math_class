@@ -145,12 +145,12 @@
          The lift below is applied on hover only, where a single card is affected. */
       .game-card {
         background: #1d1d1d !important;
-        border-radius: 20px !important;
+        border-radius: 16px !important;
         border: 1px solid rgba(255, 255, 255, 0.07) !important;
         position: relative;
         isolation: isolate;
         contain: layout style;
-        transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 220ms ease;
+        transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms cubic-bezier(0.2, 0, 0, 1);
       }
 
       /* Mosaic cards sit in fixed-height grid cells, so cards left outside the viewport can skip
@@ -164,7 +164,7 @@
          the card stuck in its hover state, so the cover stayed zoomed in after you moved on. */
       .game-card-cover,
       .game-card-cover-soft {
-        transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform 200ms cubic-bezier(0.2, 0, 0, 1);
       }
 
       .no-scrollbar::-webkit-scrollbar {
@@ -177,7 +177,7 @@
 
       /* One focus treatment for the whole hub, so keyboard users can always see where they are.
          The stretched card link below replaces its own ring with a ring around the whole card. */
-      :where(a, button, input, textarea, select, [role="switch"], [role="radio"]):not(.game-card-link):focus-visible {
+      :where(a, button, input, textarea, select, summary, [role="button"], [role="link"], [role="switch"], [role="radio"], [role="checkbox"], [role="tab"], [role="menuitem"], [role="option"], [tabindex]:not([tabindex="-1"])):not(.game-card-link):focus-visible {
         outline: 2px solid rgba(250, 250, 250, 0.92) !important;
         outline-offset: 2px !important;
       }
@@ -188,7 +188,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        border-radius: 20px;
+        border-radius: 16px;
       }
 
       .game-card-link:focus-visible {
@@ -235,7 +235,7 @@
       .game-card:hover .game-card-cover-soft,
       .game-card:focus-within .game-card-cover-soft {
         transform: scale(1.05);
-        transition-duration: 300ms;
+        transition-duration: 150ms;
       }
       }
 
@@ -255,13 +255,13 @@
       /* Solid 3D container panels (catalog area, chat board, view counter) */
       .solid-3d-panel {
         background: #1d1d1d !important;
-        border-radius: 20px !important;
+        border-radius: 16px !important;
         border: 1px solid rgba(255, 255, 255, 0.07) !important;
         position: relative;
       }
 
       .solid-3d-chip {
-        border-radius: 36px;
+        border-radius: 999px;
         background: transparent;
         border: 1px solid rgba(255, 255, 255, 0.07);
       }
@@ -288,10 +288,10 @@
       @keyframes settings-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
       @keyframes settings-panel-in { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
       @keyframes settings-panel-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(12px) scale(0.97); } }
-      .settings-backdrop-enter { animation: settings-backdrop-in 200ms ease-out both; }
-      .settings-backdrop-exit { animation: settings-backdrop-out 180ms ease-in both; }
-      .settings-panel-enter { animation: settings-panel-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-      .settings-panel-exit { animation: settings-panel-out 180ms ease-in both; }
+      .settings-backdrop-enter { animation: settings-backdrop-in 150ms cubic-bezier(0.2, 0, 0, 1) both; }
+      .settings-backdrop-exit { animation: settings-backdrop-out 150ms cubic-bezier(0.2, 0, 0, 1) both; }
+      .settings-panel-enter { animation: settings-panel-in 200ms cubic-bezier(0.2, 0, 0, 1) both; }
+      .settings-panel-exit { animation: settings-panel-out 150ms cubic-bezier(0.2, 0, 0, 1) both; }
 
       @media (prefers-reduced-motion: reduce) {
         .settings-backdrop-enter, .settings-backdrop-exit, .settings-panel-enter, .settings-panel-exit { animation: none; }
@@ -299,7 +299,7 @@
         .game-card:hover { transform: none; }
         .game-card-cover, .game-card-cover-soft { transition: none; }
         .game-card:hover .game-card-cover, .game-card:hover .game-card-cover-soft { transform: none; }
-        .animate-spin, .animate-pulse, .animate-bounce { animation: none; }
+        .animate-spin, .animate-pulse, .animate-bounce, .animate-enter { animation: none; }
       }
 
       /* Touch devices: backdrop blur re-samples everything behind it on every scroll frame. */
@@ -366,7 +366,7 @@
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+        transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1), transform 200ms cubic-bezier(0.2, 0, 0, 1);
         z-index: 10;
       }
 

@@ -15,7 +15,7 @@ interface BugReportModalProps {
 }
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -159,7 +159,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
         className="relative my-auto flex w-full max-w-lg flex-col gap-4 p-5 text-zinc-100 focus:outline-none sm:p-6"
         style={{
           background: "#1d1d1d",
-          borderRadius: 20,
+          borderRadius: 16,
           border: "none",
           boxShadow:
             "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
@@ -170,7 +170,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
           <div className="flex items-center gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: "rgba(245, 158, 11, 0.12)",
                 boxShadow: "inset 0 0 0 1px rgba(245, 158, 11, 0.2)",
               }}
@@ -241,7 +241,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
                 placeholder="e.g. BitLife, Run 3, Live Chat, Fullscreen…"
                 maxLength={200}
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 8,
                   background: "rgba(255, 255, 255, 0.04)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                 }}
@@ -266,7 +266,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
                 placeholder="e.g. Flash emulator says network blocked…"
                 maxLength={120}
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 8,
                   background: "rgba(255, 255, 255, 0.04)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                 }}
@@ -295,7 +295,7 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
                 placeholder="Describe what went wrong, any error text shown, or what you were doing when it occurred…"
                 maxLength={3000}
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 8,
                   background: "rgba(255, 255, 255, 0.04)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                 }}

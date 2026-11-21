@@ -76,7 +76,7 @@ function NumberTicker({ end }: { end: number }) {
 }
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "transparent",
   border: "1px solid rgba(255, 255, 255, 0.07)",
 };
@@ -103,7 +103,7 @@ export function VisitorCounter() {
       className="solid-3d-panel w-full px-4 py-3 flex items-center justify-between gap-3"
       style={{
         background: "#1d1d1d",
-        borderRadius: 20,
+        borderRadius: 16,
         border: "1px solid rgba(255, 255, 255, 0.07)",
       }}
       title={offline ? "Showing the last saved total" : "Total visits to this site"}
@@ -123,7 +123,7 @@ export function VisitorCounter() {
           border: "1px solid rgba(255, 255, 255, 0.06)",
           padding: "3px 8px",
         }}
-        className={`flex items-center transition-opacity ${count === null ? "opacity-40 animate-pulse" : ""}`}
+        className="flex items-center justify-center"
         role="img"
         aria-label={
           count === null
@@ -131,7 +131,13 @@ export function VisitorCounter() {
             : `${count.toLocaleString("en-US")} total visits`
         }
       >
-        <NumberTicker end={count ?? 0} />
+        {count === null ? (
+          <span aria-hidden="true" className="flex h-7 items-center px-1 font-mono text-lg leading-none text-zinc-500 sm:h-8">
+            —
+          </span>
+        ) : (
+          <NumberTicker end={count} />
+        )}
       </div>
     </div>
   );

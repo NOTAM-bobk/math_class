@@ -173,7 +173,7 @@ const KEYBOARD_SHORTCUTS: { label: string; keys: string }[] = [
 ];
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -735,8 +735,8 @@ export function SettingsModal({
     const lines = [
       "My math_games stats",
       `${formatPlayTime(playStats.totalPlayMs)} on site`,
-      `${playStats.totalClicks.toLocaleString()} game clicks`,
-      `${playStats.games.length.toLocaleString()} games played`,
+      `${playStats.totalClicks.toLocaleString("en-US")} game clicks`,
+      `${playStats.games.length.toLocaleString("en-US")} games played`,
       mostPlayed[0] ? `Top game: ${mostPlayed[0].name}` : "",
     ].filter(Boolean);
     const text = lines.join("\n");
@@ -985,7 +985,7 @@ export function SettingsModal({
         className={`${isDesktop ? "sm-desk relative flex h-[85vh] w-full max-w-5xl flex-row overflow-hidden p-0 focus:outline-none" : "relative flex max-h-[calc(100dvh-5.25rem)] w-full max-w-lg flex-col gap-5 overflow-y-auto p-5 pt-6 text-zinc-100 focus:outline-none sm:my-auto sm:max-w-2xl sm:p-6 md:max-h-[88vh]"} ${closing ? "settings-panel-exit" : "settings-panel-enter"}`}
         style={{
           background: "#1d1d1d",
-          borderRadius: 20,
+          borderRadius: 16,
           border: "none",
           boxShadow:
             "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
@@ -1027,7 +1027,7 @@ export function SettingsModal({
                         onClick={() => setDesktopTab(item.id)}
                         aria-current={active ? "page" : undefined}
                         className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors"
-                        style={active ? { ...CHIP_STYLE, borderRadius: 10, background: "rgba(255, 255, 255, 0.07)", color: "#f4f4f5", fontWeight: 500, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.35)" } : { color: "#a1a1aa" }}
+                        style={active ? { ...CHIP_STYLE, borderRadius: 8, background: "rgba(255, 255, 255, 0.07)", color: "#f4f4f5", fontWeight: 500, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.35)" } : { color: "#a1a1aa" }}
                       >
                         <Icon className="h-4 w-4" />
                         {item.label}
@@ -1292,7 +1292,7 @@ export function SettingsModal({
               <div className="flex items-start gap-2.5">
                 <div
                   style={{
-                    borderRadius: 36,
+                    borderRadius: 999,
                     background: "rgba(56, 189, 248, 0.12)",
                     boxShadow: "inset 0 0 0 1px rgba(56, 189, 248, 0.2)",
                   }}
@@ -1508,7 +1508,7 @@ export function SettingsModal({
           <div className="flex items-start gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: "rgba(255, 255, 255, 0.04)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
@@ -1579,7 +1579,7 @@ export function SettingsModal({
           <div className="flex items-start gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: "rgba(56, 189, 248, 0.12)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
@@ -1635,9 +1635,9 @@ export function SettingsModal({
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               { label: "Time on site", value: formatPlayTime(playStats.totalPlayMs), icon: Timer, tone: "text-sky-400" },
-              { label: "Game clicks", value: playStats.totalClicks.toLocaleString(), icon: MousePointerClick, tone: "text-emerald-400" },
-              { label: "Games played", value: playStats.games.length.toLocaleString(), icon: Gamepad2, tone: "text-amber-400" },
-              { label: "Sessions", value: playStats.totalSessions.toLocaleString(), icon: Trophy, tone: "text-purple-400" },
+              { label: "Game clicks", value: playStats.totalClicks.toLocaleString("en-US"), icon: MousePointerClick, tone: "text-emerald-400" },
+              { label: "Games played", value: playStats.games.length.toLocaleString("en-US"), icon: Gamepad2, tone: "text-amber-400" },
+              { label: "Sessions", value: playStats.totalSessions.toLocaleString("en-US"), icon: Trophy, tone: "text-purple-400" },
             ].map((tile) => {
               const Icon = tile.icon;
               return (
@@ -1734,7 +1734,7 @@ export function SettingsModal({
           <div className="flex items-start gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: "rgba(251, 191, 36, 0.14)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
@@ -1804,7 +1804,7 @@ export function SettingsModal({
                 Longest streak
               </div>
               <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
-                {streak.longest.toLocaleString()}
+                {streak.longest.toLocaleString("en-US")}
                 <span className="ml-1 text-xs font-normal text-zinc-500">
                   {streak.longest === 1 ? "day" : "days"}
                 </span>
@@ -1816,7 +1816,7 @@ export function SettingsModal({
                 Total days
               </div>
               <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
-                {streak.totalDays.toLocaleString()}
+                {streak.totalDays.toLocaleString("en-US")}
                 <span className="ml-1 text-xs font-normal text-zinc-500">visited</span>
               </div>
             </div>
@@ -1953,7 +1953,7 @@ export function SettingsModal({
             <div className="flex items-center gap-2">
               <div
                 style={{
-                  borderRadius: 36,
+                  borderRadius: 999,
                   background: siteLockEnabled ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                 }}
@@ -1982,7 +1982,7 @@ export function SettingsModal({
             <button
               type="button"
               onClick={handleToggleLock}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-out ${
                 siteLockEnabled ? "bg-emerald-600" : "bg-zinc-700"
               }`}
               role="switch"
@@ -1990,7 +1990,7 @@ export function SettingsModal({
               aria-label="Site Lock"
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-out ${
                   siteLockEnabled ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -1999,7 +1999,7 @@ export function SettingsModal({
 
           <div
             style={{
-              borderRadius: 14,
+              borderRadius: 12,
               background: "rgba(0, 0, 0, 0.3)",
               boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               padding: "12px",
@@ -2034,7 +2034,7 @@ export function SettingsModal({
                     aria-invalid={lockError ? true : undefined}
                     aria-describedby="site-lock-hint"
                     style={{
-                      borderRadius: 10,
+                      borderRadius: 8,
                       background: "rgba(255, 255, 255, 0.04)",
                       boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                     }}
@@ -2106,7 +2106,7 @@ export function SettingsModal({
             <div className="flex items-center gap-2">
               <div
                 style={{
-                  borderRadius: 36,
+                  borderRadius: 999,
                   background: "rgba(168, 85, 247, 0.12)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                 }}
@@ -2118,7 +2118,7 @@ export function SettingsModal({
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                   <span id="background-controls-title">Background Style</span>
                   {bgNotice && (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-fade-in">
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-enter">
                       {bgNotice}
                     </span>
                   )}
@@ -2132,7 +2132,7 @@ export function SettingsModal({
 
           <div
             style={{
-              borderRadius: 14,
+              borderRadius: 12,
               background: "rgba(0, 0, 0, 0.3)",
               boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               padding: "12px",
@@ -2196,7 +2196,7 @@ export function SettingsModal({
                         <div
                           style={{
                             background: preset.preview,
-                            borderRadius: 10,
+                            borderRadius: 8,
                             boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.2), 0 2px 6px rgba(0,0,0,0.4)",
                           }}
                           className="h-10 w-10 shrink-0"
@@ -2335,7 +2335,7 @@ export function SettingsModal({
               <div className="flex items-center gap-2">
                 <div
                   style={{
-                    borderRadius: 36,
+                    borderRadius: 999,
                     background: "rgba(99, 102, 241, 0.12)",
                     boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                   }}
@@ -2347,7 +2347,7 @@ export function SettingsModal({
                   <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
                     <span>System Font</span>
                     {fontNotice && (
-                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-fade-in">
+                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-enter">
                         {fontNotice}
                       </span>
                     )}
@@ -2373,7 +2373,7 @@ export function SettingsModal({
 
             <div
               style={{
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "rgba(0, 0, 0, 0.3)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                 padding: "12px",
@@ -2383,13 +2383,13 @@ export function SettingsModal({
               {/* Active Font Preview Card */}
               <div
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 8,
                   background: "rgba(255, 255, 255, 0.03)",
                   border: "1px solid rgba(255, 255, 255, 0.07)",
                   padding: "12px 14px",
                   fontFamily: SYSTEM_FONTS.find((f) => f.id === currentFontId)?.family,
                 }}
-                className="flex flex-col gap-1 transition-all"
+                className="flex flex-col gap-1 transition-colors duration-150"
               >
                 <div className="flex items-center justify-between text-[11px] font-sans text-zinc-500">
                   <span>LIVE TYPOGRAPHY PREVIEW</span>
@@ -2477,7 +2477,7 @@ export function SettingsModal({
           <div className="flex items-center gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: notificationsOn || chatNotificationsOn ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
@@ -2511,7 +2511,7 @@ export function SettingsModal({
             <button
               type="button"
               onClick={handleToggleChatNotifications}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-out ${
                 chatNotificationsOn ? "bg-emerald-600" : "bg-zinc-700"
               }`}
               role="switch"
@@ -2519,7 +2519,7 @@ export function SettingsModal({
               aria-label="Notfiy me when new chat message"
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-out ${
                   chatNotificationsOn ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -2551,7 +2551,7 @@ export function SettingsModal({
             <button
               type="button"
               onClick={handleToggleNotifications}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-out ${
                 notificationsOn ? "bg-emerald-600" : "bg-zinc-700"
               }`}
               role="switch"
@@ -2559,7 +2559,7 @@ export function SettingsModal({
               aria-label="New game notifications"
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-out ${
                   notificationsOn ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -2592,7 +2592,7 @@ export function SettingsModal({
           <div className="flex items-start gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: offlineStatus?.cachedFiles ? "rgba(34, 197, 94, 0.12)" : "rgba(56, 189, 248, 0.12)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
@@ -2993,7 +2993,7 @@ export function SettingsModal({
           <div className="flex items-center gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: "rgba(239, 68, 68, 0.12)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
@@ -3016,7 +3016,7 @@ export function SettingsModal({
 
           <div
             style={{
-              borderRadius: 14,
+              borderRadius: 12,
               background: "rgba(0, 0, 0, 0.3)",
               boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               padding: "12px",
@@ -3069,7 +3069,7 @@ export function SettingsModal({
                 autoComplete="off"
                 spellCheck={false}
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 8,
                   background: "rgba(255, 255, 255, 0.04)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                 }}
@@ -3094,7 +3094,7 @@ export function SettingsModal({
               <div className="flex items-center gap-2">
                 <div
                   style={{
-                    borderRadius: 36,
+                    borderRadius: 999,
                     background: "rgba(56, 189, 248, 0.12)",
                     boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                   }}
@@ -3156,7 +3156,7 @@ export function SettingsModal({
               <div className="flex items-start gap-2.5">
                 <div
                   style={{
-                    borderRadius: 36,
+                    borderRadius: 999,
                     background: "rgba(56, 189, 248, 0.12)",
                     boxShadow: "inset 0 0 0 1px rgba(56, 189, 248, 0.2)",
                   }}
@@ -3359,7 +3359,7 @@ export function SettingsModal({
 
           <div
             style={{
-              borderRadius: 14,
+              borderRadius: 12,
               background: "rgba(0, 0, 0, 0.3)",
               boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               padding: "12px",
@@ -3441,7 +3441,7 @@ export function SettingsModal({
           <div className="flex items-start gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: "rgba(59, 130, 246, 0.12)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
               }}
@@ -3522,7 +3522,7 @@ export function SettingsModal({
             <div className="flex items-center gap-2">
               <div
                 style={{
-                  borderRadius: 36,
+                  borderRadius: 999,
                   background: "rgba(255, 255, 255, 0.05)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                 }}

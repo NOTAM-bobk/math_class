@@ -13,7 +13,7 @@ interface ChangelogModalProps {
 }
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -70,7 +70,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
         className="relative my-auto flex w-full max-w-lg flex-col gap-4 p-5 text-zinc-100 focus:outline-none sm:max-w-3xl sm:p-6 md:max-h-[90vh]"
         style={{
           background: "#1d1d1d",
-          borderRadius: 20,
+          borderRadius: 16,
           border: "none",
           boxShadow:
             "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
@@ -80,7 +80,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
           <div className="flex items-center gap-2">
             <div
-              style={{ borderRadius: 36, background: "rgba(56, 189, 248, 0.12)" }}
+              style={{ borderRadius: 999, background: "rgba(56, 189, 248, 0.12)" }}
               className="p-1.5 text-sky-400"
             >
               <History aria-hidden="true" className="h-4 w-4" />
@@ -176,7 +176,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
                 key={entry.version}
                 aria-labelledby={`changelog-${entry.version}`}
                 style={{
-                  borderRadius: 14,
+                  borderRadius: 12,
                   background: "rgba(0, 0, 0, 0.3)",
                   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
                 }}

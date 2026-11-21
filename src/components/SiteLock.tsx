@@ -49,7 +49,7 @@ export function SiteLock({ onUnlock }: SiteLockProps) {
         }`}
         style={{
           background: "#1d1d1d",
-          borderRadius: 20,
+          borderRadius: 16,
           border: "none",
           boxShadow:
             "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
@@ -57,7 +57,7 @@ export function SiteLock({ onUnlock }: SiteLockProps) {
       >
         <div
           style={{
-            borderRadius: 36,
+            borderRadius: 999,
             background: "rgba(255, 255, 255, 0.05)",
             boxShadow:
               "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
@@ -103,7 +103,7 @@ export function SiteLock({ onUnlock }: SiteLockProps) {
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? "class-password-error" : undefined}
               style={{
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "rgba(255, 255, 255, 0.04)",
                 boxShadow:
                   "inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 3px rgba(0, 0, 0, 0.4)",

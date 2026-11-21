@@ -141,7 +141,7 @@ function normalizeGameUrl(url: string) {
 }
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -816,7 +816,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
         className="relative my-auto flex w-full max-w-2xl flex-col gap-4 p-5 text-zinc-100 focus:outline-none sm:p-6"
         style={{
           background: "#1d1d1d",
-          borderRadius: 20,
+          borderRadius: 16,
           border: "none",
           boxShadow:
             "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
@@ -828,7 +828,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
           <div className="flex items-center gap-2">
             <div
               style={{
-                borderRadius: 36,
+                borderRadius: 999,
                 background: "rgba(59, 130, 246, 0.12)",
                 boxShadow: "inset 0 0 0 1px rgba(59, 130, 246, 0.2)",
               }}
@@ -977,7 +977,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Verified Games</span>
                 {verifiedIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-emerald-500/30 text-emerald-200">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/30 text-emerald-200">
                     {verifiedIds.size}
                   </span>
                 )}
@@ -1008,7 +1008,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Heart className="w-3.5 h-3.5 text-amber-300" />
                 <span>Editor's Picks</span>
                 {editorPicks.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-amber-500/30 text-amber-200">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-amber-500/30 text-amber-200">
                     {editorPicks.size}
                   </span>
                 )}
@@ -1026,7 +1026,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Bug className="w-3.5 h-3.5 text-rose-400" />
                 <span>error:bug Tags</span>
                 {buggyIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-rose-500/30 text-rose-200">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/30 text-rose-200">
                     {buggyIds.size}
                   </span>
                 )}
@@ -1044,7 +1044,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <span>😿</span>
                 <span>Blocked:😿</span>
                 {blockedIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-purple-500/30 text-purple-200">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-purple-500/30 text-purple-200">
                     {blockedIds.size}
                   </span>
                 )}
@@ -1062,7 +1062,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Smartphone className="w-3.5 h-3.5 text-amber-400" />
                 <span>Not Mobile Optimized</span>
                 {notMobileIds.size > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-amber-500/30 text-amber-200">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-amber-500/30 text-amber-200">
                     {notMobileIds.size}
                   </span>
                 )}
@@ -1080,7 +1080,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Shield className="w-3.5 h-3.5 text-blue-400" />
                 <span>Bug Reports</span>
                 {bugs.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-blue-500/30 text-blue-200">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-blue-500/30 text-blue-200">
                     {bugs.length}
                   </span>
                 )}
@@ -1098,7 +1098,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 <Send className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Game Requests</span>
                 {submissions.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-cyan-500/30 text-cyan-200">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-cyan-500/30 text-cyan-200">
                     {submissions.length}
                   </span>
                 )}
@@ -1108,7 +1108,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
               {/* Cloudflare Sync Badge & Push Button */}
               <div className="flex items-center gap-2">
                 {cloudflareNotice && (
-                  <span className="text-[11px] font-medium text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md animate-fade-in">
+                  <span className="text-[11px] font-medium text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md animate-enter">
                     {cloudflareNotice}
                   </span>
                 )}
@@ -1182,7 +1182,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                     onChange={(e) => setDailySearch(e.target.value)}
                     placeholder="Search games…"
                     style={{
-                      borderRadius: 10,
+                      borderRadius: 8,
                       background: "rgba(255, 255, 255, 0.04)",
                       boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                     }}
@@ -1273,7 +1273,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                     onChange={(e) => setEditorSearch(e.target.value)}
                     placeholder="Search games…"
                     style={{
-                      borderRadius: 10,
+                      borderRadius: 8,
                       background: "rgba(255, 255, 255, 0.04)",
                       boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                     }}
@@ -1374,7 +1374,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                       onChange={(e) => setVerifiedSearch(e.target.value)}
                       placeholder="Filter games by name or tag…"
                       style={{
-                        borderRadius: 10,
+                        borderRadius: 8,
                         background: "rgba(255, 255, 255, 0.04)",
                         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                       }}
@@ -1529,7 +1529,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                       onChange={(e) => setGameSearch(e.target.value)}
                       placeholder="Filter games by name or tag…"
                       style={{
-                        borderRadius: 10,
+                        borderRadius: 8,
                         background: "rgba(255, 255, 255, 0.04)",
                         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                       }}
@@ -1618,7 +1618,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                       border: "1px solid rgba(239, 68, 68, 0.35)",
                                       color: "#fca5a5",
                                     }}
-                                    className="px-2 py-0.2 text-[11px] font-mono font-semibold tracking-wide rounded-full inline-flex items-center gap-1"
+                                    className="px-2 py-0.5 text-[11px] font-mono font-semibold tracking-wide rounded-full inline-flex items-center gap-1"
                                   >
                                     <Bug className="w-2.5 h-2.5 text-rose-400" />
                                     error:bug
@@ -1690,7 +1690,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                       onChange={(e) => setGameSearch(e.target.value)}
                       placeholder="Filter games by name or tag…"
                       style={{
-                        borderRadius: 10,
+                        borderRadius: 8,
                         background: "rgba(255, 255, 255, 0.04)",
                         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                       }}
@@ -1779,7 +1779,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                       border: "1px solid rgba(245, 158, 11, 0.35)",
                                       color: "#fcd34d",
                                     }}
-                                    className="px-2 py-0.2 text-[11px] font-mono font-semibold tracking-wide rounded-full inline-flex items-center gap-1"
+                                    className="px-2 py-0.5 text-[11px] font-mono font-semibold tracking-wide rounded-full inline-flex items-center gap-1"
                                   >
                                     <Smartphone className="w-2.5 h-2.5 text-amber-400" />
                                     no mobile
@@ -1851,7 +1851,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                       onChange={(e) => setGameSearch(e.target.value)}
                       placeholder="Filter games by name or tag…"
                       style={{
-                        borderRadius: 10,
+                        borderRadius: 8,
                         background: "rgba(255, 255, 255, 0.04)",
                         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                       }}
@@ -1934,12 +1934,12 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                                 {isBlocked && (
                                   <span
                                     style={{
-                                      borderRadius: 36,
+                                      borderRadius: 999,
                                       background: "linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(126, 34, 206, 0.16))",
                                       border: "1px solid rgba(168, 85, 247, 0.45)",
                                       color: "#e9d5ff",
                                     }}
-                                    className="px-1.5 py-0.2 text-[11px] font-mono font-semibold"
+                                    className="px-1.5 py-0.5 text-[11px] font-mono font-semibold"
                                   >
                                     Blocked:😿
                                   </span>
@@ -2043,7 +2043,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                         <div
                           key={bug.id}
                           style={{
-                            borderRadius: 14,
+                            borderRadius: 12,
                             background: "rgba(255, 255, 255, 0.03)",
                             boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
                           }}
@@ -2178,7 +2178,7 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                         <div
                           key={submission.id}
                           style={{
-                            borderRadius: 14,
+                            borderRadius: 12,
                             background: "rgba(255, 255, 255, 0.03)",
                             boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
                           }}

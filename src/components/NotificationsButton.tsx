@@ -303,7 +303,7 @@ export function NotificationsButton({
               width: panelLayout.width,
               maxHeight: panelLayout.maxHeight,
             }}
-            className="z-[75] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#1d1d1d] text-zinc-100 shadow-[0_24px_60px_rgba(0,0,0,0.55)] outline-none animate-in fade-in slide-in-from-top-2 duration-150 [scrollbar-width:thin]"
+            className="z-[75] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#1d1d1d] text-zinc-100 shadow-[0_24px_60px_rgba(0,0,0,0.55)] outline-none animate-enter [scrollbar-width:thin]"
           >
             <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-white/[0.08] bg-[#1d1d1d]/95 px-3.5 py-2.5 backdrop-blur">
               <Bell aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />

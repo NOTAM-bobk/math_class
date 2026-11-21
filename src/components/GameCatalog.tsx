@@ -44,7 +44,7 @@ const CATEGORY_PARAM = "c";
 const CATALOG_SCROLL_KEY = "polytrack_catalog_scroll_top";
 
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 36,
+  borderRadius: 999,
   background: "rgba(255, 255, 255, 0.04)",
   boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
 };
@@ -71,7 +71,7 @@ export const CATEGORY_FILTERS = [
   { id: "all", label: "All Games" },
   { id: "recent", label: "Recently played" },
   { id: "favorites", label: "Favorites" },
-  { id: "editors", label: "Editor’s picks" },
+  { id: "editors", label: "Editor's picks" },
   { id: "verified", label: "Verified" },
   { id: "hidden", label: "Hidden" },
   { id: "trending", label: "Trending" },
@@ -152,7 +152,7 @@ const MOSAIC_SPAN_PATTERN = [
 ];
 
 const MOSAIC_GRID_CLASS =
-  "grid grid-flow-row-dense auto-rows-[148px] grid-cols-2 gap-2.5 sm:auto-rows-[168px] sm:grid-cols-3 sm:gap-3 xl:grid-cols-4";
+  "grid grid-flow-row-dense auto-rows-[148px] grid-cols-2 gap-3 sm:auto-rows-[168px] sm:grid-cols-3 xl:grid-cols-4";
 const CLASSIC_GRID_CLASS = "grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3";
 
 function mosaicSpan(index: number) {
@@ -192,7 +192,7 @@ function TopTenChart({
   onLaunch: (game: GameItem, event: React.MouseEvent) => void;
 }) {
   return (
-    <section aria-labelledby="top-ten-heading" className="flex flex-col gap-2.5">
+    <section aria-labelledby="top-ten-heading" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <h3
           id="top-ten-heading"
@@ -300,7 +300,7 @@ function GameRail({
   const Icon = icon;
 
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+    <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <h3
           id={headingId}
@@ -331,7 +331,7 @@ function GameRail({
           aria-label={`${title} games`}
           tabIndex={0}
           onScroll={updateEdges}
-          className="-mx-1 grid snap-x snap-mandatory auto-cols-[9.5rem] auto-rows-[13.5rem] grid-flow-col gap-2.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:auto-cols-[11rem] sm:auto-rows-[15rem] lg:auto-cols-[12rem] lg:auto-rows-[16rem] xl:auto-cols-[10.5rem] xl:grid-rows-[repeat(2,14rem)] 2xl:auto-cols-[11.5rem] 2xl:grid-rows-[repeat(2,15rem)] [&::-webkit-scrollbar]:hidden"
+          className="-mx-1 grid snap-x snap-mandatory auto-cols-[9.5rem] auto-rows-[13.5rem] grid-flow-col gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:auto-cols-[11rem] sm:auto-rows-[15rem] lg:auto-cols-[12rem] lg:auto-rows-[16rem] xl:auto-cols-[10.5rem] xl:grid-rows-[repeat(2,14rem)] 2xl:auto-cols-[11.5rem] 2xl:grid-rows-[repeat(2,15rem)] [&::-webkit-scrollbar]:hidden"
         >
           {games.map((game) => (
             <div key={game.id} className="h-full min-w-0 snap-start">
@@ -380,7 +380,7 @@ const CATEGORY_NAMES: Record<CategoryId, string> = {
   all: "All Games",
   recent: "Recently played",
   favorites: "Favorites",
-  editors: "Editor’s picks",
+  editors: "Editor's picks",
   verified: "Verified",
   hidden: "Hidden games",
   trending: "Trending",
@@ -406,7 +406,7 @@ type SortOption = "popular" | "featured" | "recent" | "az" | "default";
 const DEFAULT_SORT: SortOption = "popular";
 
 const TAG_FILTERS = [
-  { id: "editors", icon: Star, label: "Editor’s Pick" },
+  { id: "editors", icon: Star, label: "Editor's picks" },
   { id: "verified", icon: BadgeCheck, label: "Verified" },
   { id: "hidden", icon: EyeOff, label: "Hidden" },
   { id: "buggy", icon: Bug, label: "Error: bug" },
@@ -845,16 +845,14 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
     <div
       aria-label="Advertisement"
       style={{
-        borderRadius: 14,
+        borderRadius: 12,
         background: "rgba(255, 255, 255, 0.015)",
         boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
       }}
       className={`catalog-native-ad col-span-full mx-auto w-full max-w-sm flex-col gap-1 px-2.5 py-1.5 ${hidden ? "hidden" : "flex"}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-          Ad
-        </span>
+        <span className="text-[11px] font-medium text-zinc-400">Ad</span>
         <a
           href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
           className="text-[11px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
@@ -929,7 +927,7 @@ function GameCard({
               </span>
             )}
             {isEditorPick && (
-              <span title="Editor's Pick" className={compactChip}>
+              <span title="Editor's pick" className={compactChip}>
                 <Star aria-hidden="true" className="h-2.5 w-2.5 text-amber-300" /> Pick
               </span>
             )}
@@ -998,7 +996,7 @@ function GameCard({
               {!game.disabled && plays > 0 && (
                 <span
                   className="font-mono text-[11px] leading-tight tabular-nums text-zinc-300/60"
-                  title={`${plays.toLocaleString()} plays`}
+                  title={`${plays.toLocaleString("en-US")} plays`}
                 >
                   {formatPlays(plays)} plays
                 </span>
@@ -1042,7 +1040,7 @@ function GameCard({
             onClick={(event) => onPlay(game, event)}
             title={game.name}
             aria-label={`Open ${game.name} ${opensInHub ? "in the hub" : "in a new tab"}`}
-            className="game-card-link absolute inset-0 z-[15] rounded-[20px]"
+            className="game-card-link absolute inset-0 z-[15] rounded-2xl"
           />
         )}
       </article>
@@ -1057,8 +1055,8 @@ function GameCard({
       }`}
       style={genreAccent ? { borderLeft: `3px solid ${genreAccent}` } : undefined}
     >
-      <div className="flex flex-1 flex-col p-3 sm:p-5">
-        <div className="mb-1.5 flex items-start justify-between gap-2 sm:mb-2">
+      <div className="flex flex-1 flex-col p-3">
+        <div className="mb-2 flex items-start justify-between gap-2">
           <h4 className="flex min-w-0 flex-wrap items-center gap-2 text-base font-semibold text-zinc-100">
             {game.disabled ? (
               <span className="line-clamp-2" title={game.name}>
@@ -1080,11 +1078,11 @@ function GameCard({
             {isVerified && <VerifiedBadge />}
             {isEditorPick && (
               <span
-                title="Editor's Pick"
+                title="Editor's pick"
                 style={CHIP_STYLE}
                 className="shrink-0 px-2 py-0.5 text-[11px] font-medium text-amber-300"
               >
-                Editor's Pick
+                Editor's pick
               </span>
             )}
             {isBuggy && (
@@ -1200,11 +1198,11 @@ function GameCard({
           </div>
         </div>
 
-        <p className="mb-2.5 line-clamp-2 flex-1 text-xs leading-[17px] text-[#8B9099] sm:mb-4 sm:text-sm sm:leading-[18px]">
+        <p className="mb-3 line-clamp-2 flex-1 text-xs leading-[17px] text-[#8B9099] sm:text-sm sm:leading-[18px]">
           <HighlightText text={game.description} query={searchQuery} />
         </p>
 
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.06] pt-2.5 sm:gap-3 sm:pt-3">
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.06] pt-3 sm:gap-3">
           <div className="flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden sm:flex-wrap">
             {game.tags.slice(0, 3).map((tag) => (
               <span
@@ -1221,7 +1219,7 @@ function GameCard({
             {!game.disabled && plays > 0 && (
               <span
                 className="text-[11px] font-mono tabular-nums text-zinc-500"
-                title={`${plays.toLocaleString()} plays`}
+                title={`${plays.toLocaleString("en-US")} plays`}
               >
                 {formatPlays(plays)} plays
               </span>
@@ -2485,7 +2483,7 @@ export function GameCatalog({
                           <tag.icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
                           <span>{tag.label}</span>
                           {count > 0 && (
-                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.2 text-[11px] font-mono text-zinc-400">
+                            <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[11px] font-mono text-zinc-400">
                               {count}
                             </span>
                           )}
@@ -2539,10 +2537,10 @@ export function GameCatalog({
           boxShadow: "inset 0 1px 4px rgba(0, 0, 0, 0.3)",
         }}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8">
           {/* The top games carousel scrolls with the catalog, just below the filters. */}
           {!isFiltered && heroGames.length > 0 && (
-            <section aria-labelledby="top-game-heading" className="flex flex-col gap-2">
+            <section aria-labelledby="top-game-heading" className="flex flex-col gap-3">
               <div
                 role="group"
                 aria-roledescription="carousel"
@@ -2574,7 +2572,7 @@ export function GameCatalog({
                       }}
                       aria-hidden={!active}
                       tabIndex={active ? undefined : -1}
-                      className={`group absolute inset-0 transition-[opacity,transform] duration-500 ease-out ${
+                      className={`group absolute inset-0 transition-[opacity,transform] duration-200 ease-out ${
                         active
                           ? "z-10 translate-x-0 opacity-100"
                           : "pointer-events-none z-0 translate-x-3 opacity-0"
@@ -2593,7 +2591,7 @@ export function GameCatalog({
                         <div className="min-w-0 max-w-[62%]">
                           <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-300">
                             <Flame aria-hidden="true" className="h-3 w-3" />
-                            {isEditorPick(game) ? "Editor’s pick" : "#1 game today"}
+                            {isEditorPick(game) ? "Editor's pick" : "#1 game today"}
                           </span>
                           <h2
                             id={active ? "top-game-heading" : undefined}
@@ -2606,7 +2604,7 @@ export function GameCatalog({
                           </p>
                           {totalPlays(game) > 0 && (
                             <p className="mt-1 text-[11px] font-medium tabular-nums text-zinc-500">
-                              {totalPlays(game).toLocaleString()} plays
+                              {formatPlays(totalPlays(game))} plays
                             </p>
                           )}
                           <span className="mt-1.5 inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-amber-400 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition group-hover:bg-amber-300">
@@ -2640,7 +2638,7 @@ export function GameCatalog({
                       >
                         <span
                           aria-hidden="true"
-                          className={`block rounded-full transition-all duration-300 ${
+                          className={`block rounded-full transition-[width,height,background-color] duration-150 ease-out ${
                             active
                               ? "h-2 w-2 bg-amber-300"
                               : "h-1.5 w-1.5 bg-white/25 group-hover/dot:bg-white/50"
@@ -2674,7 +2672,7 @@ export function GameCatalog({
           )}
 
           {!isFiltered && recentGameItems.length > 0 && (
-            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-2.5">
+            <section aria-labelledby="catalog-recent-heading" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <h3 id="catalog-recent-heading" className="text-xs font-semibold text-zinc-200">Recently played</h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-white/[0.07]" />
@@ -2700,15 +2698,13 @@ export function GameCatalog({
             <div
               aria-label="Advertisement"
               style={{
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "rgba(255, 255, 255, 0.015)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
               }}
               className={`flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
             >
-              <span className="shrink-0 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-                Ad
-              </span>
+              <span className="shrink-0 text-[11px] font-medium text-zinc-400">Ad</span>
               <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
@@ -2737,7 +2733,7 @@ export function GameCatalog({
           )}
 
           {!isFiltered && genreShelves.length > 0 && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-8">
               {genreShelves.map((shelf, index) => (
                 <React.Fragment key={shelf.id}>
                   <GameRail
@@ -3149,7 +3145,7 @@ export function GameCatalog({
                 )}
 
                 <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-8">
                     <section aria-labelledby="blocked-check-unblocked-heading">
                       <div className="flex items-center gap-2">
                         <h4

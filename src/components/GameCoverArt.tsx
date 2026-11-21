@@ -1,26 +1,16 @@
 import * as React from "react";
 import { gameCoverUrl } from "@/lib/gameCovers";
+import { gameCoverMeta } from "@/lib/gameCoverMeta";
 
-// The same cover is used by the mosaic catalog cards, the recently played row
-// and the game of the day banner: the game's own artwork where it ships one,
-// then a live screenshot of the game page, then a genre-tinted backdrop with
-// the game's icon, and finally its initials.
+// The same cover is used by the catalog cards, the recently played row and the
+// game of the day banner: the game's own artwork at its largest stored
+// resolution, then a live capture of the game page, then a generated cover made
+// from the game name, its genre tint and its category icon.
 
 export interface CoverGame {
   id: string;
   name: string;
   url: string;
-}
-
-export function gameInitials(name: string) {
-  return (
-    name
-      .split(/[^A-Za-z0-9]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word) => word[0])
-      .join("") || "🎮"
-  ).toUpperCase();
 }
 
 // A game on another origin has its own icon; same-origin pages would only show
@@ -39,20 +29,6 @@ export function gameIconUrl(url: string) {
 const LOCAL_GAME_COVERS: Record<string, string> = {
   "polytrack-050": "/0.5.0/images/official_tracks.jpg",
 };
-
-// Most imported games ship no artwork of their own, so each genre has a
-// painted backdrop. It keeps the hero and the cards looking like game art
-// instead of an empty gradient with initials.
-const GENRE_ART: Record<string, string> = {
-  "#ef4444": "/covers/genre-action.jpg",
-  "#eab308": "/covers/genre-driving.jpg",
-  "#22c55e": "/covers/genre-sports.jpg",
-  "#a855f7": "/covers/genre-arcade.jpg",
-  "#06b6d4": "/covers/genre-puzzle.jpg",
-  "#ec4899": "/covers/genre-casual.jpg",
-  "#f97316": "/covers/genre-flash.jpg",
-};
-const GENERIC_ART = "/covers/genre-generic.jpg";
 
 // The screenshot service fetches pages from its own network, so it cannot see
 // localhost or a password-protected preview host. Games the hub serves itself
@@ -104,63 +80,130 @@ function gameScreenshotUrls(url: string) {
   ];
 }
 
+/** A generated cover: genre tint, category icon and the game's name. */
+function GeneratedCover({
+  name,
+  accent,
+  icon: Icon,
+  compact,
+}: {
+  name: string;
+  accent: string;
+  icon?: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  compact: boolean;
+}) {
+  return (
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{
+        background: `linear-gradient(160deg, ${accent}2e 0%, #17171a 46%, #0f0f11 100%)`,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        className="absolute right-[-18%] top-[-28%] rounded-full"
+        style={{ width: "76%", aspectRatio: "1", background: `${accent}24` }}
+      />
+      <span
+        aria-hidden="true"
+        className="absolute bottom-[-40%] left-[-10%] rounded-full"
+        style={{ width: "64%", aspectRatio: "1", background: `${accent}14` }}
+      />
+      <div
+        className={
+          compact
+            ? "relative flex h-full w-full items-center justify-center"
+            : "relative flex h-full w-full flex-col justify-between p-3"
+        }
+      >
+        {Icon &&
+          (compact ? (
+            <Icon className="h-4 w-4" style={{ color: accent }} />
+          ) : (
+            <span
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/25"
+            >
+              <Icon className="h-4 w-4" style={{ color: accent }} />
+            </span>
+          ))}
+        {!compact && (
+          <span className="line-clamp-2 text-[14px] font-semibold leading-tight text-white">
+            {name}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function GameCoverArt({
   game,
   accent,
+  icon,
   compact = false,
   eager = false,
+  sizes = "(min-width: 1280px) 22rem, (min-width: 768px) 33vw, 45vw",
 }: {
   game: CoverGame;
   accent: string;
+  icon?: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   compact?: boolean;
   eager?: boolean;
+  sizes?: string;
 }) {
-  const [iconFailed, setIconFailed] = React.useState(false);
   const [coverFailed, setCoverFailed] = React.useState(false);
   const [shotIndex, setShotIndex] = React.useState(0);
-  const [artFailed, setArtFailed] = React.useState(false);
-  const iconUrl = React.useMemo(() => gameIconUrl(game.url), [game.url]);
+  const [loaded, setLoaded] = React.useState(false);
+  const meta = React.useMemo(() => gameCoverMeta(game.id), [game.id]);
   const screenshotUrls = React.useMemo(() => gameScreenshotUrls(game.url), [game.url]);
   const screenshotUrl = screenshotUrls[shotIndex] ?? "";
-  const coverUrl = React.useMemo(
-    () => gameCoverUrl(game.id) || LOCAL_GAME_COVERS[game.id] || "",
-    [game.id]
-  );
-  const initials = React.useMemo(() => gameInitials(game.name), [game.name]);
-  const artUrl = GENRE_ART[accent] ?? GENERIC_ART;
+  const coverUrl = meta?.src || gameCoverUrl(game.id) || LOCAL_GAME_COVERS[game.id] || "";
+  const srcSet = meta?.srcset || undefined;
+  const lqip = meta?.lqip;
   const showCover = !!coverUrl && !coverFailed;
   const showShot = !showCover && !!screenshotUrl;
-  const showArt = !showCover && !showShot && !artFailed;
-  const showIcon = !showCover && !showShot && !showArt && !!iconUrl && !iconFailed;
 
   React.useEffect(() => {
     setCoverFailed(false);
+    setLoaded(false);
   }, [coverUrl]);
 
   React.useEffect(() => {
     setShotIndex(0);
   }, [game.url]);
 
-  React.useEffect(() => {
-    setArtFailed(false);
-  }, [artUrl]);
+  const imageClass =
+    "absolute inset-0 h-full w-full object-cover object-center transition-[opacity,filter] duration-300 ease-out";
 
   return (
-    <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+    <div aria-hidden="true" className="absolute inset-0 overflow-hidden bg-[#141416]">
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(125% 125% at 18% 6%, ${accent}66 0%, rgba(18, 18, 22, 0.96) 56%, #0c0c0f 100%)`,
+          background: `radial-gradient(120% 120% at 20% 0%, ${accent}40 0%, rgba(18, 18, 22, 0.98) 62%, #0c0c0f 100%)`,
         }}
       />
+      {/* Blurred placeholder: a 24px thumbnail scaled up until the real art lands. */}
+      {lqip && showCover && (
+        <img
+          src={lqip}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full scale-110 object-cover object-center blur-xl"
+        />
+      )}
       {showCover ? (
         <img
           src={coverUrl}
+          srcSet={srcSet}
+          sizes={srcSet ? sizes : undefined}
           alt=""
           loading={eager ? "eager" : "lazy"}
           decoding="async"
+          onLoad={() => setLoaded(true)}
           onError={() => setCoverFailed(true)}
-          className="game-card-cover absolute inset-0 h-full w-full object-cover"
+          className={`${imageClass} ${loaded ? "opacity-100 blur-0" : "opacity-0 blur-md"}`}
         />
       ) : showShot ? (
         <img
@@ -168,55 +211,13 @@ export function GameCoverArt({
           alt=""
           loading={eager ? "eager" : "lazy"}
           decoding="async"
+          onLoad={() => setLoaded(true)}
           onError={() => setShotIndex((index) => index + 1)}
-          className="game-card-cover absolute inset-0 h-full w-full object-cover"
-        />
-      ) : showArt ? (
-        <img
-          src={artUrl}
-          alt=""
-          loading={eager ? "eager" : "lazy"}
-          decoding="async"
-          onError={() => setArtFailed(true)}
-          className="game-card-cover absolute inset-0 h-full w-full object-cover"
+          className={`${imageClass} ${loaded ? "opacity-100 blur-0" : "opacity-0 blur-md"}`}
         />
       ) : (
-        <>
-          {!compact && (
-            <div
-              className="absolute inset-0 opacity-[0.12]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)",
-                backgroundSize: "24px 24px",
-              }}
-            />
-          )}
-          <div className={`absolute inset-0 flex items-center justify-center ${compact ? "" : "pb-8"}`}>
-            {showIcon ? (
-              <img
-                src={iconUrl}
-                alt=""
-                loading={eager ? "eager" : "lazy"}
-                decoding="async"
-                onError={() => setIconFailed(true)}
-                className={`game-card-cover-soft object-contain ${
-                  compact ? "h-5 w-5 rounded" : "h-12 w-12 rounded-xl"
-                }`}
-              />
-            ) : (
-              <span
-                className={`game-card-cover-soft select-none font-semibold tracking-tight text-white/90 ${
-                  compact ? "text-sm" : "text-4xl"
-                }`}
-              >
-                {initials}
-              </span>
-            )}
-          </div>
-        </>
+        <GeneratedCover name={game.name} accent={accent} icon={icon} compact={compact} />
       )}
-      {!compact && <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />}
     </div>
   );
 }

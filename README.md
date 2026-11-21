@@ -1,167 +1,167 @@
-# math_games (637 game Hub)
+# Math Class
 
-A classroom-friendly browser game hub: hundreds of games in one place, plus PolyTrack
-build archives, favourites, play stats, offline play and the settings a shared computer
-needs (site lock, panic redirect, tab disguise).
+<div align="center">
+  <img src="images/app-icon-512.png" alt="Math Class app icon" width="160">
 
-**Current version: v1.7.6** — see [`src/lib/changelog.ts`](src/lib/changelog.ts).
+  **A classroom-friendly browser game hub for quick, easy play.**
+
+  [![Live site](https://img.shields.io/badge/Live-Site-2563eb?style=for-the-badge)](https://poly2.benlaunches.icu)
+  [![Version](https://img.shields.io/badge/Version-v1.7.6-7c3aed?style=for-the-badge)](src/lib/changelog.ts)
+  [![License](https://img.shields.io/badge/License-MIT-16a34a?style=for-the-badge)](LICENSE)
+</div>
+
+Math Class brings hundreds of browser games and PolyTrack builds together in one organized, customizable hub. It includes search and filters, favourites, play stats, offline support, tab disguises, panic controls, and a password-protected admin panel.
+
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="covers/cdn-minecraft.webp" alt="Minecraft" width="180"></td>
+      <td><img src="covers/cdn-among-us.webp" alt="Among Us" width="180"></td>
+      <td><img src="covers/cdn-roblox.webp" alt="Roblox" width="180"></td>
+    </tr>
+    <tr>
+      <td><img src="covers/cdn-shell-shockers.webp" alt="Shell Shockers" width="180"></td>
+      <td><img src="covers/cdn-slitherio.webp" alt="Slither.io" width="180"></td>
+      <td><img src="covers/game-block-blast.jpg" alt="Block Blast" width="180"></td>
+    </tr>
+  </table>
+</div>
+
+## Highlights
+
+| | |
+| --- | --- |
+| **637-game catalog** | Search, category filters, Editor's Picks, verified games, bug flags, and sorting. |
+| **Flexible layouts** | Switch between compact row cards and an artwork-first cover mosaic. |
+| **Your device, your data** | Favourites and recently played games remain on the current device. |
+| **Detailed stats** | Track session time, launches, games played, and most-played titles locally. |
+| **Privacy controls** | Set a tab cloak, panic redirect, Site Lock password, and blocked-search behavior. |
+| **Offline ready** | Download the hub and selected games for cache-first play during a schedule. |
+| **Built-in moderation** | Report bugs and submissions through a password-protected admin dashboard. |
 
 ## Live mirrors
 
-- https://poly2.benlaunches.icu
-- https://polytrack.sawyerbobk563.deno.net (can lag a few days behind)
-- https://polytrack.sawyerbobk563.workers.dev
-- https://basket-random-1df0d.containers.snapdeploy.app (takes a minute to start)
-- https://vh-prod-math-class-main-6f638f-09230ec8.livemy.site (may lag behind updates)
-
-## Features
-
-### Games
-- **One catalog, many sources.** Local HTML games in `games/`, hosted games on other
-  domains, and the PolyTrack builds in `0.3.1/` and `0.5.0/`.
-- **Search, filters and sorting** across categories, Editor's Pick, Verified, Trending,
-  Flash, Error:bug and Blocked, plus A–Z, recently played and most played orders.
-- **Favourites and recently played**, remembered on the device.
-- **Two card layouts:** the classic row cards, or a cover mosaic of different sized
-  boxes where each game's art fills the card and its name sits on the art.
-- **Badges everywhere:** verified games, known-bug flags, Editor's Picks, desktop-only
-  ("no mobile") games and a randomised blocked tag.
-- **Play in the hub or in a new tab.** Same-origin games open in a launcher inside the
-  page, with reload, favourite, panic and bug-report controls.
-
-### Your stats (per device)
-- A live counter that ticks every second while the hub **or** a game is open.
-- Total time on site, game clicks, games played and sessions, plus a most-played list.
-- **Always count** switch in Settings → Your stats pauses and resumes counting.
-- Stats never leave the browser and a hard reset clears them.
-
-### Settings
-- **Layout & startup:** loading animation, side chat and visitor counter, footer, ad
-  space, and a hard reset that clears the site's local data.
-- **Appearance:** halftone shader, solid colours or gradient backgrounds.
-- **Tab cloak and panic button:** disguise the tab as Classroom/Docs and jump to a preset
-  or custom page with one key.
-- **Site Lock:** password gate on refresh for classroom machines.
-- **Notifications:** browser alerts for new games and chat messages, once per version.
-- **Offline mode:** download the hub and its games, then serve them cache-first during a
-  scheduled window.
-- **Your stats**, **Proxies & source** (live reachability checks) and the **change log**.
-- **Admin:** read-only build stamp ("Last updated", "Built by") plus a shortcut into the
-  password-protected admin panel.
-
-### Reporting and moderation
-- Bug report form, optionally pre-filled with the game you were playing when opened from
-  the in-hub launcher.
-- Password-protected admin panel for bug reports, game submissions and flag toggles.
-- Visitor counter and per-game click analytics through the Cloudflare Worker.
+| Mirror | Notes |
+| --- | --- |
+| [poly2.benlaunches.icu](https://poly2.benlaunches.icu) | Primary mirror |
+| [polytrack.sawyerbobk563.deno.net](https://polytrack.sawyerbobk563.deno.net) | May lag behind updates |
+| [polytrack.sawyerbobk563.workers.dev](https://polytrack.sawyerbobk563.workers.dev) | Cloudflare mirror |
+| [basket-random-1df0d.containers.snapdeploy.app](https://basket-random-1df0d.containers.snapdeploy.app) | May take a minute to start |
+| [vh-prod-math-class-main-6f638f-09230ec8.livemy.site](https://vh-prod-math-class-main-6f638f-09230ec8.livemy.site) | May lag behind updates |
 
 ## Quick start
 
-Requirements: Node.js 18+ and npm.
+**Requirements:** Node.js 18+ and npm.
 
 ```bash
 npm install
 npm run build
 ```
 
-`npm run build` writes the prebuilt Tailwind CSS, the exported catalog, the offline
-manifest and the bundled hub. Serve the repository root with any static file server
-(`npx serve .`, `python3 -m http.server`, or your host of choice) and open `index.html`.
+Serve the repository root with any static file server:
 
-### PostHog analytics
+```bash
+npx serve .
+# or
+python3 -m http.server
+```
 
-The hub uses `posthog-js` for pageviews, session replay, error capture and product
-events such as game launches, favourites, filters, shares, chat messages, bug reports
-and submissions. Because this is a static bundle, the public project token and ingestion
-host must be present when `npm run build` runs; they are injected into the bundle by
-`scripts/build-client.mjs` and must not be hard-coded in source files.
+Then open `index.html`. The React app in `src/` is bundled into `dist/home.bundle.js`; rebuild and reload after source changes.
 
-Set these variables in the local shell or hosting provider for every build environment:
+## Features
+
+### Games
+
+- **One catalog, many sources:** local HTML games, hosted games, and PolyTrack builds.
+- **Useful discovery:** category and source filters, A-Z sorting, trending, favourites, recently played, and most-played sorting.
+- **Card layouts:** compact row cards or a cover mosaic with generated fallback artwork.
+- **In-hub play:** launch games inside the page with reload, favourite, panic, and bug-report controls.
+- **Cover system:** stored artwork, live captures, blur-up placeholders, `srcset` support, and generated game-name covers.
+
+### Player stats
+
+The stats clock tracks real elapsed time only while the hub or a game is visible. It records total time, game launches, games played, sessions, and the most-played list. Everything stays in browser storage, and Settings can pause counting or reset the data.
+
+### Settings
+
+- Loading animation, side chat, visitor counter, footer, and ad-space controls
+- Halftone, solid-colour, and gradient appearances
+- Tab cloaks and a custom panic redirect
+- Password-gated Site Lock
+- Browser notifications for new games and chat
+- Downloadable offline packs and scheduled cache-first operation
+- Reachability checks for proxy sources
+- Read-only build stamps and changelog
+
+### Reporting and moderation
+
+Bug reports can be pre-filled with the game opened from the launcher. A password-protected admin panel manages bug reports, submissions, and per-game flags. Visitor counts and game click analytics pass through the Cloudflare Worker.
+
+## Scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm run build` | Build CSS, catalog data, offline packs, bundle, and offline manifest. |
+| `npm run build:css` | Rebuild `dist/styles.css` with Tailwind. |
+| `npm run build:catalog` | Export the game catalog into `api/`. |
+| `npm run build:offline-manifest` | Regenerate `offline-manifest.json`. |
+| `npm run build:packs` | Rebuild downloadable offline packs. |
+| `npm test` | Bundle `*.test.ts` files and run Node's test runner. |
+
+## Repository layout
+
+| Path | Contents |
+| --- | --- |
+| `src/` | React app, components, hooks, helpers, and styles. |
+| `src/lib/` | Settings, storage, stats, themes, and API helpers. |
+| `games/` | Self-hosted games and `games/config.json`. |
+| `0.3.1/`, `0.5.0/` | PolyTrack build archives. |
+| `api/` | Vercel serverless API functions. |
+| `cf/` | Cloudflare Worker services and manifests. |
+| `scripts/` | Catalog, cover, offline, and client build tools. |
+| `dist/` | Built CSS and JavaScript bundle. |
+| `covers/`, `images/` | Game artwork and app icons. |
+
+## How it works
+
+- **Catalog:** `DEFAULT_GAMES` in `src/components/GameCatalog.tsx` is the built-in list. `games/config.json` is merged at runtime, and server search results can extend the list.
+- **Storage:** preferences, favourites, stats, and offline schedules use `localStorage`. Settings includes a hard reset that clears the site's browser data.
+- **Stats:** `src/lib/playStats.ts` uses elapsed time, batched writes, and sleep-gap protection to avoid inflating totals.
+- **Card layout:** `src/lib/gameCardLayout.ts` persists the selected layout and updates the catalog without a reload.
+
+## Environment variables
+
+Analytics is optional. Set these values in the local shell or deployment provider before building:
 
 ```bash
 PUBLIC_POSTHOG_KEY=phc_...
 PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-The variable names are also listed in [`.env.example`](.env.example). Keep the real
-values in an ignored `.env`/`.env.local` file or in the deployment provider's encrypted
-environment settings; never commit them.
+The names are documented in [`.env.example`](.env.example). Never commit real values.
 
-| Script | What it does |
-| --- | --- |
-| `npm run build` | Full build: CSS, catalog, offline manifest and `dist/home.bundle.js`. |
-| `npm run build:css` | Tailwind only, into `dist/styles.css`. |
-| `npm run build:catalog` | Regenerates the catalog export in `api/`. |
-| `npm run build:offline-manifest` | Regenerates `offline-manifest.json`. |
-| `npm test` | Bundles every `*.test.ts` under `src/` and `test/` with esbuild, then runs them with Node's built-in test runner (`scripts/run-tests.mjs`). |
+Backend deployments can also require:
 
-The hub is a React app (`src/`) bundled by esbuild into `dist/home.bundle.js`, which
-`index.html` loads (with the root `home.bundle.js` as a fallback). There is no framework
-dev server: rebuild and reload the page after changing source.
+```text
+ADMIN_PASSWORD       Admin API password
+HUB_INTERNAL_KEY     Shared Cloudflare Worker authorization key
+```
 
-## Repository layout
+The Vercel API functions reject requests unless `ADMIN_PASSWORD` is set and matches. Keep `HUB_INTERNAL_KEY` identical in each deployment that uses proxy shortcuts.
 
-| Path | Contents |
-| --- | --- |
-| `src/` | Hub source: `App.tsx`, components, hooks and helpers. |
-| `src/lib/` | Settings, storage, stats, theme and API helpers. |
-| `games/` | Self-hosted game pages and `games/config.json`, the catalog additions. |
-| `0.3.1/`, `0.5.0/` | Archived PolyTrack builds, kept as playable versions. |
-| `api/` | Vercel serverless functions (admin, search, flags, submissions). |
-| `cf/` | Cloudflare Worker behind the proxy shortcuts and hub API. |
-| `scripts/` | Build-time exporters for the catalog and offline manifest. |
-| `dist/` | Built CSS and hub bundle, served as-is. |
-| `images/`, `terms/`, `submit/` | Icons, terms page and the standalone submission form. |
+## PolyTrack archives
 
-## How the hub works
+**v0.5.0** is maintained and uses the simulation thread for replays. AI attempts can be watched after selecting a track.
 
-- **Catalog.** `DEFAULT_GAMES` in `src/components/GameCatalog.tsx` is the built-in list;
-  `games/config.json` is merged over it at runtime, and server search results can extend
-  the list. The admin panel toggles flags that are stored per device and, for verified
-  and buggy games, synced through the backend.
-- **Storage.** Preferences, favourites, stats and the offline schedule live in
-  `localStorage`; there are no accounts yet. Settings → Layout & startup → Hard reset
-  clears everything this site stored in the browser.
-- **Stats clock.** `src/lib/playStats.ts` counts real elapsed time while the hub is
-  visible or a game session is open, writing to storage in batches and skipping long
-  gaps (sleep, frozen tabs) so totals aren't inflated.
-- **Card layouts.** `src/lib/gameCardLayout.ts` stores the choice; the catalog listens
-  for changes so the grid switches without a reload. Every card uses the same 16:10
-  cover from `src/components/GameCoverArt.tsx`: the stored artwork at its largest size
-  with a blur-up placeholder and `srcset`, a live capture when a game has no artwork,
-  then a generated cover with the game name and its category icon. Cover metadata is
-  built by `scripts/refresh-cover-sources.py`.
-
-## Versioning and the change log
-
-`src/lib/changelog.ts` is the single source of truth for the site version and the
-user-facing change log. For every release:
-
-1. Bump `SITE_VERSION`.
-2. Add an entry at the top of `CHANGELOG` with the version, date, title and changes.
-3. Mention the version in this README.
-
-## Backend and admin
-
-Admin changes go through the Vercel functions in `api/`, which only accept requests when
-`ADMIN_PASSWORD` (or `ADMIN_SECRET` / `VERCEL_ADMIN_PASSWORD`) is set and matches. The
-Cloudflare Worker in `cf/` accepts the proxy shortcut only when `HUB_INTERNAL_KEY` matches
-the same value in both deployments. The Vercel functions send the shared admin password
-too, so keep `ADMIN_PASSWORD` identical everywhere. Set these as deployment environment
-variables; never commit them.
-
-## Game archives
-
-**v0.5.0** is the maintained archive. Replays are rendered by the simulation thread, and
-the main/simulation message passing was optimised to serialise far less data per step.
-Some AI attempts appear when you open a track and choose "Watch".
-
-**v0.3.1** is kept for history. Its ghost-replay camera follow was an early mod, so
-finishing a run can leave the camera stuck on that track. Development stopped.
+**v0.3.1** is kept for historical use. An early ghost-replay camera mod may leave the camera stuck after a completed run.
 
 ## Notes
 
-- The site is classroom-facing and deliberately blocked from search engines and
-  automated crawlers (`robots.txt`, `vercel.json` headers).
-- `sw.js` and `notification-sw.js` handle the offline cache and notification delivery.
-- Audio and fullscreen permissions belong to each game page, not the hub.
+- The site is deliberately blocked from search engines and automated crawlers.
+- `sw.js` and `notification-sw.js` handle offline caching and notification delivery.
+- Game-specific audio and fullscreen permissions belong to each game page.
+- The project is licensed under the [MIT License](LICENSE).
+
+<div align="center">
+  <sub>Explore the source on <a href="https://github.com/NOTAM-bobk/math_class">GitHub</a></sub>
+</div>

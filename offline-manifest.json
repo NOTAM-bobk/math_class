@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T22:43:38.994Z",
-  "totalBytes": 347192910,
+  "generatedAt": "2026-11-22T00:06:35.286Z",
+  "totalBytes": 347186607,
   "files": [
     {
       "url": "/index.html",
@@ -28,28 +28,28 @@
       "bytes": 52911
     },
     {
-      "url": "/dist/chunks/ChangelogModal-WM54576A.js",
+      "url": "/dist/chunks/ChangelogModal-AE2WC2CU.js",
       "bytes": 16438
     },
     {
-      "url": "/dist/chunks/SettingsModal-HQIDVYEV.js",
-      "bytes": 115306
+      "url": "/dist/chunks/SettingsModal-VUVGHJEW.js",
+      "bytes": 110950
     },
     {
-      "url": "/dist/chunks/chunk-377IB5KD.js",
+      "url": "/dist/chunks/chunk-3L5FDXFF.js",
       "bytes": 7850
     },
     {
-      "url": "/dist/chunks/chunk-BLFNB7C7.js",
-      "bytes": 182562
-    },
-    {
-      "url": "/dist/chunks/chunk-JANZF24H.js",
+      "url": "/dist/chunks/chunk-BE2GUSZB.js",
       "bytes": 37447
     },
     {
       "url": "/dist/chunks/chunk-PS5Z4PAQ.js",
       "bytes": 59166
+    },
+    {
+      "url": "/dist/chunks/chunk-RD2VGHBM.js",
+      "bytes": 182562
     },
     {
       "url": "/dist/chunks/chunk-SYRWHHC4.js",
@@ -61,7 +61,7 @@
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 73098
+      "bytes": 71151
     },
     {
       "url": "/images/app-icon-192.png",

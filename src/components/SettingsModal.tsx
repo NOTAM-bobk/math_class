@@ -1,6 +1,6 @@
 import { checkForUpdate, applyUpdate, type CheckUpdateResult } from "@/lib/updateChecker";
 import * as React from "react";
-import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Sparkles, Pipette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard, RefreshCw, CheckCircle2, Share2 } from "lucide-react";
+import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard, RefreshCw, CheckCircle2, Share2 } from "lucide-react";
 import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
@@ -171,10 +171,15 @@ const KEYBOARD_SHORTCUTS: { label: string; keys: string }[] = [
   { label: "Panic — leave the site instantly", keys: "]" },
 ];
 
+const ICON_TILE: React.CSSProperties = {
+  borderRadius: 8,
+  background: "rgba(255, 255, 255, 0.06)",
+};
+
 const CHIP_STYLE: React.CSSProperties = {
-  borderRadius: 999,
-  background: "rgba(255, 255, 255, 0.04)",
-  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
+  borderRadius: 8,
+  background: "rgba(255, 255, 255, 0.05)",
+  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)",
 };
 
 function hostOf(url: string) {
@@ -367,7 +372,7 @@ export function SettingsModal({
   });
   const [bgNotice, setBgNotice] = React.useState<string | null>(null);
 
-  // System Font state
+  // System font state
   const [currentFontId, setCurrentFontId] = React.useState<string>(getStoredSystemFont);
   const [fontFilter, setFontFilter] = React.useState<string>("all");
   const [fontNotice, setFontNotice] = React.useState<string | null>(null);
@@ -1024,11 +1029,10 @@ export function SettingsModal({
         tabIndex={-1}
         className={`${isDesktop ? "sm-desk relative flex h-[85vh] w-full max-w-5xl flex-row overflow-hidden p-0 focus:outline-none" : "relative flex max-h-[calc(100dvh-5.25rem)] w-full max-w-lg flex-col gap-5 overflow-y-auto p-5 pt-6 text-zinc-100 focus:outline-none sm:my-auto sm:max-w-2xl sm:p-6 md:max-h-[88vh]"} ${closing ? "settings-panel-exit" : "settings-panel-enter"}`}
         style={{
-          background: "#1d1d1d",
+          background: "#1c1c1c",
           borderRadius: 16,
-          border: "none",
-          boxShadow:
-            "0 24px 60px -12px rgba(0, 0, 0, 0.9), 0 6px 16px rgba(0, 0, 0, 0.6)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 32px 64px -32px rgba(0, 0, 0, 0.9)",
         }}
       >
         <div
@@ -1038,8 +1042,8 @@ export function SettingsModal({
 
         <style>{DESKTOP_LIGHT_CSS}</style>
         {isDesktop && (
-          <aside className="flex w-72 shrink-0 flex-col gap-1 overflow-y-auto border-r p-4" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.18)", boxShadow: "inset -1px 0 0 rgba(255,255,255,0.02)" }} aria-label="Settings sections">
-            <label className="mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: "rgba(0, 0, 0, 0.3)", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.06)" }}>
+          <aside className="flex w-72 shrink-0 flex-col gap-1 overflow-y-auto border-r p-4" style={{ borderColor: "rgba(255, 255, 255, 0.07)", background: "#171717" }} aria-label="Settings sections">
+            <label className="mb-4 flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "#141414", boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)" }}>
               <Search aria-hidden="true" className="h-4 w-4 text-zinc-500" />
               <input
                 value={settingsSearch}
@@ -1055,8 +1059,8 @@ export function SettingsModal({
               const items = group.items.filter((item) => !q || item.label.toLowerCase().includes(q) || item.keywords.includes(q));
               if (!items.length) return null;
               return (
-                <div key={group.heading} className="mb-3 flex flex-col gap-0.5">
-                  <div className="px-3 pb-1.5 text-xs text-zinc-500">{group.heading}</div>
+                <div key={group.heading} className="mb-4 flex flex-col gap-0.5">
+                  <div className="px-3 pb-1.5 text-[11px] font-medium text-zinc-500">{group.heading}</div>
                   {items.map((item) => {
                     const active = desktopTab === item.id;
                     const Icon = item.icon;
@@ -1067,9 +1071,9 @@ export function SettingsModal({
                         onClick={() => setDesktopTab(item.id)}
                         aria-current={active ? "page" : undefined}
                         className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors"
-                        style={active ? { ...CHIP_STYLE, borderRadius: 8, background: "rgba(255, 255, 255, 0.07)", color: "#f4f4f5", fontWeight: 500, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.35)" } : { color: "#a1a1aa" }}
+                        style={active ? { background: "rgba(255, 255, 255, 0.07)", color: "#fafafa", boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)" } : { color: "#a1a1aa" }}
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className={`h-4 w-4 shrink-0 ${active ? "text-zinc-200" : "text-zinc-500"}`} aria-hidden="true" />
                         {item.label}
                       </button>
                     );
@@ -1079,14 +1083,14 @@ export function SettingsModal({
             })}
           </aside>
         )}
-        <div className={isDesktop ? "relative flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto px-12 py-10" : "contents"}>
+        <div className={isDesktop ? "relative flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto px-10 py-8" : "contents"}>
         {isDesktop && (
           <>
-            <button type="button" onClick={onClose} aria-label="Close settings" className="absolute right-5 top-5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:text-white" style={CHIP_STYLE}>
+            <button type="button" onClick={onClose} aria-label="Close settings" className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-white">
               <X aria-hidden="true" className="h-4 w-4" />
             </button>
-            <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
-              {navGroups.flatMap((g) => g.items).find((i) => i.id === desktopTab)?.label}
+            <h2 id="settings-title" className="sr-only">
+              Settings
             </h2>
           </>
         )}
@@ -1103,21 +1107,15 @@ export function SettingsModal({
               >
                 <ArrowLeft aria-hidden="true" className="h-4 w-4" />
               </button>
-              <h2 id="settings-title" className="truncate text-base font-semibold tracking-tight text-zinc-100">
+              <h2 id="settings-title" className="truncate text-base font-medium  text-zinc-100">
                 {navGroups.flatMap((g) => g.items).find((i) => i.id === mobileSection)?.label ?? "Settings"}
               </h2>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <h2 id="settings-title" className="text-base font-semibold tracking-tight text-zinc-100">
+                          <div className="flex items-center gap-2">
+              <h2 id="settings-title" className="text-base font-medium text-zinc-100">
                 Settings
               </h2>
-              <span
-                style={CHIP_STYLE}
-                className="px-2.5 py-0.5 font-mono text-[11px] text-[#caccd2]"
-              >
-                Preferences
-              </span>
             </div>
           )}
           <button
@@ -1134,10 +1132,10 @@ export function SettingsModal({
         {!isDesktop && !mobileSection && (
           <nav aria-label="Settings sections" className="flex flex-col gap-3">
             <label
-              className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+              className="flex items-center gap-2 rounded-lg px-3 py-2"
               style={{
-                background: "rgba(0, 0, 0, 0.3)",
-                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.06)",
+                background: "#141414",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)",
               }}
             >
               <Search aria-hidden="true" className="h-4 w-4 shrink-0 text-zinc-500" />
@@ -1166,7 +1164,7 @@ export function SettingsModal({
               if (!items.length) return null;
               return (
                 <section key={group.heading} aria-label={`${group.heading} settings`}>
-                  <h3 className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <h3 className="mb-1.5 px-1 text-[11px] font-medium text-zinc-500">
                     {group.heading}
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
@@ -1181,10 +1179,10 @@ export function SettingsModal({
                             setSettingsSearch("");
                           }}
                           style={{ ...CHIP_STYLE, borderRadius: 12 }}
-                          className="flex min-h-14 cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.99]"
+                          className="flex min-h-14 cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white"
                         >
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.06]">
-                            <Icon className="h-3.5 w-3.5 text-zinc-300" />
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white/[0.06]">
+                            <Icon className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
                           </span>
                           <span className="min-w-0 flex-1">{item.label}</span>
                           <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-600" />
@@ -1207,10 +1205,10 @@ export function SettingsModal({
         <div style={paneStyle("general")}>
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="layout-controls-title">
           <div>
-            <h3 id="layout-controls-title" className="text-sm font-semibold text-zinc-100">Layout & Startup</h3>
-            <p className="mt-0.5 text-xs text-zinc-400">Configure the startup loading animation, side chat, visitor counter and ad space.</p>
+            <h3 id="layout-controls-title" className="hidden text-base font-medium text-zinc-100 md:block">Layout & startup</h3>
+            <p className="mt-0.5 text-xs text-zinc-400">The loading animation, side chat, footer and ad space.</p>
           </div>
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <div>
               <div className="text-sm font-medium text-zinc-200">Startup loading animation</div>
               <div className="text-xs text-zinc-500">Play the 3D glass logo reveal when loading the site</div>
@@ -1218,37 +1216,37 @@ export function SettingsModal({
             <button
               type="button"
               onClick={() => onLoadingRevealChange?.(!loadingRevealEnabled)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${loadingRevealEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${loadingRevealEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
               role="switch"
               aria-checked={loadingRevealEnabled}
               aria-label="Startup loading animation"
             >
-              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${loadingRevealEnabled ? "translate-x-5" : "translate-x-0"}`} />
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-150 ease-out ${loadingRevealEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <div>
               <div className="text-sm font-medium text-zinc-200">Side chat and visitor counter</div>
               <div className="text-xs text-zinc-500">Keep the chat panel visible beside the game catalog</div>
             </div>
-            <button type="button" onClick={() => onSideChatChange(!sideChatEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${sideChatEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={sideChatEnabled} aria-label="Side chat and visitor counter">
-              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${sideChatEnabled ? "translate-x-5" : "translate-x-0"}`} />
+            <button type="button" onClick={() => onSideChatChange(!sideChatEnabled)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${sideChatEnabled ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={sideChatEnabled} aria-label="Side chat and visitor counter">
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-150 ease-out ${sideChatEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <div>
               <div className="text-sm font-medium text-zinc-200">Show footer</div>
               <div className="text-xs text-zinc-500">Show the footer links and report button at the bottom of the page</div>
             </div>
-            <button type="button" onClick={() => onFooterHiddenChange?.(!footerHidden)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${!footerHidden ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={!footerHidden} aria-label="Show footer">
-              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${!footerHidden ? "translate-x-5" : "translate-x-0"}`} />
+            <button type="button" onClick={() => onFooterHiddenChange?.(!footerHidden)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${!footerHidden ? "bg-emerald-600" : "bg-zinc-700"}`} role="switch" aria-checked={!footerHidden} aria-label="Show footer">
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-150 ease-out ${!footerHidden ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 opacity-60">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 opacity-70">
             <div>
               <div className="text-sm font-medium text-zinc-200">Ad space</div>
               <div className="text-xs text-zinc-500">
-                Always on. Upgrade to Ultra for $1 to get no ads and more features.
+                On in this build. Ultra removes ads.
               </div>
             </div>
             <button
@@ -1258,10 +1256,10 @@ export function SettingsModal({
               aria-checked={adSpotEnabled}
               role="switch"
               aria-label="Ad space (always on)"
-              title="Upgrade to Ultra for $1 to remove ads"
-              className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-emerald-600/70"
+              title="Ultra removes ads"
+              className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full bg-zinc-700/70"
             >
-              <span className="pointer-events-none inline-block h-5 w-5 translate-x-5 transform rounded-full bg-white shadow" />
+              <span className="pointer-events-none inline-block h-5 w-5 translate-x-5 transform rounded-full bg-white/60" />
             </button>
           </div>
           {/* Check for updates card */}
@@ -1271,55 +1269,51 @@ export function SettingsModal({
               background: "rgba(255, 255, 255, 0.025)",
               boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)",
             }}
-            className="flex flex-col gap-2.5 p-3"
+            className="flex flex-col gap-2.5 p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-2.5">
                 <div
-                  style={{
-                    borderRadius: 999,
-                    background: "rgba(56, 189, 248, 0.12)",
-                    boxShadow: "inset 0 0 0 1px rgba(56, 189, 248, 0.2)",
-                  }}
-                  className="mt-0.5 shrink-0 p-1.5 text-sky-400"
+                  style={{ borderRadius: 8, background: "rgba(255, 255, 255, 0.06)" }}
+                  className="mt-0.5 shrink-0 p-1.5 text-zinc-300"
                 >
                   <RefreshCw aria-hidden="true" className={`h-4 w-4 ${checkingUpdate ? "animate-spin" : ""}`} />
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-semibold text-zinc-100">Updates & Version</span>
+                    <span className="text-sm font-medium text-zinc-100">Updates</span>
                     <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[11px] text-zinc-400">
                       v{SITE_VERSION}
                     </span>
                   </div>
                   <p className="mt-0.5 text-xs text-zinc-400">
-                    Check if a newer version of the site, games, or features is available.
+                    See whether a newer build exists.
                   </p>
                 </div>
               </div>
             </div>
 
             {hasUpdate ? (
-              <div className="flex items-start gap-2.5 rounded-lg border border-sky-500/30 bg-sky-500/15 p-2.5 text-xs text-sky-200">
-                <Sparkles aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+              <div className="flex items-start gap-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3 text-xs">
+                <Download aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-white">
-                    New update available {updateCheckResult?.latestVersion ? `(v${updateCheckResult.latestVersion})` : ""}
+                  <div className="font-medium text-zinc-100">
+                    Update available {updateCheckResult?.latestVersion ? `(v${updateCheckResult.latestVersion})` : ""}
                   </div>
-                  <div className="mt-0.5 text-[11px] text-sky-300/80">
-                    A newer release is ready. Click Update now to reload without losing your progress or saves.
+                  <div className="mt-0.5 text-[11px] text-zinc-400">
+                    Reloads the page. Saves and progress stay.
                   </div>
                 </div>
               </div>
             ) : updateCheckResult ? (
-              <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+              <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs text-zinc-400">
                 <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" />
-                <span>You're on the latest version (v{SITE_VERSION}).</span>
+                <span>Latest version, v{SITE_VERSION}.</span>
               </div>
             ) : null}
 
             {updateCheckResult?.error && (
-              <p className="text-[11px] text-amber-400/90">{updateCheckResult.error}</p>
+              <p className="text-[11px] text-red-300">{updateCheckResult.error}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-2 pt-0.5">
@@ -1328,10 +1322,10 @@ export function SettingsModal({
                 onClick={handleCheckForUpdates}
                 disabled={checkingUpdate || updatingNow}
                 style={CHIP_STYLE}
-                className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] disabled:opacity-60"
+                className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
               >
-                <RefreshCw aria-hidden="true" className={`h-3.5 w-3.5 ${checkingUpdate ? "animate-spin text-sky-400" : "text-zinc-400"}`} />
-                <span>{checkingUpdate ? "Checking for updates…" : updateCheckResult ? "Check again" : "Check for updates"}</span>
+                <RefreshCw aria-hidden="true" className={`h-3.5 w-3.5 ${checkingUpdate ? "animate-spin text-zinc-300" : "text-zinc-400"}`} />
+                <span>{checkingUpdate ? "Checking…" : updateCheckResult ? "Check again" : "Check for updates"}</span>
               </button>
 
               {hasUpdate && (
@@ -1339,7 +1333,7 @@ export function SettingsModal({
                   type="button"
                   onClick={handleUpdateNow}
                   disabled={updatingNow}
-                  className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-emerald-500 active:scale-[0.98] disabled:cursor-wait"
+                  className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-wait"
                 >
                   <Download aria-hidden="true" className="h-3.5 w-3.5" />
                   <span>{updatingNow ? "Updating…" : "Update now"}</span>
@@ -1351,18 +1345,18 @@ export function SettingsModal({
           <div
             style={{
               borderRadius: 12,
-              background: "rgba(239, 68, 68, 0.06)",
-              boxShadow: "inset 0 0 0 1px rgba(239, 68, 68, 0.18)",
+              background: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
             }}
-            className="flex flex-col gap-2.5 p-3"
+            className="flex flex-col gap-2.5 p-4"
           >
             <div className="flex items-start gap-2">
-              <RotateCcw aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+              <RotateCcw aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
               <div className="min-w-0">
                 <div className="text-sm font-medium text-zinc-200">Hard reset</div>
                 <div className="text-xs text-zinc-500">
-                  Delete this site’s cache, local storage, cookies and offline copy, then reload so the newest
-                  updates load. Saved settings, favorites and progress on this device are erased.
+                  Clears this site’s cache, local storage, cookies and offline copy, then reloads. Saved settings,
+                  favourites and progress on this device are erased.
                 </div>
               </div>
             </div>
@@ -1370,10 +1364,10 @@ export function SettingsModal({
               type="button"
               onClick={handleHardReset}
               disabled={resetting}
-              className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors active:scale-[0.99] disabled:cursor-wait ${
+              className={`inline-flex cursor-pointer items-center justify-center gap-1.5 self-start rounded-lg border px-3 py-2 text-xs font-medium transition-colors disabled:cursor-wait ${
                 resetConfirming
-                  ? "bg-red-500 text-white hover:bg-red-400"
-                  : "border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                  ? "border-red-500/60 bg-red-500/20 text-red-100"
+                  : "border-white/[0.08] text-red-300 hover:bg-red-500/10"
               }`}
             >
               <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
@@ -1381,8 +1375,8 @@ export function SettingsModal({
             </button>
             <p role="status" className="text-[11px] leading-relaxed text-zinc-500">
               {resetConfirming
-                ? "This cannot be undone. Click the button again within a few seconds to continue."
-                : "Use this when an update seems stuck on an old version of the site."}
+                ? "This cannot be undone. Click again within a few seconds."
+                : "Use this when an update seems stuck on an old version."}
             </p>
           </div>
         </section>
@@ -1392,13 +1386,13 @@ export function SettingsModal({
         <div style={paneStyle("install")}>
         <section aria-labelledby="install-app-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div>
-            <h3 id="install-app-title" className="text-sm font-semibold text-zinc-100">Install math_games</h3>
+            <h3 id="install-app-title" className="hidden text-base font-medium text-zinc-100 md:block">Install math_games</h3>
             <p className="mt-0.5 text-xs text-zinc-400">
               Add it to your device for its own window, a home-screen or desktop icon, and a faster start.
             </p>
           </div>
 
-          <div className="flex flex-col gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <div className="flex flex-col gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="text-sm font-medium text-zinc-200">
@@ -1421,7 +1415,7 @@ export function SettingsModal({
                 type="button"
                 onClick={() => void handleInstall()}
                 disabled={installing || !installAvailable}
-                className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors active:scale-[0.99] disabled:cursor-default ${
+                className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors disabled:cursor-default ${
                   installAvailable
                     ? "bg-white text-zinc-950 hover:bg-zinc-200"
                     : "bg-white/[0.05] text-zinc-500"
@@ -1444,7 +1438,7 @@ export function SettingsModal({
             )}
           </div>
 
-          <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 text-[11px] leading-relaxed text-zinc-400">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-[11px] leading-relaxed text-zinc-400">
             <div className="mb-1 text-xs font-medium text-zinc-300">If no prompt appears</div>
             <ul className="list-disc space-y-1 pl-4">
               {isIos() ? (
@@ -1462,7 +1456,7 @@ export function SettingsModal({
         <div style={paneStyle("shortcuts")}>
         <section aria-labelledby="shortcuts-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div>
-            <h3 id="shortcuts-title" className="text-sm font-semibold text-zinc-100">Keyboard shortcuts</h3>
+            <h3 id="shortcuts-title" className="hidden text-base font-medium text-zinc-100 md:block">Keyboard shortcuts</h3>
             <p className="mt-0.5 text-xs text-zinc-400">These work anywhere in the hub. The search and panic keys pause while you are typing in a field.</p>
           </div>
 
@@ -1492,21 +1486,15 @@ export function SettingsModal({
         <section aria-labelledby="account-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div className="flex items-start gap-2">
             <div
-              style={{
-                borderRadius: 999,
-                background: "rgba(255, 255, 255, 0.04)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
+              style={ICON_TILE}
               className="p-1.5 text-zinc-400"
             >
               <UserRound aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+              <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
                 <span id="account-title">Account</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-                  Coming soon
-                </span>
+                <span className="font-mono text-[11px] text-zinc-500">coming soon</span>
               </div>
               <div className="text-xs text-zinc-400">
                 Your settings and game data are saved on this device only
@@ -1535,7 +1523,7 @@ export function SettingsModal({
                 disabled
                 aria-disabled="true"
                 tabIndex={-1}
-                className="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.05] text-xs font-semibold text-zinc-400"
+                className="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.05] text-xs font-medium text-zinc-400"
               >
                 Sign in
               </button>
@@ -1563,38 +1551,26 @@ export function SettingsModal({
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="stats-title">
           <div className="flex items-start gap-2">
             <div
-              style={{
-                borderRadius: 999,
-                background: "rgba(56, 189, 248, 0.12)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
-              className="p-1.5 text-sky-400"
+              style={ICON_TILE}
+              className="p-1.5 text-zinc-300"
             >
               <BarChart3 aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+              <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
                 <span id="stats-title">Your statistics</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-                  On this device
-                </span>
+                <span className="font-mono text-[11px] text-zinc-500">this device</span>
               </div>
               <div className="text-xs text-zinc-400">Play time, clicks and your most played games</div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <div>
               <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
                 Always count
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                    statsEnabled
-                      ? "border border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
-                      : "border border-white/10 bg-white/[0.04] text-zinc-400"
-                  }`}
-                >
-                  {statsEnabled ? "Live" : "Paused"}
+                <span className={`font-mono text-[11px] ${statsEnabled ? "text-emerald-400" : "text-zinc-500"}`}>
+                  {statsEnabled ? "on" : "paused"}
                 </span>
               </div>
               <div className="text-xs text-zinc-500">
@@ -1608,21 +1584,21 @@ export function SettingsModal({
                 setPlayStatsEnabled(next);
                 setStatsEnabled(next);
               }}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${statsEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${statsEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
               role="switch"
               aria-checked={statsEnabled}
               aria-label="Always count statistics"
             >
-              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${statsEnabled ? "translate-x-5" : "translate-x-0"}`} />
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-150 ease-out ${statsEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
-              { label: "Time on site", value: formatPlayTime(playStats.totalPlayMs), icon: Timer, tone: "text-sky-400" },
-              { label: "Game clicks", value: playStats.totalClicks.toLocaleString("en-US"), icon: MousePointerClick, tone: "text-emerald-400" },
-              { label: "Games played", value: playStats.games.length.toLocaleString("en-US"), icon: Gamepad2, tone: "text-amber-400" },
-              { label: "Sessions", value: playStats.totalSessions.toLocaleString("en-US"), icon: Trophy, tone: "text-purple-400" },
+              { label: "Time on site", value: formatPlayTime(playStats.totalPlayMs), icon: Timer, tone: "text-zinc-500" },
+              { label: "Game clicks", value: playStats.totalClicks.toLocaleString("en-US"), icon: MousePointerClick, tone: "text-zinc-500" },
+              { label: "Games played", value: playStats.games.length.toLocaleString("en-US"), icon: Gamepad2, tone: "text-zinc-500" },
+              { label: "Sessions", value: playStats.totalSessions.toLocaleString("en-US"), icon: Trophy, tone: "text-zinc-500" },
             ].map((tile) => {
               const Icon = tile.icon;
               return (
@@ -1630,8 +1606,8 @@ export function SettingsModal({
                   key={tile.label}
                   style={{
                     borderRadius: 12,
-                    background: "rgba(0, 0, 0, 0.3)",
-                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                    background: "rgba(255, 255, 255, 0.02)",
+                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                   }}
                   className="p-2.5"
                 >
@@ -1639,7 +1615,7 @@ export function SettingsModal({
                     <Icon aria-hidden="true" className={`h-3 w-3 ${tile.tone}`} />
                     {tile.label}
                   </div>
-                  <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
+                  <div className="mt-1 font-mono text-lg font-medium  text-zinc-100">
                     {tile.value}
                   </div>
                 </div>
@@ -1652,7 +1628,7 @@ export function SettingsModal({
               type="button"
               onClick={() => void handleShareStats()}
               disabled={sharingStats}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1.5 text-xs font-semibold text-sky-200 transition-colors hover:bg-sky-400/20 disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white disabled:cursor-wait disabled:opacity-60"
             >
               <Share2 aria-hidden="true" className="h-3.5 w-3.5" />
               <span>{sharingStats ? "Preparing…" : "Share my stats"}</span>
@@ -1664,10 +1640,10 @@ export function SettingsModal({
             )}
           </div>
 
-          <div className="flex flex-col gap-2 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+          <div className="flex flex-col gap-2 rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                <Trophy aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+              <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-200">
+                <Trophy aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
                 Most played
               </div>
               {playStats.lastPlayedAt ? (
@@ -1695,7 +1671,7 @@ export function SettingsModal({
                         </span>
                       </div>
                       <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
-                        <div className="h-full rounded-full bg-sky-500/80" style={{ width: `${percent}%` }} />
+                        <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${percent}%` }} />
                       </div>
                     </li>
                   );
@@ -1718,21 +1694,15 @@ export function SettingsModal({
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="streak-title">
           <div className="flex items-start gap-2">
             <div
-              style={{
-                borderRadius: 999,
-                background: "rgba(251, 191, 36, 0.14)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
+              style={ICON_TILE}
               className="p-1.5 text-amber-300"
             >
               <Flame aria-hidden="true" className="h-4 w-4 fill-amber-400/30" />
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+              <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
                 <span id="streak-title">Daily streak</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-                  On this device
-                </span>
+                <span className="font-mono text-[11px] text-zinc-500">this device</span>
               </div>
               <div className="text-xs text-zinc-400">
                 Every day you open math_games adds one day to your streak
@@ -1740,8 +1710,8 @@ export function SettingsModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] p-3">
-            <span className="font-mono text-3xl font-semibold leading-none tabular-nums text-amber-300">
+          <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <span className="font-mono text-3xl font-medium leading-none tabular-nums text-amber-300">
               {streak.current}
             </span>
             <div className="min-w-0">
@@ -1765,13 +1735,13 @@ export function SettingsModal({
               type="button"
               onClick={() => void handleShareStreak()}
               disabled={sharingStreak}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/20 disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white disabled:cursor-wait disabled:opacity-60"
             >
               <Download aria-hidden="true" className="h-3.5 w-3.5" />
               <span>{sharingStreak ? "Building card…" : "Share streak card"}</span>
             </button>
             {streakMilestone && (
-              <span className="rounded-full bg-white/[0.05] px-2 py-1 text-[11px] font-medium text-zinc-400">
+              <span className="font-mono text-[11px] text-amber-300/80">
                 {streakMilestone.name} unlocked
               </span>
             )}
@@ -1783,33 +1753,33 @@ export function SettingsModal({
           )}
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-xl bg-black/30 p-2.5 ring-1 ring-inset ring-white/[0.04]">
+            <div className="rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
               <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-500">
-                <Trophy aria-hidden="true" className="h-3 w-3 text-amber-400" />
+                <Trophy aria-hidden="true" className="h-3 w-3 text-zinc-500" />
                 Longest streak
               </div>
-              <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
+              <div className="mt-1 font-mono text-lg font-medium  text-zinc-100">
                 {streak.longest.toLocaleString("en-US")}
                 <span className="ml-1 text-xs font-normal text-zinc-500">
                   {streak.longest === 1 ? "day" : "days"}
                 </span>
               </div>
             </div>
-            <div className="rounded-xl bg-black/30 p-2.5 ring-1 ring-inset ring-white/[0.04]">
+            <div className="rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
               <div className="flex items-center gap-1 text-[11px] font-medium text-zinc-500">
-                <CalendarDays aria-hidden="true" className="h-3 w-3 text-sky-400" />
+                <CalendarDays aria-hidden="true" className="h-3 w-3 text-zinc-500" />
                 Total days
               </div>
-              <div className="mt-1 font-mono text-lg font-semibold tracking-tight text-zinc-100">
+              <div className="mt-1 font-mono text-lg font-medium  text-zinc-100">
                 {streak.totalDays.toLocaleString("en-US")}
                 <span className="ml-1 text-xs font-normal text-zinc-500">visited</span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+          <div className="rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-zinc-200">Milestones</span>
+              <span className="text-xs font-medium text-zinc-200">Milestones</span>
               <span className="text-[11px] text-zinc-500">
                 {nextMilestone
                   ? `${nextMilestone.days - streak.current} more ${nextMilestone.days - streak.current === 1 ? "day" : "days"} to ${nextMilestone.name}`
@@ -1827,10 +1797,10 @@ export function SettingsModal({
                     aria-label={`${milestone.days}-day milestone: ${milestone.name}${reached ? ", unlocked" : ""}`}
                     className={`flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-center ring-1 ring-inset ${
                       reached
-                        ? "bg-amber-400/10 ring-amber-400/25"
+                        ? "bg-amber-400/[0.07] ring-amber-400/20"
                         : upcoming
                           ? "bg-white/[0.04] ring-white/15"
-                          : "bg-white/[0.02] ring-white/[0.05]"
+                          : "bg-white/[0.02] ring-white/[0.06]"
                     }`}
                   >
                     <Flame
@@ -1838,7 +1808,7 @@ export function SettingsModal({
                       className={`h-3.5 w-3.5 ${reached ? "fill-amber-400/30 text-amber-300" : "text-zinc-600"}`}
                     />
                     <span
-                      className={`font-mono text-xs font-semibold tabular-nums ${
+                      className={`font-mono text-xs font-medium tabular-nums ${
                         reached ? "text-amber-200" : "text-zinc-400"
                       }`}
                     >
@@ -1860,9 +1830,9 @@ export function SettingsModal({
             </p>
           </div>
 
-          <div className="rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+          <div className="rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-zinc-200">Last 30 days</span>
+              <span className="text-xs font-medium text-zinc-200">Last 30 days</span>
               <span className="text-[11px] text-zinc-500">{streakDaysVisited} visited</span>
             </div>
             <div
@@ -1896,7 +1866,7 @@ export function SettingsModal({
         {/* Mobile-only shortcuts live on the settings menu, not inside a pane. */}
         {!isDesktop && !mobileSection && (
         <section className="flex flex-col gap-2 border-t border-white/[0.08] pt-3 sm:hidden" aria-labelledby="classroom-tools-title">
-          <h3 id="classroom-tools-title" className="text-sm font-semibold text-zinc-100">
+          <h3 id="classroom-tools-title" className="text-base font-medium text-zinc-100">
             Classroom tools
           </h3>
           <div className="grid grid-cols-2 gap-2">
@@ -1907,7 +1877,7 @@ export function SettingsModal({
                 onReportBug();
               }}
               style={CHIP_STYLE}
-              className="inline-flex cursor-pointer items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+              className="inline-flex cursor-pointer items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
             >
               <Bug aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
               <span>Report Bug</span>
@@ -1919,9 +1889,9 @@ export function SettingsModal({
                 onOpenAdmin();
               }}
               style={CHIP_STYLE}
-              className="inline-flex cursor-pointer items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+              className="inline-flex cursor-pointer items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
             >
-              <Shield aria-hidden="true" className="h-3.5 w-3.5 text-blue-400" />
+              <Shield aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
               <span>Admin</span>
             </button>
           </div>
@@ -1937,11 +1907,7 @@ export function SettingsModal({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div
-                style={{
-                  borderRadius: 999,
-                  background: siteLockEnabled ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-                }}
+                style={ICON_TILE}
                 className="p-1.5 text-zinc-300"
               >
                 <Lock
@@ -1950,13 +1916,11 @@ export function SettingsModal({
                 />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                  <span id="site-lock-title">Site Lock (Classroom Mode)</span>
-                  {siteLockEnabled && (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-                      Active
-                    </span>
-                  )}
+                <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
+                  <span id="site-lock-title">Site lock (classroom mode)</span>
+                  <span className={`font-mono text-[11px] ${siteLockEnabled ? "text-emerald-400" : "text-zinc-500"}`}>
+                    {siteLockEnabled ? "on" : "off"}
+                  </span>
                 </div>
                 <div className="text-xs text-zinc-400">
                   Require a password on refresh to access the site
@@ -1967,7 +1931,7 @@ export function SettingsModal({
             <button
               type="button"
               onClick={handleToggleLock}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-out ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ease-out ${
                 siteLockEnabled ? "bg-emerald-600" : "bg-zinc-700"
               }`}
               role="switch"
@@ -1975,7 +1939,7 @@ export function SettingsModal({
               aria-label="Site Lock"
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-150 ease-out ease-out ${
                   siteLockEnabled ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -1985,8 +1949,8 @@ export function SettingsModal({
           <div
             style={{
               borderRadius: 12,
-              background: "rgba(0, 0, 0, 0.3)",
-              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              background: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
               padding: "12px",
             }}
             className="flex flex-col gap-3"
@@ -2042,7 +2006,7 @@ export function SettingsModal({
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className="inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-100 active:scale-95"
+                    className="inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-100"
                   >
                     {lockSaved ? (
                       <Check aria-hidden="true" className="w-3.5 h-3.5 text-emerald-700" />
@@ -2060,7 +2024,7 @@ export function SettingsModal({
                         onLockNow();
                       }}
                       style={CHIP_STYLE}
-                      className="inline-flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap px-3 py-1.5 text-xs font-medium text-amber-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-95"
+                      className="inline-flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-white"
                       title="Lock the site now to test the password screen"
                     >
                       <Lock aria-hidden="true" className="w-3 h-3" />
@@ -2090,26 +2054,20 @@ export function SettingsModal({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div
-                style={{
-                  borderRadius: 999,
-                  background: "rgba(168, 85, 247, 0.12)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-                }}
-                className="p-1.5 text-purple-400"
+                style={ICON_TILE}
+                className="p-1.5 text-zinc-300"
               >
                 <Palette aria-hidden="true" className="w-4 h-4" />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                  <span id="background-controls-title">Background Style</span>
+                <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
+                  <span id="background-controls-title">Background style</span>
                   {bgNotice && (
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-enter">
-                      {bgNotice}
-                    </span>
+                    <span className="font-mono text-[11px] text-emerald-400 animate-enter">{bgNotice}</span>
                   )}
                 </div>
                 <div className="text-xs text-zinc-400">
-                  Change site background to animated shader, solid colors, or deep gradients
+                  What sits behind the hub.
                 </div>
               </div>
             </div>
@@ -2118,20 +2076,20 @@ export function SettingsModal({
           <div
             style={{
               borderRadius: 12,
-              background: "rgba(0, 0, 0, 0.3)",
-              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              background: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
               padding: "12px",
             }}
             className="flex flex-col gap-3"
           >
             {/* Background Category Tabs */}
-            <div className="flex items-center gap-1.5 rounded-xl bg-black/40 p-1 ring-1 ring-inset ring-white/[0.06]">
+            <div className="flex items-center gap-1.5 rounded-xl bg-white/[0.03] p-1 ring-1 ring-inset ring-white/[0.06]">
               <button
                 type="button"
                 onClick={() => setBgTab("shader")}
                 className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition cursor-pointer ${
                   bgTab === "shader"
-                    ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
+                    ? "bg-white/[0.12] text-white ring-1 ring-inset ring-white/10"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
                 }`}
               >
@@ -2142,7 +2100,7 @@ export function SettingsModal({
                 onClick={() => setBgTab("solid")}
                 className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition cursor-pointer ${
                   bgTab === "solid"
-                    ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
+                    ? "bg-white/[0.12] text-white ring-1 ring-inset ring-white/10"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
                 }`}
               >
@@ -2153,7 +2111,7 @@ export function SettingsModal({
                 onClick={() => setBgTab("gradient")}
                 className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition cursor-pointer ${
                   bgTab === "gradient"
-                    ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
+                    ? "bg-white/[0.12] text-white ring-1 ring-inset ring-white/10"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
                 }`}
               >
@@ -2173,7 +2131,7 @@ export function SettingsModal({
                       onClick={() => handleSelectPreset(preset)}
                       className={`flex items-center justify-between gap-3 rounded-xl p-2.5 text-left transition cursor-pointer ${
                         isSelected
-                          ? "bg-white/[0.09] ring-2 ring-emerald-400/80 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
+                          ? "bg-white/[0.07] ring-1 ring-emerald-400/60"
                           : "bg-white/[0.03] ring-1 ring-white/[0.06] hover:bg-white/[0.06]"
                       }`}
                     >
@@ -2187,18 +2145,17 @@ export function SettingsModal({
                           className="h-10 w-10 shrink-0"
                         />
                         <div>
-                          <div className="flex items-center gap-2 text-xs font-semibold text-zinc-100">
+                          <div className="flex items-center gap-2 text-xs font-medium text-zinc-100">
                             <span>{preset.name}</span>
-                            <Sparkles className="w-3 h-3 text-amber-400" />
                           </div>
                           <div className="text-[11px] text-zinc-400">{preset.description}</div>
                         </div>
                       </div>
                       {isSelected ? (
-                        <div className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 border border-emerald-500/30">
+                        <span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-400">
                           <Check className="w-3 h-3" />
-                          <span>Active</span>
-                        </div>
+                          active
+                        </span>
                       ) : (
                         <span className="text-[11px] text-zinc-500 hover:text-zinc-300">Select</span>
                       )}
@@ -2221,7 +2178,7 @@ export function SettingsModal({
                         onClick={() => handleSelectPreset(preset)}
                         className={`flex items-center gap-2.5 rounded-xl p-2 text-left transition cursor-pointer ${
                           isSelected
-                            ? "bg-white/[0.1] ring-2 ring-emerald-400/80 shadow-[0_2px_10px_rgba(0,0,0,0.5)]"
+                            ? "bg-white/[0.07] ring-1 ring-emerald-400/60"
                             : "bg-white/[0.03] ring-1 ring-white/[0.06] hover:bg-white/[0.06]"
                         }`}
                       >
@@ -2233,7 +2190,7 @@ export function SettingsModal({
                           }}
                           className="h-6 w-6 shrink-0 relative flex items-center justify-center"
                         >
-                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 drop-shadow" />}
+                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-xs font-medium text-zinc-200">{preset.name}</div>
@@ -2268,7 +2225,7 @@ export function SettingsModal({
                   <button
                     type="button"
                     onClick={() => handleApplyCustomSolid(customSolidHex)}
-                    className="cursor-pointer rounded-lg bg-white px-3 py-1 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-95"
+                    className="cursor-pointer rounded-lg bg-white px-3 py-1 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-100"
                   >
                     Set Color
                   </button>
@@ -2301,7 +2258,7 @@ export function SettingsModal({
                         className="h-10 w-full relative flex items-center justify-center overflow-hidden"
                       >
                         {isSelected && (
-                          <span className="rounded-full bg-black/60 backdrop-blur-sm p-1 text-emerald-400 shadow">
+                          <span className="rounded-md bg-black/60 p-1 text-emerald-400">
                             <Check className="w-3.5 h-3.5" />
                           </span>
                         )}
@@ -2314,31 +2271,25 @@ export function SettingsModal({
               </div>
             )}
           </div>
-          {/* System Font (Typography) */}
+          {/* System font (Typography) */}
           <div className="flex flex-col gap-3 border-t border-white/[0.08] pt-4 mt-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div
-                  style={{
-                    borderRadius: 999,
-                    background: "rgba(99, 102, 241, 0.12)",
-                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-                  }}
-                  className="p-1.5 text-indigo-400"
+                  style={ICON_TILE}
+                  className="p-1.5 text-zinc-300"
                 >
                   <Type aria-hidden="true" className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                    <span>System Font</span>
+                  <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
+                    <span>System font</span>
                     {fontNotice && (
-                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 animate-enter">
-                        {fontNotice}
-                      </span>
+                      <span className="font-mono text-[11px] text-emerald-400 animate-enter">{fontNotice}</span>
                     )}
                   </div>
                   <div className="text-xs text-zinc-400">
-                    Customize interface typography with clean, retro arcade, cyber, and playful options
+                    Pick a typeface for the whole hub.
                   </div>
                 </div>
               </div>
@@ -2348,7 +2299,7 @@ export function SettingsModal({
                   type="button"
                   onClick={() => handleSelectFont("geist")}
                   style={CHIP_STYLE}
-                  className="inline-flex cursor-pointer items-center gap-1 px-2.5 py-1 text-xs text-zinc-400 transition hover:bg-white/[0.08] hover:text-white active:scale-95"
+                  className="inline-flex cursor-pointer items-center gap-1 px-2.5 py-1 text-xs text-zinc-400 transition hover:bg-white/[0.08] hover:text-white"
                 >
                   <RotateCcw className="h-3 w-3" />
                   <span>Reset to default</span>
@@ -2359,8 +2310,8 @@ export function SettingsModal({
             <div
               style={{
                 borderRadius: 12,
-                background: "rgba(0, 0, 0, 0.3)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                background: "rgba(255, 255, 255, 0.02)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                 padding: "12px",
               }}
               className="flex flex-col gap-3"
@@ -2377,13 +2328,13 @@ export function SettingsModal({
                 className="flex flex-col gap-1 transition-colors duration-150"
               >
                 <div className="flex items-center justify-between text-[11px] font-sans text-zinc-500">
-                  <span>LIVE TYPOGRAPHY PREVIEW</span>
-                  <span className="font-mono font-medium text-indigo-400">
+                  <span>Live preview</span>
+                  <span className="font-mono text-zinc-400">
                     {SYSTEM_FONTS.find((f) => f.id === currentFontId)?.name}
                   </span>
                 </div>
                 <div className="text-sm font-medium text-zinc-100 sm:text-base">
-                  The quick brown fox jumps over 1337 unblocked math games!
+                  The quick brown fox jumps over 1337 unblocked math games.
                 </div>
                 <div className="text-xs text-zinc-400">
                   0 1 2 3 4 5 6 7 8 9 · High Scores · Polytrack Speedway · Level Complete
@@ -2399,7 +2350,7 @@ export function SettingsModal({
                     onClick={() => setFontFilter(cat)}
                     className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition cursor-pointer ${
                       fontFilter === cat
-                        ? "bg-white/[0.12] text-white shadow-sm ring-1 ring-inset ring-white/10"
+                        ? "bg-white/[0.12] text-white ring-1 ring-inset ring-white/10"
                         : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
                     }`}
                   >
@@ -2419,21 +2370,19 @@ export function SettingsModal({
                       onClick={() => handleSelectFont(font.id)}
                       className={`flex flex-col gap-1.5 rounded-xl p-3 text-left transition cursor-pointer ${
                         isSelected
-                          ? "bg-indigo-500/15 ring-2 ring-indigo-400/80 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
+                          ? "bg-white/[0.07] ring-1 ring-emerald-400/60"
                           : "bg-white/[0.03] ring-1 ring-white/[0.06] hover:bg-white/[0.06]"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="truncate text-xs font-semibold text-zinc-100">{font.name}</span>
+                          <span className="truncate text-xs font-medium text-zinc-100">{font.name}</span>
                           {font.badge && (
-                            <span className="shrink-0 rounded-full bg-white/[0.07] px-1.5 py-0.5 text-[11px] font-medium text-zinc-300">
-                              {font.badge}
-                            </span>
+                            <span className="shrink-0 font-mono text-[11px] text-zinc-500">{font.badge}</span>
                           )}
                         </div>
                         {isSelected ? (
-                          <span className="shrink-0 rounded-full bg-indigo-500 p-0.5 text-white shadow">
+                          <span className="shrink-0 rounded bg-emerald-500/15 p-0.5 text-emerald-400">
                             <Check className="h-3 w-3" />
                           </span>
                         ) : (
@@ -2442,7 +2391,7 @@ export function SettingsModal({
                       </div>
                       <div
                         style={{ fontFamily: font.family }}
-                        className="rounded-lg bg-black/40 px-2 py-1.5 text-xs text-zinc-200 truncate"
+                        className="rounded-lg bg-white/[0.03] px-2 py-1.5 text-xs text-zinc-200 truncate"
                       >
                         {font.sample}
                       </div>
@@ -2461,11 +2410,7 @@ export function SettingsModal({
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="notifications-title">
           <div className="flex items-center gap-2">
             <div
-              style={{
-                borderRadius: 999,
-                background: notificationsOn || chatNotificationsOn ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.05)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
+              style={ICON_TILE}
               className="p-1.5 text-zinc-300"
             >
               <Bell
@@ -2474,37 +2419,38 @@ export function SettingsModal({
               />
             </div>
             <div>
-              <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+              <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
                 <span id="notifications-title">Notification settings</span>
               </div>
               <div className="text-xs text-zinc-400">
-                Manage alerts for live chat and game updates
+                Alerts for live chat and new games.
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200">
-            Must be “Add to home” for notification to work
+          <div className="flex items-start gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs text-zinc-400">
+            <ShieldAlert aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-500" />
+            Install the app first. Notifications need it.
           </div>
 
-          {/* Option: Notfiy me when new chat message */}
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] p-2.5">
+          {/* Option: Notify me when new chat message */}
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
             <div>
-              <div className="text-sm font-medium text-zinc-200">Notfiy me when new chat message</div>
+              <div className="text-sm font-medium text-zinc-200">Notify me when new chat message</div>
               <div className="text-xs text-zinc-400">Get browser notifications when other racers post in live chat</div>
             </div>
             <button
               type="button"
               onClick={handleToggleChatNotifications}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-out ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ease-out ${
                 chatNotificationsOn ? "bg-emerald-600" : "bg-zinc-700"
               }`}
               role="switch"
               aria-checked={chatNotificationsOn}
-              aria-label="Notfiy me when new chat message"
+              aria-label="Notify me when new chat message"
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-150 ease-out ease-out ${
                   chatNotificationsOn ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -2512,17 +2458,17 @@ export function SettingsModal({
           </div>
 
           {/* Option: New game notifications */}
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] p-2.5">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
             <div>
               <div className="flex items-center gap-2 text-sm font-medium text-zinc-200">
                 <span>New game notifications</span>
                 <span
-                  className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                  className={`font-mono text-[11px] ${
                     notificationsOn
-                      ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
+                      ? "text-emerald-400"
                       : permission === "denied"
-                        ? "border-red-500/30 bg-red-500/15 text-red-300"
-                        : "border-white/10 bg-white/[0.06] text-zinc-400"
+                        ? "text-red-300"
+                        : "text-zinc-500"
                   }`}
                 >
                   {notificationStatusLabel}
@@ -2536,7 +2482,7 @@ export function SettingsModal({
             <button
               type="button"
               onClick={handleToggleNotifications}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-out ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ease-out ${
                 notificationsOn ? "bg-emerald-600" : "bg-zinc-700"
               }`}
               role="switch"
@@ -2544,7 +2490,7 @@ export function SettingsModal({
               aria-label="New game notifications"
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform duration-150 ease-out ease-out ${
                   notificationsOn ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -2576,25 +2522,19 @@ export function SettingsModal({
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="offline-title">
           <div className="flex items-start gap-2">
             <div
-              style={{
-                borderRadius: 999,
-                background: offlineStatus?.cachedFiles ? "rgba(34, 197, 94, 0.12)" : "rgba(56, 189, 248, 0.12)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
+              style={ICON_TILE}
               className="p-1.5"
             >
               <Download
                 aria-hidden="true"
-                className={`w-4 h-4 ${offlineStatus?.cachedFiles ? "text-emerald-400" : "text-sky-400"}`}
+                className={`w-4 h-4 ${offlineStatus?.cachedFiles ? "text-emerald-400" : "text-zinc-400"}`}
               />
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+              <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
                 <span id="offline-title">Offline copy</span>
                 {offlineStatus?.cachedFiles ? (
-                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-                    Downloaded
-                  </span>
+                  <span className="font-mono text-[11px] text-emerald-400">downloaded</span>
                 ) : null}
               </div>
               <div className="text-xs text-zinc-400">
@@ -2609,7 +2549,7 @@ export function SettingsModal({
             </p>
           ) : (
             <>
-              <div className="flex flex-col gap-3 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+              <div className="flex flex-col gap-3 rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <span className="text-xs font-medium text-zinc-200">
@@ -2648,7 +2588,7 @@ export function SettingsModal({
                     type="button"
                     onClick={handleDownloadOffline}
                     disabled={offlineBusy}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Download aria-hidden="true" className="h-3.5 w-3.5" />
                     <span>
@@ -2664,7 +2604,7 @@ export function SettingsModal({
                     onClick={handleDeleteOffline}
                     disabled={offlineBusy || (!offlineStatus?.cachedFiles && !offlineSchedule.requested)}
                     style={CHIP_STYLE}
-                    className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-white/[0.08] hover:text-red-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-white/[0.08] hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
                     <span>Delete cache</span>
@@ -2677,15 +2617,13 @@ export function SettingsModal({
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+              <div className="flex flex-col gap-2 rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-zinc-200">
-                      <Clock aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
+                      <Clock aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
                       <span>Auto-use cached backup</span>
-                      <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-300">
-                        Advanced
-                      </span>
+                      <span className="font-mono text-[11px] text-zinc-500">advanced</span>
                     </div>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
                       Use the downloaded copy first between these times, even when the current network blocks a page.
@@ -2697,7 +2635,7 @@ export function SettingsModal({
                     aria-label="Auto-use cached backup"
                     aria-checked={offlineSchedule.scheduleEnabled}
                     onClick={handleToggleOfflineSchedule}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${offlineSchedule.scheduleEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors ${offlineSchedule.scheduleEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
                   >
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${offlineSchedule.scheduleEnabled ? "translate-x-5" : "translate-x-0"}`}
@@ -2733,11 +2671,11 @@ export function SettingsModal({
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+              <div className="flex flex-col gap-2 rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 text-sm font-medium text-zinc-200">
-                      <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-emerald-400" />
+                      <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
                       <span>Per-game offline packs</span>
                     </div>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
@@ -2842,7 +2780,7 @@ export function SettingsModal({
                               type="button"
                               onClick={() => handleDownloadPack(pack)}
                               disabled={packBusyId !== null}
-                              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-zinc-100 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <Download aria-hidden="true" className="h-3 w-3" />
                               <span>{busy ? "Saving…" : "Download"}</span>
@@ -2889,7 +2827,7 @@ export function SettingsModal({
         <section className="flex flex-col gap-3 border-t border-white/[0.08] pt-3" aria-labelledby="tab-cloak-title">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 id="tab-cloak-title" className="text-sm font-semibold text-zinc-100">
+              <h3 id="tab-cloak-title" className="hidden text-base font-medium text-zinc-100 md:block">
                 Custom tab cloaking
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-zinc-400">
@@ -2902,13 +2840,13 @@ export function SettingsModal({
               aria-label="Enable custom tab cloaking"
               aria-checked={tabCloakEnabled}
               onClick={() => setTabCloakEnabled((enabled) => !enabled)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${tabCloakEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors ${tabCloakEnabled ? "bg-emerald-600" : "bg-zinc-700"}`}
             >
               <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${tabCloakEnabled ? "translate-x-5" : "translate-x-0"}`} />
             </button>
           </div>
 
-          <form onSubmit={handleSaveTabCloak} className="flex flex-col gap-3 rounded-xl bg-black/25 p-3 ring-1 ring-inset ring-white/[0.05]">
+          <form onSubmit={handleSaveTabCloak} className="flex flex-col gap-3 rounded-xl bg-white/[0.02] p-3 ring-1 ring-inset ring-white/[0.06]">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="tab-cloak-title-input" className="text-[11px] font-medium text-zinc-400">
                 Tab name
@@ -2973,7 +2911,7 @@ export function SettingsModal({
             {tabCloakError && <p role="alert" className="text-xs font-medium text-red-400">{tabCloakError}</p>}
             <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-2">
               <p className="text-[11px] leading-relaxed text-zinc-500">Applies to this browser only.</p>
-              <button type="submit" className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100">
+              <button type="submit" className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-100">
                 {tabCloakSaved ? "Saved" : "Save tab"}
               </button>
             </div>
@@ -2989,18 +2927,14 @@ export function SettingsModal({
         >
           <div className="flex items-center gap-2">
             <div
-              style={{
-                borderRadius: 999,
-                background: "rgba(239, 68, 68, 0.12)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
-              className="p-1.5 text-red-400"
+              style={ICON_TILE}
+              className="p-1.5 text-zinc-300"
             >
               <ShieldAlert aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
-                <span id="panic-title">Emergency Panic Redirect</span>
+              <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
+                <span id="panic-title">Panic redirect</span>
                 <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[11px] text-zinc-300">
                   ]
                 </kbd>
@@ -3014,8 +2948,8 @@ export function SettingsModal({
           <div
             style={{
               borderRadius: 12,
-              background: "rgba(0, 0, 0, 0.3)",
-              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              background: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
               padding: "12px",
             }}
             className="flex flex-col gap-2.5"
@@ -3039,7 +2973,7 @@ export function SettingsModal({
                     style={CHIP_STYLE}
                     className={`flex cursor-pointer items-center justify-between px-3 py-1.5 text-xs transition-colors ${
                       selected
-                        ? "bg-white/[0.12] font-semibold text-white"
+                        ? "bg-white/[0.12] font-medium text-white"
                         : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
                     }`}
                   >
@@ -3075,7 +3009,7 @@ export function SettingsModal({
               <button
                 type="button"
                 onClick={() => handleSavePanicUrl(customPanicInput)}
-                className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-95"
+                className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-100"
               >
                 {panicSaved ? "Saved" : "Set Custom URL"}
               </button>
@@ -3090,18 +3024,14 @@ export function SettingsModal({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div
-                  style={{
-                    borderRadius: 999,
-                    background: "rgba(56, 189, 248, 0.12)",
-                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-                  }}
-                  className="p-1.5 text-sky-400"
+                  style={ICON_TILE}
+                  className="p-1.5 text-zinc-300"
                 >
                   <History aria-hidden="true" className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-                    <span>Update History & Activity</span>
+                  <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
+                    <span>Update history</span>
                     <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[11px] text-[#caccd2]">
                       v{SITE_VERSION}
                     </span>
@@ -3120,9 +3050,9 @@ export function SettingsModal({
                     onReportBug();
                   }}
                   style={CHIP_STYLE}
-                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
                 >
-                  <Bug aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+                  <Bug aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
                   <span>Report bug</span>
                 </button>
                 <button
@@ -3132,10 +3062,10 @@ export function SettingsModal({
                     onOpenChangelog();
                   }}
                   style={CHIP_STYLE}
-                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
                 >
-                  <ScrollText aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
-                  <span>Full Dialog</span>
+                  <ScrollText aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
+                  <span>Full dialog</span>
                 </button>
               </div>
             </div>
@@ -3147,55 +3077,51 @@ export function SettingsModal({
               background: "rgba(255, 255, 255, 0.025)",
               boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.07)",
             }}
-            className="flex flex-col gap-2.5 p-3"
+            className="flex flex-col gap-2.5 p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-2.5">
                 <div
-                  style={{
-                    borderRadius: 999,
-                    background: "rgba(56, 189, 248, 0.12)",
-                    boxShadow: "inset 0 0 0 1px rgba(56, 189, 248, 0.2)",
-                  }}
-                  className="mt-0.5 shrink-0 p-1.5 text-sky-400"
+                  style={{ borderRadius: 8, background: "rgba(255, 255, 255, 0.06)" }}
+                  className="mt-0.5 shrink-0 p-1.5 text-zinc-300"
                 >
                   <RefreshCw aria-hidden="true" className={`h-4 w-4 ${checkingUpdate ? "animate-spin" : ""}`} />
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-semibold text-zinc-100">Updates & Version</span>
+                    <span className="text-sm font-medium text-zinc-100">Updates</span>
                     <span style={CHIP_STYLE} className="px-2 py-0.5 font-mono text-[11px] text-zinc-400">
                       v{SITE_VERSION}
                     </span>
                   </div>
                   <p className="mt-0.5 text-xs text-zinc-400">
-                    Check if a newer version of the site, games, or features is available.
+                    See whether a newer build exists.
                   </p>
                 </div>
               </div>
             </div>
 
             {hasUpdate ? (
-              <div className="flex items-start gap-2.5 rounded-lg border border-sky-500/30 bg-sky-500/15 p-2.5 text-xs text-sky-200">
-                <Sparkles aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+              <div className="flex items-start gap-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-3 text-xs">
+                <Download aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-white">
-                    New update available {updateCheckResult?.latestVersion ? `(v${updateCheckResult.latestVersion})` : ""}
+                  <div className="font-medium text-zinc-100">
+                    Update available {updateCheckResult?.latestVersion ? `(v${updateCheckResult.latestVersion})` : ""}
                   </div>
-                  <div className="mt-0.5 text-[11px] text-sky-300/80">
-                    A newer release is ready. Click Update now to reload without losing your progress or saves.
+                  <div className="mt-0.5 text-[11px] text-zinc-400">
+                    Reloads the page. Saves and progress stay.
                   </div>
                 </div>
               </div>
             ) : updateCheckResult ? (
-              <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+              <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs text-zinc-400">
                 <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-400" />
-                <span>You're on the latest version (v{SITE_VERSION}).</span>
+                <span>Latest version, v{SITE_VERSION}.</span>
               </div>
             ) : null}
 
             {updateCheckResult?.error && (
-              <p className="text-[11px] text-amber-400/90">{updateCheckResult.error}</p>
+              <p className="text-[11px] text-red-300">{updateCheckResult.error}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-2 pt-0.5">
@@ -3204,10 +3130,10 @@ export function SettingsModal({
                 onClick={handleCheckForUpdates}
                 disabled={checkingUpdate || updatingNow}
                 style={CHIP_STYLE}
-                className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98] disabled:opacity-60"
+                className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
               >
-                <RefreshCw aria-hidden="true" className={`h-3.5 w-3.5 ${checkingUpdate ? "animate-spin text-sky-400" : "text-zinc-400"}`} />
-                <span>{checkingUpdate ? "Checking for updates…" : updateCheckResult ? "Check again" : "Check for updates"}</span>
+                <RefreshCw aria-hidden="true" className={`h-3.5 w-3.5 ${checkingUpdate ? "animate-spin text-zinc-300" : "text-zinc-400"}`} />
+                <span>{checkingUpdate ? "Checking…" : updateCheckResult ? "Check again" : "Check for updates"}</span>
               </button>
 
               {hasUpdate && (
@@ -3215,7 +3141,7 @@ export function SettingsModal({
                   type="button"
                   onClick={handleUpdateNow}
                   disabled={updatingNow}
-                  className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-emerald-500 active:scale-[0.98] disabled:cursor-wait"
+                  className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-wait"
                 >
                   <Download aria-hidden="true" className="h-3.5 w-3.5" />
                   <span>{updatingNow ? "Updating…" : "Update now"}</span>
@@ -3235,52 +3161,52 @@ export function SettingsModal({
               <div
                 style={{
                   borderRadius: 12,
-                  background: "rgba(0, 0, 0, 0.25)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  background: "rgba(255, 255, 255, 0.015)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Total Updates</div>
-                <div className="mt-0.5 font-mono text-base font-semibold text-emerald-400">
+                <div className="text-[11px]  text-zinc-500">Total Updates</div>
+                <div className="mt-0.5 font-mono text-base font-medium text-zinc-100">
                   {activityDays.reduce((acc, d) => acc + d.count, 0)}
                 </div>
               </div>
               <div
                 style={{
                   borderRadius: 12,
-                  background: "rgba(0, 0, 0, 0.25)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  background: "rgba(255, 255, 255, 0.015)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Active Days</div>
-                <div className="mt-0.5 font-mono text-base font-semibold text-zinc-200">
+                <div className="text-[11px]  text-zinc-500">Active Days</div>
+                <div className="mt-0.5 font-mono text-base font-medium text-zinc-200">
                   {activityDays.filter((d) => d.count > 0).length} days
                 </div>
               </div>
               <div
                 style={{
                   borderRadius: 12,
-                  background: "rgba(0, 0, 0, 0.25)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  background: "rgba(255, 255, 255, 0.015)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Current Release</div>
-                <div className="mt-0.5 font-mono text-base font-semibold text-sky-400">
+                <div className="text-[11px]  text-zinc-500">Current Release</div>
+                <div className="mt-0.5 font-mono text-base font-medium text-zinc-100">
                   v{SITE_VERSION}
                 </div>
               </div>
               <div
                 style={{
                   borderRadius: 12,
-                  background: "rgba(0, 0, 0, 0.25)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                  background: "rgba(255, 255, 255, 0.015)",
+                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                   padding: "10px 12px",
                 }}
               >
-                <div className="text-[11px] uppercase tracking-wider text-zinc-500">Releases</div>
-                <div className="mt-0.5 font-mono text-base font-semibold text-purple-400">
+                <div className="text-[11px]  text-zinc-500">Releases</div>
+                <div className="mt-0.5 font-mono text-base font-medium text-zinc-100">
                   {CHANGELOG.length} versions
                 </div>
               </div>
@@ -3288,8 +3214,8 @@ export function SettingsModal({
 
             {/* Releases list */}
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-xs font-semibold text-zinc-200">
-                <span>Release Version Notes</span>
+              <div className="flex items-center justify-between text-xs font-medium text-zinc-200">
+                <span>Release notes</span>
                 <span className="text-[11px] font-normal text-zinc-500">Latest changes</span>
               </div>
               <div className="flex max-h-72 flex-col gap-2.5 overflow-y-auto pr-1">
@@ -3298,21 +3224,18 @@ export function SettingsModal({
                     key={entry.version}
                     style={{
                       borderRadius: 12,
-                      background: "rgba(0, 0, 0, 0.25)",
-                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                      background: "rgba(255, 255, 255, 0.015)",
+                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
                       padding: "12px",
                     }}
                     className="flex flex-col gap-1.5"
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-semibold text-zinc-100">
+                      <span className="font-mono text-xs font-medium text-zinc-100">
                         v{entry.version}
                       </span>
                       {index === 0 && (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-                          <Sparkles aria-hidden="true" className="h-3 w-3" />
-                          Latest
-                        </span>
+                        <span className="font-mono text-[11px] text-emerald-400">latest</span>
                       )}
                       <span className="text-[11px] text-zinc-500">{entry.date}</span>
                     </div>
@@ -3337,7 +3260,7 @@ export function SettingsModal({
         <section aria-label="Source code and proxies" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-zinc-100">Source code</div>
+              <div className="text-sm font-medium text-zinc-100">Source code</div>
               <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
                 Read the code that runs this site.
               </p>
@@ -3347,7 +3270,7 @@ export function SettingsModal({
               target="_blank"
               rel="noopener noreferrer"
               style={CHIP_STYLE}
-              className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+              className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
             >
               <Github aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
               <span>View source code</span>
@@ -3357,14 +3280,14 @@ export function SettingsModal({
           <div
             style={{
               borderRadius: 12,
-              background: "rgba(0, 0, 0, 0.3)",
-              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+              background: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
               padding: "12px",
             }}
             className="flex flex-col gap-1.5"
           >
-            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
-              <Globe aria-hidden="true" className="h-3.5 w-3.5 text-sky-400" />
+            <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
+              <Globe aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
               <span>More proxies of this site</span>
             </div>
             <p className="text-[11px] leading-relaxed text-zinc-400">
@@ -3390,15 +3313,15 @@ export function SettingsModal({
                       rel="noopener noreferrer"
                       title={`${mirror.url} — ${statusLabel}`}
                       style={CHIP_STYLE}
-                      className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+                      className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
                     >
-                      <Globe aria-hidden="true" className="h-3 w-3 shrink-0 text-sky-400" />
+                      <Globe aria-hidden="true" className="h-3 w-3 shrink-0 text-zinc-500" />
                       <span className="truncate">{mirror.name}</span>
                       <span
                         aria-hidden="true"
                         className={`h-1.5 w-1.5 shrink-0 rounded-full ${
                           status === "checking"
-                            ? "animate-pulse bg-amber-400"
+                            ? "bg-amber-400"
                             : status === "reachable"
                               ? "bg-emerald-400"
                               : status === "blocked"
@@ -3437,21 +3360,15 @@ export function SettingsModal({
         <section aria-labelledby="admin-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div className="flex items-start gap-2">
             <div
-              style={{
-                borderRadius: 999,
-                background: "rgba(59, 130, 246, 0.12)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-              }}
-              className="p-1.5 text-blue-400"
+              style={ICON_TILE}
+              className="p-1.5 text-zinc-300"
             >
               <Shield aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+              <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
                 <span id="admin-title">Admin</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-                  Read-only
-                </span>
+                <span className="font-mono text-[11px] text-zinc-500">read-only</span>
               </div>
               <div className="text-xs text-zinc-400">
                 The credit lines shown in the footer
@@ -3463,8 +3380,8 @@ export function SettingsModal({
             <div
               style={{
                 borderRadius: 12,
-                background: "rgba(0, 0, 0, 0.3)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                background: "rgba(255, 255, 255, 0.02)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
               }}
               className="flex items-baseline justify-between gap-3 px-3 py-2.5"
             >
@@ -3474,8 +3391,8 @@ export function SettingsModal({
             <div
               style={{
                 borderRadius: 12,
-                background: "rgba(0, 0, 0, 0.3)",
-                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
+                background: "rgba(255, 255, 255, 0.02)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
               }}
               className="flex items-baseline justify-between gap-3 px-3 py-2.5"
             >
@@ -3492,9 +3409,9 @@ export function SettingsModal({
                 onOpenAdmin();
               }}
               style={CHIP_STYLE}
-              className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+              className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
             >
-              <Shield aria-hidden="true" className="h-3.5 w-3.5 text-blue-400" />
+              <Shield aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
               Open admin panel
             </button>
           </div>
@@ -3511,31 +3428,25 @@ export function SettingsModal({
           aria-labelledby="ads-title"
           className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
         >
-          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+          <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
             <Megaphone aria-hidden="true" className="h-4 w-4 text-zinc-400" />
             <h3 id="ads-title">Ad</h3>
           </div>
           <div className="flex items-center justify-between gap-3 opacity-60">
             <div className="flex items-center gap-2">
               <div
-                style={{
-                  borderRadius: 999,
-                  background: "rgba(255, 255, 255, 0.05)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04)",
-                }}
+                style={ICON_TILE}
                 className="p-1.5 text-zinc-400"
               >
                 <BellOff aria-hidden="true" className="w-4 h-4" />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
                   <span>Turn off ads</span>
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-                    Ultra only
-                  </span>
+                  <span className="font-mono text-[11px] text-zinc-500">ultra</span>
                 </div>
                 <div className="text-xs text-zinc-400">
-                  Ads can’t be turned off separately any more. Upgrade to Ultra to remove them.
+                  Ads can’t be turned off on their own. Ultra removes them.
                 </div>
               </div>
             </div>
@@ -3548,7 +3459,7 @@ export function SettingsModal({
               role="switch"
               aria-label="Turn off ads (Ultra only)"
               title="Upgrade to Ultra for $1 to get no ads and more features"
-              className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-zinc-700"
+              className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full bg-zinc-700"
             >
               <span className="pointer-events-none inline-block h-5 w-5 translate-x-0 transform rounded-full bg-white/70 shadow" />
             </button>
@@ -3557,22 +3468,19 @@ export function SettingsModal({
           <div
             style={{
               borderRadius: 12,
-              background: "rgba(251, 191, 36, 0.07)",
-              boxShadow: "inset 0 0 0 1px rgba(251, 191, 36, 0.2)",
+              background: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
             }}
             className="flex flex-col gap-3 p-3"
           >
             <div className="flex items-start gap-2">
-              <Sparkles aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-zinc-100">
+                <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
                   <span>math_games Ultra</span>
-                  <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
-                    $1
-                  </span>
+                  <span className="font-mono text-[11px] text-zinc-400">$1 one-time</span>
                 </div>
                 <div className="text-xs text-zinc-400">
-                  No ads, plus more features as they ship.
+                  Removes the ads across the hub.
                 </div>
               </div>
             </div>
@@ -3581,7 +3489,7 @@ export function SettingsModal({
               disabled
               aria-disabled="true"
               title="Checkout is not open yet"
-              className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg bg-amber-400/25 px-3 py-2 text-xs font-semibold text-amber-100/70"
+              className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 self-start rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-zinc-500"
             >
               Pay $1 — coming soon
             </button>
@@ -3598,7 +3506,7 @@ export function SettingsModal({
           aria-labelledby="launched-title"
           className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
         >
-          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+          <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
             <Trophy aria-hidden="true" className="h-4 w-4 text-zinc-400" />
             <h3 id="launched-title">Launched on</h3>
           </div>
@@ -3606,7 +3514,7 @@ export function SettingsModal({
             math_games is listed on Launch Streak. Visit the listing to see it alongside other games.
           </p>
 
-          <div className="flex flex-col items-start gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+          <div className="flex flex-col items-start gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <a
               href="https://launchstreak.dev/games/math-games"
               target="_blank"
@@ -3640,7 +3548,7 @@ export function SettingsModal({
               href="https://launchstreak.dev/games/math-games"
               target="_blank"
               rel="noopener"
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-300 transition-colors hover:text-white"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-300 transition-colors hover:text-white"
             >
               <span>View the listing</span>
               <ExternalLink aria-hidden="true" className="h-3 w-3" />
@@ -3655,7 +3563,7 @@ export function SettingsModal({
           aria-labelledby="referrals-title"
           className="flex flex-col gap-3 border-t border-white/[0.08] pt-3"
         >
-          <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+          <div className="flex items-center gap-2 text-base font-medium text-zinc-100">
             <Gift aria-hidden="true" className="h-4 w-4 text-zinc-400" />
             <h3 id="referrals-title">Referrals</h3>
           </div>
@@ -3683,15 +3591,13 @@ export function SettingsModal({
                     href={referral.url}
                     target="_blank"
                     rel="noopener noreferrer sponsored"
-                    className="group flex items-start justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 transition-colors hover:border-white/[0.16] hover:bg-white/[0.05]"
+                    className="group flex items-start justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-colors hover:border-white/[0.16] hover:bg-white/[0.05]"
                   >
                     <span className="min-w-0">
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-medium text-zinc-100">{referral.title}</span>
                         {referral.badge && (
-                          <span className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
-                            {referral.badge}
-                          </span>
+                          <span className="font-mono text-[11px] text-zinc-500">{referral.badge}</span>
                         )}
                       </span>
                       {referral.description && (
@@ -3700,7 +3606,7 @@ export function SettingsModal({
                         </span>
                       )}
                     </span>
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/[0.06] px-2.5 py-1 text-[11px] font-semibold text-zinc-200 transition-colors group-hover:bg-white/[0.12] group-hover:text-white">
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-zinc-500 transition-colors group-hover:text-white">
                       {referral.cta || "Open"}
                       <ExternalLink aria-hidden="true" className="h-3 w-3" />
                     </span>

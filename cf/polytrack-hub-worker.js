@@ -252,6 +252,24 @@ async function checkoutSignout(r, e) {
   return json(r, { ok: true });
 }
 
+// Public and read-only: the number the checkout page shows as recent sales.
+// Only a count leaves the Worker, never an address or an order.
+async function checkoutStats(r, e) {
+  if (r.method !== "GET") return fail(r, "Use GET for checkout stats.", 405);
+  const since = new Date(Date.now() - 30 * 86400000).toISOString();
+  const recent = await e.DB.prepare(
+    "SELECT COUNT(*) AS n FROM checkout_orders WHERE created_at >= ?"
+  )
+    .bind(since)
+    .first();
+  const all = await e.DB.prepare("SELECT COUNT(*) AS n FROM checkout_orders").first();
+  return json(r, {
+    ok: true,
+    lastMonth: Number(recent?.n || 0),
+    total: Number(all?.n || 0),
+  });
+}
+
 async function checkoutOrders(r, e) {
   if (r.method !== "POST") return fail(r, "Use POST to place an order.", 405);
   const user = await currentCheckoutUser(r, e);
@@ -1121,6 +1139,7 @@ export default {
       if (p === "/api/checkout/signin") return checkoutSignin(r, e);
       if (p === "/api/checkout/session") return checkoutSession(r, e);
       if (p === "/api/checkout/signout") return checkoutSignout(r, e);
+      if (p === "/api/checkout/stats") return checkoutStats(r, e);
       if (p === "/api/checkout/orders") return checkoutOrders(r, e);
       if (p === "/api/admin/checkout-orders") return adminCheckoutOrders(r, e);
       return fail(r, "No such endpoint.", 404);

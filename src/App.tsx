@@ -14,7 +14,7 @@ import { CommandPalette, type CommandPaletteItem } from "./components/CommandPal
 import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
-import { AdsNudgeModal } from "./components/AdsNudgeModal";
+import { UltraNudgeToast } from "./components/UltraNudgeToast";
 import { Tour, useTour } from "./components/Tour";
 import { BotChallengeGate } from "./components/BotChallengeGate";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
@@ -150,7 +150,12 @@ function BackgroundWrapper({
 
 const INSTALL_NOTICE_SEEN_KEY = "polytrack_install_notice_seen";
 const SITE_VISITS_KEY = "polytrack_site_visits";
-const ADS_NUDGE_SEEN_KEY = "polytrack_ads_nudge_seen";
+// The Ultra reminder comes back every so often instead of once ever: a few
+// visits in, then again after the gap has passed.
+const ULTRA_NUDGE_AT_KEY = "polytrack_ultra_nudge_at";
+const ULTRA_NUDGE_FIRST_VISIT = 4;
+const ULTRA_NUDGE_EVERY_VISITS = 5;
+const ULTRA_NUDGE_GAP_MS = 3 * 24 * 60 * 60 * 1000;
 // The bug report has its own shareable address, so /bug can be sent to anyone.
 const BUG_REPORT_PATH = "/bug";
 
@@ -233,7 +238,7 @@ export function App() {
   // The flame opens Settings straight on the streak pane; the gear opens General.
   const [settingsSection, setSettingsSection] = React.useState<"streak" | null>(null);
   const [streak, setStreak] = React.useState<StreakData>(loadStreak);
-  const [adsNudgeOpen, setAdsNudgeOpen] = React.useState(false);
+  const [ultraNudgeOpen, setUltraNudgeOpen] = React.useState(false);
   const visitCountedRef = React.useRef(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(bugReportOpenFromUrl);
   // The page the report is about, captured before /bug takes over the address bar.
@@ -399,13 +404,18 @@ export function App() {
       const visits = Number.isFinite(previousVisits) && previousVisits > 0 ? previousVisits + 1 : 1;
       localStorage.setItem(SITE_VISITS_KEY, String(visits));
 
-      if (
-        visits === 4 &&
-        !areNotificationAdsBlocked() &&
-        localStorage.getItem(ADS_NUDGE_SEEN_KEY) !== "true"
-      ) {
-        localStorage.setItem(ADS_NUDGE_SEEN_KEY, "true");
-        setAdsNudgeOpen(true);
+      const dueEveryFewVisits =
+        visits >= ULTRA_NUDGE_FIRST_VISIT &&
+        (visits - ULTRA_NUDGE_FIRST_VISIT) % ULTRA_NUDGE_EVERY_VISITS === 0;
+      const previousNudge = Number(localStorage.getItem(ULTRA_NUDGE_AT_KEY) || "0");
+      const quietEnough =
+        !Number.isFinite(previousNudge) ||
+        previousNudge <= 0 ||
+        Date.now() - previousNudge > ULTRA_NUDGE_GAP_MS;
+
+      if (dueEveryFewVisits && quietEnough && !areNotificationAdsBlocked()) {
+        localStorage.setItem(ULTRA_NUDGE_AT_KEY, String(Date.now()));
+        setUltraNudgeOpen(true);
       }
     } catch {
       // The visit prompt is optional when browser storage is unavailable.
@@ -1473,9 +1483,9 @@ export function App() {
         </React.Suspense>
       )}
 
-      <AdsNudgeModal
-        isOpen={adsNudgeOpen}
-        onClose={() => setAdsNudgeOpen(false)}
+      <UltraNudgeToast
+        isOpen={ultraNudgeOpen}
+        onClose={() => setUltraNudgeOpen(false)}
       />
 
       <CommandPalette

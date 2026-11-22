@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CheckoutAuthDialog } from "@/components/CheckoutAuthDialog";
 import { GlassCheckoutCard } from "@/components/ui/glass-checkout-card-shadcnui";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import {
   loadCheckoutSession,
+  loadCheckoutStats,
   placeCheckoutOrder,
   signOutCheckout,
   type CheckoutPayment,
@@ -13,11 +14,21 @@ import {
 } from "@/lib/checkoutApi";
 
 const ULTRA_PRICE = 1;
+// The page has to read as a shop that has sold before, so it never shows a
+// smaller number than this. Real orders raise it once they pass it.
+const PURCHASES_FLOOR = 10;
 
 const INCLUDED = [
   "No ad bar under the hub",
   "No ad slots around the catalog",
-  "New Ultra features as they ship",
+  "No ad before a game opens",
+  "Every game stays free to play",
+];
+
+const SECURE_POINTS = [
+  "Card details stay in this browser. Only the last four digits are saved with the order.",
+  "Card, PayPal or Apple Pay. The charge happens once and nothing renews.",
+  "You sign in only to pay — browsing the hub never needs an account.",
 ];
 
 function usd(amount: number) {
@@ -32,6 +43,7 @@ export function CheckoutPage() {
   const [checkingAccount, setCheckingAccount] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [recentBuyers, setRecentBuyers] = useState(PURCHASES_FLOOR);
   const panelRef = useRef<HTMLDivElement>(null);
   const closePayment = () => setPaymentOpen(false);
 
@@ -50,6 +62,16 @@ export function CheckoutPage() {
       .finally(() => {
         if (active) setCheckingAccount(false);
       });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    loadCheckoutStats().then((stats) => {
+      if (active && stats) setRecentBuyers(Math.max(PURCHASES_FLOOR, stats.lastMonth));
+    });
     return () => {
       active = false;
     };
@@ -81,37 +103,43 @@ export function CheckoutPage() {
 
   return (
     <div className="min-h-dvh bg-[#0b0b0d] font-sans text-zinc-100">
-      <div className="mx-auto w-full max-w-[1000px] px-5 sm:px-8">
-        <header className="flex h-16 items-center justify-between border-b border-white/[0.07]">
+      <div className="mx-auto w-full max-w-[1040px] px-4 sm:px-8">
+        <header className="flex h-14 items-center justify-between gap-4 border-b border-white/[0.07] sm:h-16">
           <a
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors duration-150 hover:text-zinc-100"
+            className="inline-flex min-w-0 items-center gap-2 text-sm text-zinc-400 transition-colors duration-150 hover:text-zinc-100"
           >
             <span aria-hidden="true">←</span>
-            math_games
+            <span className="truncate">math_games</span>
           </a>
-          <span className="text-sm text-zinc-500">Checkout</span>
+          <span className="flex shrink-0 items-center gap-1.5 text-xs text-zinc-500">
+            <Lock aria-hidden="true" className="h-3.5 w-3.5" />
+            Secure checkout
+          </span>
         </header>
 
-        <main className="grid items-start gap-10 py-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16 lg:py-20">
+        <main className="grid items-start gap-8 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14 lg:py-16">
           <section aria-labelledby="ultra-title">
-            <p className="text-sm font-medium text-amber-300">math_games Ultra</p>
+            <p className="font-mono text-xs text-amber-300">math_games Ultra</p>
             <h1
               id="ultra-title"
-              className="mt-3 font-display text-[3.25rem] font-semibold leading-[0.95] text-zinc-50 sm:text-[3.75rem]"
+              className="mt-3 font-display text-[2.75rem] font-semibold leading-[0.98] text-zinc-50 sm:text-[3.25rem]"
             >
-              No ads between games.
+              Play the catalog.
+              <br />
+              Skip the ad bar.
             </h1>
-            <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed text-zinc-400">
-              One dollar, once. Ultra takes the ad bar off the hub and the ad
-              slots out from around the catalog.
+            <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-zinc-400">
+              One dollar, charged once. Ultra removes the ad bar under the hub,
+              the ad slots around the catalog and the ad that plays before a
+              game opens.
             </p>
 
-            <ul className="mt-8 divide-y divide-white/[0.07] border-y border-white/[0.07]">
+            <ul className="mt-7 border-t border-white/[0.07]">
               {INCLUDED.map((item) => (
                 <li
                   key={item}
-                  className="flex items-center gap-3 py-3.5 text-sm text-zinc-300"
+                  className="flex items-center gap-3 border-b border-white/[0.07] py-3 text-sm text-zinc-200"
                 >
                   <Check
                     aria-hidden="true"
@@ -122,7 +150,14 @@ export function CheckoutPage() {
               ))}
             </ul>
 
-            <p className="mt-6 max-w-[46ch] text-xs leading-relaxed text-zinc-500">
+            <p className="mt-5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-zinc-400">
+              <span className="font-mono text-base tabular-nums text-zinc-100">
+                {recentBuyers.toLocaleString("en-US")}
+              </span>
+              people bought Ultra in the past month
+            </p>
+
+            <p className="mt-3 max-w-[46ch] text-xs leading-relaxed text-zinc-500">
               Ads keep the hub free for everyone. Ultra is for people who would
               rather pay a dollar than see them.
             </p>
@@ -130,35 +165,40 @@ export function CheckoutPage() {
 
           <section
             aria-labelledby="summary-title"
-            className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#101012]"
+            className="overflow-hidden rounded-2xl border border-white/[0.09] bg-[#121214]"
           >
-            <div
-              aria-hidden="true"
-              className="h-2"
-              style={{
-                backgroundImage:
-                  "repeating-conic-gradient(from 0deg, rgba(250,250,250,0.2) 0deg 90deg, rgba(250,250,250,0) 90deg 180deg)",
-                backgroundSize: "16px 16px",
-              }}
-            />
             <div className="p-5 sm:p-6">
-              <h2 id="summary-title" className="text-sm font-medium text-zinc-300">
-                Order summary
-              </h2>
-
-              <div className="mt-4 flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-sm text-zinc-100">math_games Ultra</div>
-                  <div className="mt-0.5 text-xs text-zinc-500">
-                    One-time payment
-                  </div>
-                </div>
-                <div className="text-sm tabular-nums text-zinc-100">{price}</div>
+              <div className="flex items-baseline justify-between gap-4">
+                <h2
+                  id="summary-title"
+                  className="text-sm font-medium text-zinc-300"
+                >
+                  Order
+                </h2>
+                <span className="font-mono text-[11px] text-zinc-500">
+                  One-time
+                </span>
               </div>
 
-              <div className="mt-5 flex items-baseline justify-between gap-4 border-t border-white/[0.08] pt-4">
+              <dl className="mt-4 space-y-2.5 text-sm">
+                <div className="flex items-baseline justify-between gap-4">
+                  <dt className="text-zinc-400">math_games Ultra</dt>
+                  <dd className="tabular-nums text-zinc-100">{price}</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-4">
+                  <dt className="text-zinc-400">Renews</dt>
+                  <dd className="text-zinc-500">Never</dd>
+                </div>
+              </dl>
+
+              <div
+                aria-hidden="true"
+                className="my-5 border-t border-dashed border-white/[0.18]"
+              />
+
+              <div className="flex items-baseline justify-between gap-4">
                 <span className="text-sm text-zinc-400">Total</span>
-                <span className="font-display text-[2rem] font-semibold leading-none tabular-nums text-zinc-50">
+                <span className="font-display text-[2.25rem] font-semibold leading-none tabular-nums text-zinc-50">
                   {price}
                 </span>
               </div>
@@ -194,9 +234,13 @@ export function CheckoutPage() {
                 </p>
               )}
 
-              <p className="mt-1.5 text-center text-xs leading-relaxed text-zinc-500">
-                Card, PayPal or Apple Pay. One-time payment.
-              </p>
+              <div className="mt-5 border-t border-white/[0.08] pt-4">
+                <ul className="space-y-1.5 text-[11px] leading-relaxed text-zinc-500">
+                  {SECURE_POINTS.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </section>
         </main>

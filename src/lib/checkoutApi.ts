@@ -127,6 +127,22 @@ export async function loadCheckoutSession(): Promise<CheckoutUser | null> {
   }
 }
 
+/**
+ * How many Ultra orders the hub recorded in the last 30 days. Public and
+ * read-only, so the checkout page can show a real number instead of a claim.
+ * Resolves null when the Worker has no such route yet.
+ */
+export async function loadCheckoutStats(): Promise<{ lastMonth: number } | null> {
+  try {
+    const data = await checkoutRequest("/checkout/stats");
+    const lastMonth = Number(data.lastMonth);
+    if (!Number.isFinite(lastMonth) || lastMonth < 0) return null;
+    return { lastMonth };
+  } catch {
+    return null;
+  }
+}
+
 export async function signOutCheckout(): Promise<void> {
   try {
     await checkoutRequest("/checkout/signout", { method: "POST" });

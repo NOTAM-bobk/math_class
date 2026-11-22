@@ -95,9 +95,11 @@ export const CATEGORY_FILTERS = [
   { id: "tools", label: "Tools" },
 ] as const;
 
-// The home catalog is a stack of genre shelves. Each shelf shows one row on
-// phones and two rows on wide screens, and both rows scroll sideways together.
+// The home catalog is a stack of genre shelves. Most show one row; the biggest
+// categories get a second row on wide screens, and both rows scroll sideways
+// together so the shelf stays one horizontal gesture.
 const SHELF_GAME_LIMIT = 24;
+const TWO_ROW_SHELVES = new Set<string>(["arcade", "action", "driving"]);
 // A shelf rests a few pixels right of zero because of its own px-1 padding and
 // scroll snapping, so the left arrow waits until the row is really scrolled.
 const SHELF_EDGE_SLACK_PX = 16;
@@ -258,6 +260,7 @@ function GameRail({
   icon,
   total,
   games,
+  twoRows = false,
   onSeeAll,
   renderGame,
 }: {
@@ -266,6 +269,8 @@ function GameRail({
   icon?: React.ComponentType<{ className?: string }>;
   total: number;
   games: GameItem[];
+  /** Big categories stack two rows on wide screens and still scroll sideways. */
+  twoRows?: boolean;
   onSeeAll: () => void;
   renderGame: (game: GameItem) => React.ReactNode;
 }) {
@@ -341,12 +346,20 @@ function GameRail({
           aria-label={`${title} games`}
           tabIndex={0}
           onScroll={updateEdges}
-          className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [&::-webkit-scrollbar]:hidden"
+          className={`-mx-1 snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [&::-webkit-scrollbar]:hidden ${
+            twoRows
+              ? "grid grid-flow-col grid-rows-1 [grid-auto-columns:9.5rem] sm:grid-rows-2 sm:[grid-auto-columns:11.5rem] lg:[grid-auto-columns:13rem] xl:[grid-auto-columns:13.5rem]"
+              : "flex"
+          }`}
         >
           {games.map((game) => (
             <div
               key={game.id}
-              className="w-[9.5rem] shrink-0 snap-start sm:w-[11.5rem] lg:w-[13rem] xl:w-[13.5rem]"
+              className={
+                twoRows
+                  ? "w-full min-w-0 snap-start"
+                  : "w-[9.5rem] shrink-0 snap-start sm:w-[11.5rem] lg:w-[13rem] xl:w-[13.5rem]"
+              }
             >
               {renderGame(game)}
             </div>
@@ -2628,6 +2641,7 @@ export function GameCatalog({
                     icon={shelf.icon}
                     total={shelf.total}
                     games={shelf.games}
+                    twoRows={TWO_ROW_SHELVES.has(shelf.id)}
                     onSeeAll={() => seeAllCategory(shelf.id)}
                     renderGame={(game) => renderGameCard(game)}
                   />

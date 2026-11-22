@@ -24,6 +24,18 @@ await build({
   },
 });
 
+// The pre-roll player (Video.js + videojs-ima) is only needed once a game is
+// clicked, so its styles live in dist/vendor and are linked on demand instead
+// of loading on every visit.
+fs.mkdirSync("dist/vendor", { recursive: true });
+for (const [from, to] of [
+  ["node_modules/video.js/dist/video-js.min.css", "video-js.min.css"],
+  ["node_modules/videojs-contrib-ads/dist/videojs-contrib-ads.css", "videojs-contrib-ads.css"],
+  ["node_modules/videojs-ima/dist/videojs.ima.css", "videojs.ima.css"],
+]) {
+  fs.copyFileSync(from, `dist/vendor/${to}`);
+}
+
 // /checkout is its own static page, so it gets a self-contained bundle and
 // does not change the home bundle's chunk graph.
 await build({

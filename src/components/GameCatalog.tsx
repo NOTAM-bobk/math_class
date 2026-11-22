@@ -21,6 +21,7 @@ import { loadGameOfTheDayId, onGameOfTheDayChange } from "@/lib/gameOfTheDay";
 import { loadEditorPicks, onEditorPicksChange, fetchEditorPicks } from "@/lib/editorPicks";
 import { GameCoverArt } from "./GameCoverArt";
 import { BidvertiserAd } from "./BidvertiserAd";
+import { GameLaunchAd } from "./GameLaunchAd";
 import { PanicButton } from "./PanicButton";
 import { RANDOM_GAME_EVENT } from "./RandomGameButton";
 import { CONTINUE_GAME_EVENT } from "./NotificationsButton";
@@ -1168,6 +1169,10 @@ export function GameCatalog({
   // The launcher fades out before it unmounts, so leaving a game does not snap.
   const [launcherClosing, setLauncherClosing] = React.useState(false);
   const launcherCloseTimerRef = React.useRef<number | null>(null);
+  // A card click is parked here while its pre-roll plays; the game opens as
+  // soon as the ad break ends (or fails to load).
+  const [pendingLaunch, setPendingLaunch] = React.useState<GameItem | null>(null);
+  const pendingLaunchRef = React.useRef<GameItem | null>(null);
   React.useEffect(() => {
     return () => {
       if (launcherCloseTimerRef.current) window.clearTimeout(launcherCloseTimerRef.current);
@@ -1705,12 +1710,56 @@ export function GameCatalog({
       .catch(() => {});
   };
 
+  const openGameNow = (game: GameItem) => {
+    if (!game.disabled && isSameOriginGame(game.url)) {
+      openLauncher(game);
+      return;
+    }
+    // The tab opens after the ad, so there is no click left for the browser to
+    // attach the pop-up permission to. Fall back to this tab if it is refused
+    // rather than leaving the visitor on the hub with nothing loaded.
+    const opened = window.open(game.url, "_blank");
+    if (opened) {
+      try {
+        opened.opener = null;
+      } catch {
+        // The new window is already cross-origin; clearing opener is best effort.
+      }
+    } else {
+      window.location.assign(game.url);
+    }
+  };
+
+  const completePendingLaunch = () => {
+    const game = pendingLaunchRef.current;
+    pendingLaunchRef.current = null;
+    setPendingLaunch(null);
+    if (!game) return;
+    handleGameClick(game);
+    openGameNow(game);
+  };
+
+  const cancelPendingLaunch = () => {
+    pendingLaunchRef.current = null;
+    setPendingLaunch(null);
+  };
+
+  // Every card click, shuffle and notification launch goes through here. With
+  // ads on, the pre-roll overlay owns the launch and opens the game when its
+  // ad break ends. Returns true when the launch was handed to that overlay, so
+  // callers without a click event know not to open a tab themselves.
   const launchGame = (game: GameItem, event?: React.MouseEvent) => {
     const embed = !game.disabled && isSameOriginGame(game.url);
-    if (embed) event?.preventDefault();
+    if (embed || showAdSpot) event?.preventDefault();
     rememberCatalogScroll();
+    if (showAdSpot) {
+      pendingLaunchRef.current = game;
+      setPendingLaunch(game);
+      return true;
+    }
     handleGameClick(game);
     if (embed) openLauncher(game);
+    return false;
   };
 
   // The shuffle button in the header asks for a random game; the catalog owns
@@ -1721,8 +1770,8 @@ export function GameCatalog({
     if (pool.length === 0) return;
     const game = pool[Math.floor(Math.random() * pool.length)];
     const embed = isSameOriginGame(game.url);
-    launchGame(game);
-    if (!embed) window.open(game.url, "_blank", "noopener,noreferrer");
+    const deferred = launchGame(game);
+    if (!embed && !deferred) window.open(game.url, "_blank", "noopener,noreferrer");
   };
   React.useEffect(() => {
     const playRandomGame = () => launchRandomGameRef.current();
@@ -1739,8 +1788,8 @@ export function GameCatalog({
     );
     if (!game) return;
     const embed = isSameOriginGame(game.url);
-    launchGame(game);
-    if (!embed) window.open(game.url, "_blank", "noopener,noreferrer");
+    const deferred = launchGame(game);
+    if (!embed && !deferred) window.open(game.url, "_blank", "noopener,noreferrer");
   };
   React.useEffect(() => {
     const playGameById = (event: Event) => {
@@ -2905,6 +2954,17 @@ export function GameCatalog({
                 )}
               </div>
             </div>,
+            document.body
+          )
+        : null}
+
+      {pendingLaunch && typeof document !== "undefined"
+        ? createPortal(
+            <GameLaunchAd
+              game={pendingLaunch}
+              onComplete={completePendingLaunch}
+              onCancel={cancelPendingLaunch}
+            />,
             document.body
           )
         : null}

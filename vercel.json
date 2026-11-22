@@ -130,6 +130,10 @@
       "destination": "https://cdn.hyperpromote.com/bidvertiser/:path*"
     },
     {
+      "source": "/imasdk/:path*",
+      "destination": "https://imasdk.googleapis.com/js/sdkloader/:path*"
+    },
+    {
       "source": "/api/avatar",
       "destination": "/api/avatar"
     },

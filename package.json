@@ -23,7 +23,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "redis": "^4.6.13",
-    "tailwind-merge": "^2.5.5"
+    "tailwind-merge": "^2.5.5",
+    "video.js": "^8.21.0",
+    "videojs-contrib-ads": "^7.5.2",
+    "videojs-ima": "^2.3.0"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.6";
+export const SITE_VERSION = "1.7.7";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.7",
+    date: "November 2026",
+    title: "Twelve new games from the Gameflare catalog",
+    changes: [
+      "The catalog gained twelve new action, shooter, racing and puzzle games, including Red Escape, Idle Medieval: Tower Defense and Marine Showdown.",
+      "The new games open on Gameflare's own player, so they keep working without anything extra downloaded from here.",
+    ],
+  },
   {
     version: "1.7.6",
     date: "November 2026",

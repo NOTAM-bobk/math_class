@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T22:43:38.994Z",
-  "totalBytes": 347192910,
+  "generatedAt": "2026-11-22T00:43:21.947Z",
+  "totalBytes": 348325590,
   "files": [
     {
       "url": "/index.html",
@@ -24,44 +24,80 @@
       "bytes": 14387
     },
     {
-      "url": "/dist/chunks/AdminPanelModal-O62KFYAR.js",
-      "bytes": 52911
+      "url": "/dist/checkout.js",
+      "bytes": 264873
     },
     {
-      "url": "/dist/chunks/ChangelogModal-WM54576A.js",
-      "bytes": 16438
+      "url": "/dist/chunks/AdminPanelModal-H5EJOSCB.js",
+      "bytes": 57387
     },
     {
-      "url": "/dist/chunks/SettingsModal-HQIDVYEV.js",
-      "bytes": 115306
+      "url": "/dist/chunks/ChangelogModal-H2Q5CYEJ.js",
+      "bytes": 16471
     },
     {
-      "url": "/dist/chunks/chunk-377IB5KD.js",
-      "bytes": 7850
+      "url": "/dist/chunks/SettingsModal-JL5M642J.js",
+      "bytes": 110983
     },
     {
-      "url": "/dist/chunks/chunk-BLFNB7C7.js",
-      "bytes": 182562
+      "url": "/dist/chunks/chunk-G7ULGWO5.js",
+      "bytes": 60165
     },
     {
-      "url": "/dist/chunks/chunk-JANZF24H.js",
-      "bytes": 37447
+      "url": "/dist/chunks/chunk-HCFTW46V.js",
+      "bytes": 7883
     },
     {
-      "url": "/dist/chunks/chunk-PS5Z4PAQ.js",
-      "bytes": 59166
+      "url": "/dist/chunks/chunk-HDFI2G67.js",
+      "bytes": 713646
+    },
+    {
+      "url": "/dist/chunks/chunk-IDPCSWGC.js",
+      "bytes": 37480
     },
     {
       "url": "/dist/chunks/chunk-SYRWHHC4.js",
       "bytes": 29053
     },
     {
+      "url": "/dist/chunks/chunk-Y6SLVHK3.js",
+      "bytes": 544
+    },
+    {
+      "url": "/dist/chunks/chunk-ZLXMXMJ7.js",
+      "bytes": 182595
+    },
+    {
+      "url": "/dist/chunks/video.es-MNKDCNUF.js",
+      "bytes": 90
+    },
+    {
+      "url": "/dist/chunks/videojs-contrib-ads.es-A3UMJ73J.js",
+      "bytes": 38532
+    },
+    {
+      "url": "/dist/chunks/videojs.ima.es-EHW2JETO.js",
+      "bytes": 52008
+    },
+    {
       "url": "/dist/home.bundle.js",
-      "bytes": 919073
+      "bytes": 927609
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 73098
+      "bytes": 74310
+    },
+    {
+      "url": "/dist/vendor/video-js.min.css",
+      "bytes": 47341
+    },
+    {
+      "url": "/dist/vendor/videojs-contrib-ads.css",
+      "bytes": 812
+    },
+    {
+      "url": "/dist/vendor/videojs.ima.css",
+      "bytes": 3802
     },
     {
       "url": "/images/app-icon-192.png",

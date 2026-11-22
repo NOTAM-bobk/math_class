@@ -31,7 +31,7 @@ const cors = (r) => {
   const h = {
     Vary: "Origin",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "content-type, x-admin-password, x-vercel-admin-verified, x-hub-internal-key",
+    "Access-Control-Allow-Headers": "content-type, authorization, x-admin-password, x-vercel-admin-verified, x-hub-internal-key",
     "Access-Control-Max-Age": "86400",
   };
   if (ALLOWED.includes(o) || HUB.test(o) || MIRROR.test(o) || LOCAL.test(o)) {
@@ -87,6 +87,273 @@ const equal = (a, b) => {
   return n === 0;
 };
 
+// CHECKOUT (temporary until a payment provider is connected)
+const CHECKOUT_PRICE_CENTS = 100;
+const CHECKOUT_SESSION_DAYS = 7;
+const CHECKOUT_PASSWORD_ITERATIONS = 100000;
+const CHECKOUT_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+const hex = (buffer) =>
+  Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+const unhex = (value) => {
+  const bytes = new Uint8Array(value.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(value.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+};
+
+const randomHex = (bytes = 32) => {
+  const buffer = new Uint8Array(bytes);
+  crypto.getRandomValues(buffer);
+  return hex(buffer);
+};
+
+async function deriveCheckoutPassword(password, salt) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: unhex(salt),
+      iterations: CHECKOUT_PASSWORD_ITERATIONS,
+      hash: "SHA-256",
+    },
+    key,
+    256
+  );
+  return hex(bits);
+}
+
+const checkoutBearer = (r) => {
+  const match = (r.headers.get("authorization") || "").match(/^Bearer\s+([a-f0-9]{64})$/i);
+  return match ? match[1].toLowerCase() : "";
+};
+
+async function currentCheckoutUser(r, e) {
+  const token = checkoutBearer(r);
+  if (!token) return null;
+  const tokenHash = await digest(token);
+  const row = await e.DB.prepare(
+    "SELECT u.id,u.name,u.email,s.expires_at FROM checkout_sessions s JOIN checkout_users u ON u.id = s.user_id WHERE s.token_hash = ?"
+  )
+    .bind(tokenHash)
+    .first();
+  if (!row) return null;
+  if (Date.parse(row.expires_at) <= Date.now()) {
+    await e.DB.prepare("DELETE FROM checkout_sessions WHERE token_hash = ?").bind(tokenHash).run();
+    return null;
+  }
+  return { id: row.id, name: row.name, email: row.email };
+}
+
+async function openCheckoutSession(e, userId) {
+  const token = randomHex(32);
+  const now = new Date();
+  const expires = new Date(now.getTime() + CHECKOUT_SESSION_DAYS * 86400000).toISOString();
+  await e.DB.prepare(
+    "INSERT INTO checkout_sessions(token_hash,user_id,created_at,expires_at) VALUES(?,?,?,?)"
+  )
+    .bind(await digest(token), userId, now.toISOString(), expires)
+    .run();
+  return token;
+}
+
+async function checkoutSignup(r, e) {
+  if (r.method !== "POST") return fail(r, "Use POST to create an account.", 405);
+  const limit = await checkRateLimit(e.DB, "checkout_signup:" + (await digest(ip(r))), 5, 3600);
+  if (!limit.allowed) return fail(r, "Too many accounts from this connection. Try again later.", 429);
+
+  const b = await read(r);
+  const name = clean(b?.name, 60);
+  const email = clean(b?.email, 200).toLowerCase();
+  const password = typeof b?.password === "string" ? b.password : "";
+  if (name.length < 2) return fail(r, "Enter the name for the account.", 422);
+  if (name.length > 60) return fail(r, "Keep the name under 60 characters.", 422);
+  if (!CHECKOUT_EMAIL.test(email)) return fail(r, "Enter a valid email address.", 422);
+  if (password.length < 8) return fail(r, "Use at least 8 characters for the password.", 422);
+  if (password.length > 200) return fail(r, "That password is too long.", 422);
+
+  const existing = await e.DB.prepare("SELECT id FROM checkout_users WHERE email = ?")
+    .bind(email)
+    .first();
+  if (existing) return fail(r, "An account with that email already exists. Sign in instead.", 409);
+
+  const id = crypto.randomUUID();
+  const salt = randomHex(16);
+  const hash = await deriveCheckoutPassword(password, salt);
+  try {
+    await e.DB.prepare(
+      "INSERT INTO checkout_users(id,created_at,name,email,password_hash,password_salt) VALUES(?,?,?,?,?,?)"
+    )
+      .bind(id, new Date().toISOString(), name, email, hash, salt)
+      .run();
+  } catch {
+    return fail(r, "An account with that email already exists. Sign in instead.", 409);
+  }
+
+  const token = await openCheckoutSession(e, id);
+  return json(r, { ok: true, user: { id, name, email }, token }, 201);
+}
+
+async function checkoutSignin(r, e) {
+  if (r.method !== "POST") return fail(r, "Use POST to sign in.", 405);
+  const limit = await checkRateLimit(e.DB, "checkout_signin:" + (await digest(ip(r))), 15, 600);
+  if (!limit.allowed) {
+    return fail(r, `Too many sign-in attempts. Try again in ${Math.ceil(limit.resetIn / 60)} minute(s).`, 429);
+  }
+
+  const b = await read(r);
+  const email = clean(b?.email, 200).toLowerCase();
+  const password = typeof b?.password === "string" ? b.password : "";
+  if (!CHECKOUT_EMAIL.test(email) || !password) return fail(r, "Email or password is incorrect.", 401);
+
+  const user = await e.DB.prepare(
+    "SELECT id,name,email,password_hash,password_salt FROM checkout_users WHERE email = ?"
+  )
+    .bind(email)
+    .first();
+  const hash = user ? await deriveCheckoutPassword(password, user.password_salt) : "";
+  if (!user || !equal(hash, user.password_hash)) {
+    return fail(r, "Email or password is incorrect.", 401);
+  }
+
+  const token = await openCheckoutSession(e, user.id);
+  return json(r, {
+    ok: true,
+    user: { id: user.id, name: user.name, email: user.email },
+    token,
+  });
+}
+
+async function checkoutSession(r, e) {
+  if (r.method !== "GET") return fail(r, "Use GET for the current session.", 405);
+  const user = await currentCheckoutUser(r, e);
+  if (!user) return fail(r, "Sign in to continue.", 401);
+  return json(r, { ok: true, user });
+}
+
+async function checkoutSignout(r, e) {
+  if (r.method !== "POST") return fail(r, "Use POST to sign out.", 405);
+  const token = checkoutBearer(r);
+  if (token) {
+    await e.DB.prepare("DELETE FROM checkout_sessions WHERE token_hash = ?")
+      .bind(await digest(token))
+      .run();
+  }
+  return json(r, { ok: true });
+}
+
+async function checkoutOrders(r, e) {
+  if (r.method !== "POST") return fail(r, "Use POST to place an order.", 405);
+  const user = await currentCheckoutUser(r, e);
+  if (!user) return fail(r, "Sign in to finish the order.", 401);
+
+  const limit = await checkRateLimit(e.DB, "checkout_order:" + user.id, 20, 3600);
+  if (!limit.allowed) return fail(r, "Too many orders. Try again later.", 429);
+
+  const b = await read(r);
+  const method = clean(b?.method, 20);
+  if (!["card", "paypal", "apple"].includes(method)) {
+    return fail(r, "Choose a payment method.", 422);
+  }
+  const cardName = clean(b?.cardName, 80);
+  let cardLast4 = clean(b?.cardLast4, 4);
+  if (!/^\d{4}$/.test(cardLast4)) cardLast4 = "";
+  if (method === "card" && !cardLast4) return fail(r, "That card number is incomplete.", 422);
+
+  const id = `MC-${randomHex(4).toUpperCase()}`;
+  const createdAt = new Date().toISOString();
+  await e.DB.prepare(
+    "INSERT INTO checkout_orders(id,created_at,user_id,name,email,method,amount_cents,card_name,card_last4,ip_hash,status) VALUES(?,?,?,?,?,?,?,?,?,?,'received')"
+  )
+    .bind(
+      id,
+      createdAt,
+      user.id,
+      user.name,
+      user.email,
+      method,
+      CHECKOUT_PRICE_CENTS,
+      cardName,
+      cardLast4,
+      await digest(ip(r))
+    )
+    .run();
+
+  return json(
+    r,
+    {
+      ok: true,
+      order: {
+        id,
+        createdAt,
+        method,
+        amountCents: CHECKOUT_PRICE_CENTS,
+        cardName,
+        cardLast4,
+      },
+    },
+    201
+  );
+}
+
+async function adminCheckoutOrders(r, e) {
+  const ipHash = await digest(ip(r));
+  const b = await read(r);
+  const given = r.headers.get("x-admin-password") || b?.password || "";
+
+  let authorized = false;
+  if (isTrustedProxy(r, e)) {
+    authorized = true;
+  } else if (e.ADMIN_PASSWORD && equal(given, e.ADMIN_PASSWORD)) {
+    authorized = true;
+  }
+
+  if (!authorized) {
+    const limit = await checkRateLimit(e.DB, "admin_orders_fail:" + ipHash, 5, 600);
+    if (!limit.allowed) {
+      return fail(
+        r,
+        `Too many admin attempts. Try again in ${Math.ceil(limit.resetIn / 60)} minute(s).`,
+        429
+      );
+    }
+    return fail(r, "Unauthorized. Incorrect admin password.", 401);
+  }
+
+  const q = await e.DB.prepare(
+    "SELECT id,created_at,name,email,method,amount_cents,card_name,card_last4,status FROM checkout_orders ORDER BY created_at DESC LIMIT 200"
+  ).all();
+  const total = await e.DB.prepare("SELECT COUNT(*) AS n FROM checkout_orders").first();
+  const accounts = await e.DB.prepare("SELECT COUNT(*) AS n FROM checkout_users").first();
+
+  return json(r, {
+    ok: true,
+    total: Number(total?.n || 0),
+    users: Number(accounts?.n || 0),
+    items: (q.results || []).map((row) => ({
+      id: row.id,
+      createdAt: row.created_at,
+      name: row.name,
+      email: row.email,
+      method: row.method,
+      amountCents: Number(row.amount_cents || 0),
+      cardName: row.card_name,
+      cardLast4: row.card_last4,
+      status: row.status,
+    })),
+  });
+}
+
 function schema(e) {
   if (!ready) {
     ready = e.DB.batch([
@@ -134,6 +401,25 @@ function schema(e) {
       ),
       e.DB.prepare(
         "CREATE INDEX IF NOT EXISTS idx_presence_last_seen ON presence_sessions(last_seen)"
+      ),
+      // Temporary Ultra checkout accounts. Passwords are PBKDF2-SHA256 with a
+      // per-account salt; sessions are random tokens stored as SHA-256 hashes.
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS checkout_users(id TEXT PRIMARY KEY,created_at TEXT NOT NULL,name TEXT NOT NULL,email TEXT NOT NULL UNIQUE,password_hash TEXT NOT NULL,password_salt TEXT NOT NULL)"
+      ),
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS checkout_sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,created_at TEXT NOT NULL,expires_at TEXT NOT NULL)"
+      ),
+      e.DB.prepare(
+        "CREATE INDEX IF NOT EXISTS idx_checkout_sessions_user ON checkout_sessions(user_id)"
+      ),
+      // Card numbers and CVC never reach the Worker; orders keep only the
+      // cardholder name and the last four digits for the admin receipt.
+      e.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS checkout_orders(id TEXT PRIMARY KEY,created_at TEXT NOT NULL,user_id TEXT NOT NULL,name TEXT NOT NULL,email TEXT NOT NULL,method TEXT NOT NULL,amount_cents INTEGER NOT NULL,card_name TEXT NOT NULL DEFAULT '',card_last4 TEXT NOT NULL DEFAULT '',ip_hash TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'received')"
+      ),
+      e.DB.prepare(
+        "CREATE INDEX IF NOT EXISTS idx_checkout_orders_user ON checkout_orders(user_id)"
       ),
     ])
       // Deployments created before the "not mobile optimized" tag have a game_flags
@@ -831,6 +1117,12 @@ export default {
       if (p === "/api/admin/bugs") return adminBugs(r, e);
       if (p === "/api/games/flags") return gameFlags(r, e);
       if (p === "/api/admin/flags") return adminFlags(r, e);
+      if (p === "/api/checkout/signup") return checkoutSignup(r, e);
+      if (p === "/api/checkout/signin") return checkoutSignin(r, e);
+      if (p === "/api/checkout/session") return checkoutSession(r, e);
+      if (p === "/api/checkout/signout") return checkoutSignout(r, e);
+      if (p === "/api/checkout/orders") return checkoutOrders(r, e);
+      if (p === "/api/admin/checkout-orders") return adminCheckoutOrders(r, e);
       return fail(r, "No such endpoint.", 404);
     } catch {
       return fail(r, "The hub API is unavailable right now.", 500);

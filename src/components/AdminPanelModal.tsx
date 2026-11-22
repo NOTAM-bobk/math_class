@@ -24,6 +24,7 @@ import {
   Heart,
   Globe,
   MonitorSmartphone,
+  CreditCard,
 } from "lucide-react";
 import type { GameItem } from "@/data/gameItem";
 import { loadCatalog } from "@/lib/catalog";
@@ -32,6 +33,7 @@ import { loadVerifiedGameIds, saveVerifiedGameIds, onVerifiedGamesChange } from 
 import { loadNotMobileGameIds, saveNotMobileGameIds, onNotMobileGamesChange } from "@/lib/notMobileGames";
 import { loadBlockedGameIds, saveBlockedGameIds, onBlockedGamesChange } from "@/lib/blockedGames";
 import { loadGameFlags, updateAdminGameFlags, type GameFlagsData } from "@/lib/hubApi";
+import { loadCheckoutOrdersForAdmin, type CheckoutOrderRecord } from "@/lib/checkoutApi";
 import { Cloud, UploadCloud } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { loadGameOfTheDay, saveGameOfTheDay, clearGameOfTheDay } from "@/lib/gameOfTheDay";
@@ -156,12 +158,17 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
   const [errorMessage, setErrorMessage] = React.useState("");
   const [bugs, setBugs] = React.useState<BugReport[]>([]);
   const [submissions, setSubmissions] = React.useState<GameSubmission[]>([]);
+  const [checkoutOrders, setCheckoutOrders] = React.useState<CheckoutOrderRecord[]>([]);
+  const [checkoutOrdersTotal, setCheckoutOrdersTotal] = React.useState(0);
+  const [checkoutAccounts, setCheckoutAccounts] = React.useState(0);
+  const [checkoutOrdersLoading, setCheckoutOrdersLoading] = React.useState(false);
+  const [checkoutOrdersError, setCheckoutOrdersError] = React.useState("");
   const [filter, setFilter] = React.useState<"all" | "open" | "resolved">("open");
   const [actionLoadingId, setActionLoadingId] = React.useState<number | null>(null);
   const [rateLimitSeconds, setRateLimitSeconds] = React.useState<number | null>(null);
 
   // Admin tabs: "verified", "tags" (error:bug), "mobile" (not mobile optimized), or "bugs" (reports)
-  const [adminTab, setAdminTab] = React.useState<"verified" | "daily" | "editors" | "tags" | "mobile" | "blocked" | "bugs" | "submissions">("verified");
+  const [adminTab, setAdminTab] = React.useState<"verified" | "daily" | "editors" | "tags" | "mobile" | "blocked" | "bugs" | "submissions" | "orders">("verified");
   const [dailyId, setDailyId] = React.useState<string>(() => loadGameOfTheDay()?.gameId || "");
   const [dailySearch, setDailySearch] = React.useState("");
   // null means the catalog's own editorsPick fields are still the source.
@@ -362,6 +369,32 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     }
   }, []);
 
+  // Checkout orders are only pulled when their tab is opened, so the admin
+  // password is not spent on a second request on every unlock.
+  const loadCheckoutOrders = React.useCallback(async (pwd: string) => {
+    setCheckoutOrdersLoading(true);
+    setCheckoutOrdersError("");
+    try {
+      const data = await loadCheckoutOrdersForAdmin(pwd);
+      setCheckoutOrders(data.items);
+      setCheckoutOrdersTotal(data.total);
+      setCheckoutAccounts(data.users);
+    } catch (err) {
+      setCheckoutOrdersError(
+        err instanceof Error ? err.message : "Could not load checkout orders."
+      );
+    } finally {
+      setCheckoutOrdersLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!isOpen || !isAuthenticated || adminTab !== "orders") return;
+    const pwd =
+      password.trim() || sessionStorage.getItem("polytrack_admin_session_pwd") || "";
+    if (pwd) loadCheckoutOrders(pwd);
+  }, [isOpen, isAuthenticated, adminTab, password, loadCheckoutOrders]);
+
   // Check saved session password on open
   React.useEffect(() => {
     if (isOpen && password && !isAuthenticated) {
@@ -386,6 +419,10 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
     sessionStorage.removeItem("polytrack_admin_session_pwd");
     setBugs([]);
     setSubmissions([]);
+    setCheckoutOrders([]);
+    setCheckoutOrdersTotal(0);
+    setCheckoutAccounts(0);
+    setCheckoutOrdersError("");
     setErrorMessage("");
   };
 
@@ -1100,6 +1137,24 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                 {submissions.length > 0 && (
                   <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-cyan-500/30 text-cyan-200">
                     {submissions.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminTab("orders")}
+                style={CHIP_STYLE}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                  adminTab === "orders"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5 text-amber-300" />
+                <span>Checkout</span>
+                {checkoutOrdersTotal > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-mono bg-amber-500/30 text-amber-200">
+                    {checkoutOrdersTotal}
                   </span>
                 )}
               </button>
@@ -2243,6 +2298,99 @@ export function AdminPanelModal({ isOpen, onClose }: AdminPanelModalProps) {
                         </div>
                       );
                     })
+                  )}
+                </div>
+              </div>
+            )}
+            {/* TAB: Ultra checkout orders and accounts */}
+            {adminTab === "orders" && (
+              <div className="flex flex-col gap-3 min-h-0 flex-1">
+                <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] pb-1">
+                  <span className="text-xs font-semibold text-zinc-200">Ultra checkout</span>
+                  <span className="font-mono text-[11px] text-zinc-500">
+                    {checkoutOrdersTotal} orders · {checkoutAccounts} accounts
+                  </span>
+                </div>
+
+                <div className="max-h-[48vh] space-y-2.5 overflow-y-auto pr-1">
+                  {checkoutOrdersLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-12 text-xs text-zinc-500">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Loading checkout orders…
+                    </div>
+                  ) : checkoutOrdersError ? (
+                    <div className="flex flex-col items-center gap-3 py-12 text-center">
+                      <p className="max-w-[36ch] text-xs leading-relaxed text-red-300">
+                        {checkoutOrdersError}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const pwd =
+                            password.trim() ||
+                            sessionStorage.getItem("polytrack_admin_session_pwd") ||
+                            "";
+                          if (pwd) loadCheckoutOrders(pwd);
+                        }}
+                        className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-white/[0.05]"
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  ) : checkoutOrders.length === 0 ? (
+                    <div className="py-12 text-center text-xs text-zinc-500">
+                      No checkout orders yet. Orders placed on /checkout appear here.
+                    </div>
+                  ) : (
+                    checkoutOrders.map((order) => (
+                      <div
+                        key={order.id}
+                        style={{
+                          borderRadius: 12,
+                          background: "rgba(255, 255, 255, 0.03)",
+                          boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.05)",
+                        }}
+                        className="flex flex-col gap-2 p-3.5"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-mono text-[11px] font-semibold text-zinc-400">
+                            {order.id}
+                          </span>
+                          <span className="rounded border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 font-mono text-[11px] text-amber-300">
+                            ${(order.amountCents / 100).toFixed(2)}
+                          </span>
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="truncate text-xs font-semibold text-zinc-100">
+                            {order.name}
+                          </div>
+                          <div className="truncate text-[11px] text-zinc-400">
+                            {order.email}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-white/[0.04] pt-1 text-[11px] text-zinc-500">
+                          <span>
+                            {order.method === "card"
+                              ? "Card"
+                              : order.method === "paypal"
+                                ? "PayPal"
+                                : "Apple Pay"}
+                          </span>
+                          {order.cardLast4 ? (
+                            <span className="font-mono">···· {order.cardLast4}</span>
+                          ) : null}
+                          {order.cardName ? (
+                            <span className="max-w-[180px] truncate">{order.cardName}</span>
+                          ) : null}
+                          <span className="ml-auto flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-zinc-600" />
+                            {new Date(order.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               </div>

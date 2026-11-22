@@ -1,8 +1,16 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CheckoutAuthDialog } from "@/components/CheckoutAuthDialog";
 import { GlassCheckoutCard } from "@/components/ui/glass-checkout-card-shadcnui";
 import { useDialogFocus } from "@/lib/dialogFocus";
+import {
+  loadCheckoutSession,
+  placeCheckoutOrder,
+  signOutCheckout,
+  type CheckoutPayment,
+  type CheckoutUser,
+} from "@/lib/checkoutApi";
 
 const ULTRA_PRICE = 1;
 
@@ -20,6 +28,9 @@ function usd(amount: number) {
 }
 
 export function CheckoutPage() {
+  const [account, setAccount] = useState<CheckoutUser | null>(null);
+  const [checkingAccount, setCheckingAccount] = useState(true);
+  const [authOpen, setAuthOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const closePayment = () => setPaymentOpen(false);
@@ -30,7 +41,43 @@ export function CheckoutPage() {
     panelRef,
   });
 
+  useEffect(() => {
+    let active = true;
+    loadCheckoutSession()
+      .then((user) => {
+        if (active) setAccount(user);
+      })
+      .finally(() => {
+        if (active) setCheckingAccount(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const price = usd(ULTRA_PRICE);
+
+  function startCheckout() {
+    if (checkingAccount) return;
+    if (account) setPaymentOpen(true);
+    else setAuthOpen(true);
+  }
+
+  function handleAuthenticated(user: CheckoutUser) {
+    setAccount(user);
+    setAuthOpen(false);
+    setPaymentOpen(true);
+  }
+
+  async function handleSignOut() {
+    await signOutCheckout();
+    setAccount(null);
+  }
+
+  async function payForUltra(payment: CheckoutPayment) {
+    const order = await placeCheckoutOrder(payment);
+    return order.id;
+  }
 
   return (
     <div className="min-h-dvh bg-[#0b0b0d] font-sans text-zinc-100">
@@ -116,11 +163,39 @@ export function CheckoutPage() {
                 </span>
               </div>
 
-              <Button className="mt-5 w-full" onClick={() => setPaymentOpen(true)}>
+              <Button
+                className="mt-5 w-full"
+                onClick={startCheckout}
+                disabled={checkingAccount}
+              >
                 Pay {price}
               </Button>
-              <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
-                Card, PayPal or Apple Pay. One-time payment, no subscription.
+
+              {checkingAccount ? (
+                <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
+                  Checking your account…
+                </p>
+              ) : account ? (
+                <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
+                  Signed in as{" "}
+                  <span className="text-zinc-300">{account.email}</span>
+                  {" · "}
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="underline underline-offset-2 transition-colors hover:text-zinc-200"
+                  >
+                    Sign out
+                  </button>
+                </p>
+              ) : (
+                <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
+                  You’ll sign in or create an account before paying.
+                </p>
+              )}
+
+              <p className="mt-1.5 text-center text-xs leading-relaxed text-zinc-500">
+                Card, PayPal or Apple Pay. One-time payment.
               </p>
             </div>
           </section>
@@ -142,10 +217,20 @@ export function CheckoutPage() {
             tabIndex={-1}
             className="w-full max-w-[420px] animate-enter focus:outline-none"
           >
-            <GlassCheckoutCard amount={ULTRA_PRICE} onClose={closePayment} />
+            <GlassCheckoutCard
+              amount={ULTRA_PRICE}
+              onClose={closePayment}
+              onPay={payForUltra}
+            />
           </div>
         </div>
       ) : null}
+
+      <CheckoutAuthDialog
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthenticated={handleAuthenticated}
+      />
     </div>
   );
 }

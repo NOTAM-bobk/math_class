@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import type { CheckoutPayment } from "@/lib/checkoutApi";
 
-type PaymentMethod = "card" | "paypal" | "apple";
+type PaymentMethod = CheckoutPayment["method"];
 
 const PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
   { id: "card", label: "Card" },
@@ -19,26 +20,56 @@ interface GlassCheckoutCardProps {
   className?: string;
   /** Renders the close control and the way back out of the payment step. */
   onClose?: () => void;
+  /** Saves the order and resolves with its receipt number. */
+  onPay: (payment: CheckoutPayment) => Promise<string>;
 }
 
+type Phase = "form" | "paying" | "done";
+
 /**
- * The payment step for Ultra. Card details never leave the page: the button
- * below reports that checkout is not switched on yet rather than pretending a
- * charge went through.
+ * The payment step for Ultra. Only the cardholder name and last four digits
+ * leave this form; the full number and CVC stay in the browser.
  */
 export function GlassCheckoutCard({
   amount = 1,
   className,
   onClose,
+  onPay,
 }: GlassCheckoutCardProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [phase, setPhase] = useState<Phase>("form");
   const [orderId, setOrderId] = useState("");
+  const [error, setError] = useState("");
   const total = `$${amount.toFixed(2)}`;
-  const submitted = orderId !== "";
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setOrderId(`MC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`);
+    if (phase === "paying") return;
+
+    const data = new FormData(event.currentTarget);
+    const digits = String(data.get("cardNumber") || "").replace(/\D/g, "");
+    if (paymentMethod === "card" && digits.length < 12) {
+      setError("Enter the card number printed on the card.");
+      return;
+    }
+
+    setError("");
+    setPhase("paying");
+    try {
+      const id = await onPay({
+        method: paymentMethod,
+        cardName:
+          paymentMethod === "card" ? String(data.get("cardName") || "").trim() : "",
+        cardLast4: paymentMethod === "card" ? digits.slice(-4) : "",
+      });
+      setOrderId(id);
+      setPhase("done");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "The order could not be saved."
+      );
+      setPhase("form");
+    }
   }
 
   return (
@@ -68,7 +99,7 @@ export function GlassCheckoutCard({
           ) : null}
         </div>
 
-        {submitted ? (
+        {phase === "done" ? (
           <div className="mt-6" role="status">
             <div className="rounded-lg border border-white/[0.09] bg-white/[0.02] p-4">
               <div className="flex items-center gap-2.5">
@@ -134,6 +165,7 @@ export function GlassCheckoutCard({
                     autoComplete="cc-number"
                     maxLength={19}
                     placeholder="0000 0000 0000 0000"
+                    required
                   />
                 </div>
 
@@ -147,6 +179,7 @@ export function GlassCheckoutCard({
                       autoComplete="cc-exp"
                       maxLength={5}
                       placeholder="MM/YY"
+                      required
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -158,6 +191,7 @@ export function GlassCheckoutCard({
                       autoComplete="cc-csc"
                       maxLength={4}
                       placeholder="123"
+                      required
                     />
                   </div>
                 </div>
@@ -168,7 +202,9 @@ export function GlassCheckoutCard({
                     id="cardName"
                     name="cardName"
                     autoComplete="cc-name"
+                    maxLength={80}
                     placeholder="John Doe"
+                    required
                   />
                 </div>
               </div>
@@ -180,12 +216,25 @@ export function GlassCheckoutCard({
               </p>
             )}
 
-            <Button type="submit" className="mt-5 w-full">
-              Pay {total}
+            {error ? (
+              <p
+                role="alert"
+                className="mt-4 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs leading-relaxed text-red-300"
+              >
+                {error}
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              className="mt-5 w-full"
+              disabled={phase === "paying"}
+            >
+              {phase === "paying" ? `Paying ${total}…` : `Pay ${total}`}
             </Button>
             <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] leading-relaxed text-zinc-500">
               <Lock aria-hidden="true" className="h-3 w-3 shrink-0" />
-              One-time payment of {total}. No subscription.
+              Only the last four digits are saved with the order.
             </p>
           </form>
         )}

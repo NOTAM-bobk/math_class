@@ -3576,17 +3576,14 @@ export function SettingsModal({
                 </div>
               </div>
             </div>
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Checkout is not open yet"
-              className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg bg-amber-400/25 px-3 py-2 text-xs font-semibold text-amber-100/70"
+            <a
+              href="/checkout"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-400 px-3 py-2 text-xs font-semibold text-[#171205] transition-colors hover:bg-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/70"
             >
-              Pay $1 — coming soon
-            </button>
+              Pay $1
+            </a>
             <p className="text-[11px] leading-relaxed text-zinc-500">
-              Checkout isn’t open yet. The button unlocks when Ultra launches.
+              One-time payment. Sign in or create an account at checkout.
             </p>
           </div>
         </section>

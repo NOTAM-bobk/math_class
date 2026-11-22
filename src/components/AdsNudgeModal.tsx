@@ -44,7 +44,7 @@ export function AdsNudgeModal({
               Ads keep the games free.
             </h2>
             <p id="ads-nudge-description" className="mt-1 text-xs leading-relaxed text-zinc-300">
-              Ultra is on the way for $1: no ads and more features. Until then ads can’t be turned off
+              Ultra is $1: no ads, plus more features as they ship. Ads can’t be turned off
               separately.
             </p>
           </div>
@@ -66,14 +66,12 @@ export function AdsNudgeModal({
           >
             Maybe later
           </button>
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            className="cursor-not-allowed rounded-lg bg-white/40 px-3 py-2 text-xs font-semibold text-zinc-800"
+          <a
+            href="/checkout"
+            className="rounded-lg bg-amber-400 px-3 py-2 text-xs font-semibold text-[#171205] transition-colors hover:bg-amber-300"
           >
             Upgrade to Ultra · $1
-          </button>
+          </a>
         </div>
       </div>
     </div>

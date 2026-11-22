@@ -166,6 +166,35 @@ function bugReportOpenFromUrl() {
 }
 
 const SETTINGS_PATH = "/settings";
+const LOAD_REVEAL_SESSION_KEY = "polytrack_load_reveal_played";
+
+// The glass reveal is a welcome, not a page transition: it plays on the first
+// load of a tab and then stays out of the way. A refresh, a back/forward step,
+// or coming back from another page of the hub in the same tab skips it.
+function isRepeatNavigation() {
+  try {
+    const entry = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    return entry?.type === "reload" || entry?.type === "back_forward";
+  } catch {
+    return false;
+  }
+}
+
+function hasPlayedLoadReveal() {
+  try {
+    return sessionStorage.getItem(LOAD_REVEAL_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markLoadRevealPlayed() {
+  try {
+    sessionStorage.setItem(LOAD_REVEAL_SESSION_KEY, "1");
+  } catch {}
+}
 
 function settingsOpenFromUrl() {
   try {
@@ -186,13 +215,15 @@ export function App() {
       return true;
     }
   });
-  // Skip the intro on fast loads or if disabled in Settings; if the page has actually been waiting, let it play through.
+  // Skip the intro if it is off in Settings, on a repeat load, or when the page
+  // was already usable; if the page has actually been waiting, let it play through.
   const [showLoadReveal, setShowLoadReveal] = React.useState(() => {
     try {
       if (localStorage.getItem("polytrack_loading_reveal_enabled") === "false") {
         return false;
       }
     } catch {}
+    if (hasPlayedLoadReveal() || isRepeatNavigation()) return false;
     return typeof performance !== "undefined" && performance.now() > 250;
   });
   const [settingsOpen, setSettingsOpen] = React.useState(settingsOpenFromUrl);
@@ -297,6 +328,8 @@ export function App() {
 
   React.useEffect(() => {
     document.getElementById("boot-loader")?.remove();
+    // Whatever this load decided, later loads in this tab are not a first visit.
+    markLoadRevealPlayed();
   }, []);
 
   React.useEffect(() => {

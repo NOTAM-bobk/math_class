@@ -6,68 +6,81 @@ export const CHAT_COMPOSER_TARGET = '[data-tour-target="chat-composer"]';
 // One short walkthrough of the hub's main features, shown on the first visit.
 // The side rail only exists from md up; phones get the same tour without that
 // step. Targets point at elements that are on screen when the tour starts.
+// Every stop answers "what is this and when would I use it", with the keyboard
+// shortcut attached where one exists.
 export function getOnboardingSteps(isPhone: boolean): TourStep[] {
   const steps: TourStep[] = [
     {
-      title: "Welcome to math_games",
-      content: "A quick tour of the main stuff. Use Next and Back to move around, or press Esc to skip.",
+      title: "A game hub that hides in a school tab",
+      content:
+        "Hundreds of browser games, no install and no account. This tour covers the classroom parts first: the disguise, the password and the panic key.",
       placement: "center",
+      hint: "Esc skips it. You can switch the loading animation off in Settings.",
     },
     {
       target: '[data-tour-target="settings"]',
-      title: "Settings & site lock",
+      title: "Look busy in one click",
       content:
-        "Disguise this tab as Google Classroom or Docs, set a classroom password, change the background, and manage offline games.",
+        "Settings is the classroom kit: disguise this tab as Google Classroom or Docs, set a Site Lock password, pick a background, and manage offline games.",
       placement: "bottom",
+      hint: "Site Lock asks for your password the next time this tab opens.",
     },
   ];
 
   if (!isPhone) {
     steps.push({
       target: 'nav[aria-label="Game navigation"]',
-      title: "Browse from the side rail",
+      title: "Everything is a rail away",
       content:
-        "Jump between genres and favorites here, or open Unblocked AIs, outside games, submit a game and report a bug.",
+        "Genres, your favorites, Unblocked AIs and outside games all live in the rail. It folds down to icons when you want the screen back.",
       placement: "right",
       padding: 10,
+      hint: "Your favorites and play history stay on this device, not on a server.",
     });
   }
 
   steps.push(
     {
       target: "#game-search",
-      title: "Find a game fast",
+      title: "Search beats scrolling",
       content:
-        "Search by name or tag. Press / anywhere on the page to jump straight into the search box.",
+        "Type a name, a tag or a mood: “parkour”, “puzzle”, “2 player”. Results narrow as you type, so there is no list to scroll through.",
       placement: "bottom",
+      shortcut: "/",
+      hint: "Press it anywhere on the page to land in the box.",
     },
     {
       target: '[data-tour-target="game-categories"]',
-      title: "Browse by category",
+      title: "Trim the shelf",
       content:
-        "Pick a genre from the side rail and the catalog says how many games are in it. Tap the heart on any game to keep it in Favorites.",
+        "The count tells you how many games match. Sort by most played, newest or A–Z, and filter to editors’ picks, multiplayer or verified games.",
       placement: "bottom",
+      hint: "Verified means a moderator has opened the game and seen it run.",
     },
     {
       target: "#catalog-play-heading",
-      title: "Pick something to play",
+      title: "Play it or keep it",
       content:
-        "Click a card to launch a game. The star saves it to favorites, and the bug icon reports a broken game.",
+        "Click a card to start a game. The heart files it under Favorites, and the bug icon reports one that will not load — that report is what gets it fixed.",
       placement: "bottom",
+      hint: "Games open in a new tab, so the hub stays where you left it.",
     },
     {
       target: CHAT_COMPOSER_TARGET,
-      title: "Hang out in chat",
+      title: "Someone is usually here",
       content:
-        "Chat with other players, drop quick reactions, and see who else is around the hub.",
+        "The board shows who is online and what they are playing. Say something, drop a reaction, or share a game you just found.",
       placement: "top",
+      hint: "Phones get chat in its own panel; Settings can hide it entirely.",
     },
     {
       target: '[data-tour-target="panic"]',
-      title: "Leaving in a hurry?",
+      title: "The escape hatch",
       content:
-        "Panic closes the hub and opens Wikipedia instantly. You can also press ] anywhere as a shortcut.",
+        "Panic covers the hub and opens Wikipedia in this tab, so the next glance at your screen shows an article. You can point it somewhere else in Settings.",
       placement: "bottom",
+      shortcut: "]",
+      hint: "Works from any page, without hunting for the button.",
     }
   );
 

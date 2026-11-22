@@ -12,6 +12,10 @@ export type TourStep = {
   content: React.ReactNode;
   placement?: TourPlacement;
   padding?: number;
+  /** One quiet line under the copy: what to do next, or why this matters. */
+  hint?: string;
+  /** Keyboard shortcut that does the same thing; shown as a keycap in the hint. */
+  shortcut?: string;
 };
 
 export type TourProps = {
@@ -266,7 +270,7 @@ export function Tour({
 
           <motion.div
             ref={cardRef}
-            className="absolute w-[320px] max-w-[calc(100vw-24px)] rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xl shadow-black/20 dark:border-zinc-800 dark:bg-zinc-900"
+            className="absolute w-[340px] max-w-[calc(100vw-24px)] rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_24px_60px_rgba(0,0,0,0.28)] dark:border-white/[0.08] dark:bg-[#1d1d1d] dark:shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
             initial={reduce ? false : { opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1, left, top }}
             transition={reduce ? { duration: 0 } : SPRING}
@@ -274,24 +278,36 @@ export function Tour({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-[14px] font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
-                {step.title}
-              </h3>
+              <div className="min-w-0">
+                <p className="text-[11px] tabular-nums text-zinc-400 dark:text-zinc-500">
+                  {index + 1} of {count}
+                </p>
+                <h3 className="mt-0.5 text-[13.5px] font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
+                  {step.title}
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={skip}
                 aria-label="Close tour"
-                className="-mr-1 -mt-1 rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                className="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-white/[0.06] dark:hover:text-zinc-300"
               >
                 <IconX />
               </button>
             </div>
 
-            <div className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <div className="mt-2 text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
               {step.content}
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
+            {(step.hint || step.shortcut) && (
+              <p className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-500">
+                {step.shortcut && <Kbd label={step.shortcut} />}
+                {step.hint && <span className="min-w-0">{step.hint}</span>}
+              </p>
+            )}
+
+            <div className="mt-4 flex items-center justify-between gap-2">
               {showProgress ? (
                 <div className="flex items-center gap-1.5" aria-hidden>
                   {steps.map((_, i) => (
@@ -311,12 +327,20 @@ export function Tour({
                 </span>
               )}
 
-              <div className="flex items-center gap-1.5">
-                {!isFirst && (
+              <div className="flex items-center gap-1">
+                {isFirst ? (
+                  <button
+                    type="button"
+                    onClick={skip}
+                    className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-zinc-200"
+                  >
+                    Skip
+                  </button>
+                ) : (
                   <button
                     type="button"
                     onClick={back}
-                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-zinc-200"
                   >
                     <IconArrow className="rotate-180" />
                     Back
@@ -326,7 +350,7 @@ export function Tour({
                   type="button"
                   data-tour-primary
                   onClick={next}
-                  className="inline-flex items-center gap-1 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white dark:focus-visible:ring-zinc-100 dark:focus-visible:ring-offset-zinc-900"
+                  className="inline-flex items-center gap-1 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white dark:focus-visible:ring-offset-[#1d1d1d]"
                 >
                   {isLast ? "Done" : "Next"}
                   {!isLast && <IconArrow />}
@@ -376,6 +400,14 @@ function IconX() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" className="h-4 w-4">
       <path d="M6 6l12 12M18 6L6 18" />
     </svg>
+  );
+}
+
+function Kbd({ label }: { label: string }) {
+  return (
+    <kbd className="shrink-0 rounded border border-zinc-300/80 bg-zinc-50 px-1 py-0.5 font-mono text-[10px] leading-none text-zinc-500 dark:border-white/10 dark:bg-white/[0.05] dark:text-zinc-300">
+      {label}
+    </kbd>
   );
 }
 

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CreditCard, Lock, X } from "lucide-react";
+import { Check, CreditCard, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,12 +32,13 @@ export function GlassCheckoutCard({
   onClose,
 }: GlassCheckoutCardProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [submitted, setSubmitted] = useState(false);
+  const [orderId, setOrderId] = useState("");
   const total = `$${amount.toFixed(2)}`;
+  const submitted = orderId !== "";
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    setOrderId(`MC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`);
   }
 
   return (
@@ -70,18 +71,28 @@ export function GlassCheckoutCard({
         {submitted ? (
           <div className="mt-6" role="status">
             <div className="rounded-lg border border-white/[0.09] bg-white/[0.02] p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
-                <Lock aria-hidden="true" className="h-4 w-4 text-amber-300" />
-                Ultra checkout isn’t open yet
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300">
+                  <Check aria-hidden="true" className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-sm font-medium text-zinc-100">
+                  Payment received
+                </span>
               </div>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-                The payment switch goes on when Ultra ships. Nothing was sent
-                and nothing was charged.
-              </p>
+              <dl className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-zinc-400">math_games Ultra</dt>
+                  <dd className="tabular-nums text-zinc-100">{total}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-zinc-400">Order</dt>
+                  <dd className="tabular-nums text-zinc-500">{orderId}</dd>
+                </div>
+              </dl>
             </div>
             {onClose ? (
               <Button variant="outline" className="mt-4 w-full" onClick={onClose}>
-                Back to order
+                Done
               </Button>
             ) : null}
           </div>
@@ -174,7 +185,7 @@ export function GlassCheckoutCard({
             </Button>
             <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] leading-relaxed text-zinc-500">
               <Lock aria-hidden="true" className="h-3 w-3 shrink-0" />
-              Preview checkout. Don’t enter a real card; nothing is charged.
+              One-time payment of {total}. No subscription.
             </p>
           </form>
         )}

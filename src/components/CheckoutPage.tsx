@@ -120,8 +120,7 @@ export function CheckoutPage() {
                 Pay {price}
               </Button>
               <p className="mt-3 text-center text-xs leading-relaxed text-zinc-500">
-                Card, PayPal or Apple Pay. Checkout is a preview; payments open
-                when Ultra ships.
+                Card, PayPal or Apple Pay. One-time payment, no subscription.
               </p>
             </div>
           </section>

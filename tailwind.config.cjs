@@ -7,6 +7,8 @@ module.exports = {
       fontFamily: {
         sans: ["Geist", "Inter", "-apple-system", "BlinkMacSystemFont", "system-ui", "sans-serif"],
         mono: ['"Geist Mono"', "ui-monospace", "monospace"],
+        // Pit-board headings on the checkout page.
+        display: ['"Barlow Condensed"', "Geist", "sans-serif"],
       },
       colors: {
         background: "#09090b",

@@ -106,6 +106,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/checkout",
+      "destination": "/checkout/index.html"
+    },
+    {
+      "source": "/checkout/",
+      "destination": "/checkout/index.html"
+    },
+    {
       "source": "/settings",
       "destination": "/index.html"
     },

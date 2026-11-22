@@ -23,3 +23,17 @@ await build({
     "process.env.PUBLIC_POSTHOG_HOST": JSON.stringify(process.env.PUBLIC_POSTHOG_HOST ?? ""),
   },
 });
+
+// /checkout is its own static page, so it gets a self-contained bundle and
+// does not change the home bundle's chunk graph.
+await build({
+  entryPoints: ["src/checkout.tsx"],
+  bundle: true,
+  minify: true,
+  format: "esm",
+  outfile: "dist/checkout.js",
+  alias: { "@": "./src" },
+  define: {
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "production"),
+  },
+});

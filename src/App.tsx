@@ -27,6 +27,7 @@ import {
   Compass,
   Crosshair,
   Download,
+  Film,
   Flame,
   Gamepad2,
   Ghost,
@@ -313,6 +314,9 @@ export function App() {
   // The header keeps four actions; everything else lives behind this menu.
   const [headerMenuOpen, setHeaderMenuOpen] = React.useState(false);
   const headerMenuRef = React.useRef<HTMLDivElement>(null);
+  // The brand chip opens the partner links (movies and a second game hub).
+  const [brandMenuOpen, setBrandMenuOpen] = React.useState(false);
+  const brandMenuRef = React.useRef<HTMLDivElement>(null);
   // Chat opened from the side navigation takes over the middle of the screen,
   // instead of living in its usual narrow column.
   const [chatFocusOpen, setChatFocusOpen] = React.useState(false);
@@ -742,16 +746,23 @@ export function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // The header's overflow menu closes on a click elsewhere or Escape.
+  // The header's menus close on a click elsewhere or Escape.
   React.useEffect(() => {
-    if (!headerMenuOpen) return;
+    if (!headerMenuOpen && !brandMenuOpen) return;
     const closeOnOutside = (event: PointerEvent) => {
-      if (headerMenuRef.current && !headerMenuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (headerMenuOpen && headerMenuRef.current && !headerMenuRef.current.contains(target)) {
         setHeaderMenuOpen(false);
+      }
+      if (brandMenuOpen && brandMenuRef.current && !brandMenuRef.current.contains(target)) {
+        setBrandMenuOpen(false);
       }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setHeaderMenuOpen(false);
+      if (event.key === "Escape") {
+        setHeaderMenuOpen(false);
+        setBrandMenuOpen(false);
+      }
     };
     document.addEventListener("pointerdown", closeOnOutside);
     document.addEventListener("keydown", closeOnEscape);
@@ -759,7 +770,7 @@ export function App() {
       document.removeEventListener("pointerdown", closeOnOutside);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [headerMenuOpen]);
+  }, [headerMenuOpen, brandMenuOpen]);
 
   const toggleSideNav = React.useCallback(() => {
     setSideNavExpanded((expanded) => {
@@ -1016,22 +1027,61 @@ export function App() {
               <Menu aria-hidden="true" className="h-4 w-4" />
             </button>
 
-            <a
-              href="/"
-              aria-label="math_games home"
-              className="order-1 col-start-2 row-start-1 flex min-w-0 shrink-0 items-center gap-2 justify-self-start group"
+            <div
+              ref={brandMenuRef}
+              className="relative order-1 col-start-2 row-start-1 min-w-0 shrink-0 justify-self-start"
             >
-              <span
-                style={{
-                  borderRadius: 999,
-                  background: "rgba(255, 255, 255, 0.06)",
-                  boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
-                }}
-                className="whitespace-nowrap px-2 py-1 font-mono text-[11px] font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white sm:px-3 sm:text-xs"
+              <button
+                type="button"
+                onClick={() => setBrandMenuOpen((open) => !open)}
+                aria-label="math_games menu"
+                aria-haspopup="menu"
+                aria-expanded={brandMenuOpen}
+                title="Open the math_games menu"
+                className="group flex cursor-pointer items-center gap-2"
               >
-                math_games
-              </span>
-            </a>
+                <span
+                  style={{
+                    borderRadius: 999,
+                    background: "rgba(255, 255, 255, 0.06)",
+                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
+                  }}
+                  className="whitespace-nowrap px-2 py-1 font-mono text-[11px] font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white sm:px-3 sm:text-xs"
+                >
+                  math_games
+                </span>
+              </button>
+              {brandMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="math_games"
+                  className="absolute left-0 top-[calc(100%+0.5rem)] z-40 w-56 overflow-hidden rounded-xl border border-white/[0.07] bg-[#1d1d1d] p-1 text-left"
+                >
+                  <a
+                    role="menuitem"
+                    href="https://watch.benlaunches.icu"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setBrandMenuOpen(false)}
+                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                  >
+                    <Film aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+                    Unblocked movies
+                  </a>
+                  <a
+                    role="menuitem"
+                    href="https://poly2.benlaunches.icu"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setBrandMenuOpen(false)}
+                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                  >
+                    <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+                    Unblocked games
+                  </a>
+                </div>
+              )}
+            </div>
 
             {/* Dead centre from lg up; on phones it takes its own row. */}
             <div

@@ -15,6 +15,7 @@ import { SiteLock } from "./components/SiteLock";
 import { BugReportModal } from "./components/BugReportModal";
 import { GameSubmitModal } from "./components/GameSubmitModal";
 import { UltraNudgeToast } from "./components/UltraNudgeToast";
+import { ReferralNudgeToast } from "./components/ReferralNudgeToast";
 import { Tour, useTour } from "./components/Tour";
 import { BotChallengeGate } from "./components/BotChallengeGate";
 import { HalftoneHorizon } from "./components/ui/halftone-horizon";
@@ -156,6 +157,12 @@ const ULTRA_NUDGE_AT_KEY = "polytrack_ultra_nudge_at";
 const ULTRA_NUDGE_FIRST_VISIT = 4;
 const ULTRA_NUDGE_EVERY_VISITS = 5;
 const ULTRA_NUDGE_GAP_MS = 3 * 24 * 60 * 60 * 1000;
+// Partner referral reminders keep their own visit rhythm, offset from the
+// Ultra one so the two corner notifications never appear on the same visit.
+const REFERRAL_NUDGE_AT_KEY = "polytrack_referral_nudge_at";
+const REFERRAL_NUDGE_FIRST_VISIT = 3;
+const REFERRAL_NUDGE_EVERY_VISITS = 4;
+const REFERRAL_NUDGE_GAP_MS = 2 * 24 * 60 * 60 * 1000;
 // The bug report has its own shareable address, so /bug can be sent to anyone.
 const BUG_REPORT_PATH = "/bug";
 
@@ -239,6 +246,8 @@ export function App() {
   const [settingsSection, setSettingsSection] = React.useState<"streak" | null>(null);
   const [streak, setStreak] = React.useState<StreakData>(loadStreak);
   const [ultraNudgeOpen, setUltraNudgeOpen] = React.useState(false);
+  const [referralNudgeOpen, setReferralNudgeOpen] = React.useState(false);
+  const closeReferralNudge = React.useCallback(() => setReferralNudgeOpen(false), []);
   const visitCountedRef = React.useRef(false);
   const [bugModalOpen, setBugModalOpen] = React.useState(bugReportOpenFromUrl);
   // The page the report is about, captured before /bug takes over the address bar.
@@ -413,9 +422,27 @@ export function App() {
         previousNudge <= 0 ||
         Date.now() - previousNudge > ULTRA_NUDGE_GAP_MS;
 
-      if (dueEveryFewVisits && quietEnough && !areNotificationAdsBlocked()) {
+      const ultraDue = dueEveryFewVisits && quietEnough && !areNotificationAdsBlocked();
+      if (ultraDue) {
         localStorage.setItem(ULTRA_NUDGE_AT_KEY, String(Date.now()));
         setUltraNudgeOpen(true);
+      }
+
+      // Referrals get the same corner reminder on their own rhythm. If the
+      // Ultra reminder is already up for this visit, they wait for their next
+      // turn instead of stacking two cards in the corner.
+      const referralDueEveryFewVisits =
+        visits >= REFERRAL_NUDGE_FIRST_VISIT &&
+        (visits - REFERRAL_NUDGE_FIRST_VISIT) % REFERRAL_NUDGE_EVERY_VISITS === 0;
+      const previousReferralNudge = Number(localStorage.getItem(REFERRAL_NUDGE_AT_KEY) || "0");
+      const referralQuietEnough =
+        !Number.isFinite(previousReferralNudge) ||
+        previousReferralNudge <= 0 ||
+        Date.now() - previousReferralNudge > REFERRAL_NUDGE_GAP_MS;
+
+      if (!ultraDue && referralDueEveryFewVisits && referralQuietEnough) {
+        localStorage.setItem(REFERRAL_NUDGE_AT_KEY, String(Date.now()));
+        setReferralNudgeOpen(true);
       }
     } catch {
       // The visit prompt is optional when browser storage is unavailable.
@@ -1486,6 +1513,11 @@ export function App() {
       <UltraNudgeToast
         isOpen={ultraNudgeOpen}
         onClose={() => setUltraNudgeOpen(false)}
+      />
+
+      <ReferralNudgeToast
+        isOpen={referralNudgeOpen}
+        onClose={closeReferralNudge}
       />
 
       <CommandPalette

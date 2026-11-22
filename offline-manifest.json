@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-22T00:43:21.947Z",
-  "totalBytes": 348325590,
+  "generatedAt": "2026-11-22T15:05:21.645Z",
+  "totalBytes": 348346326,
   "files": [
     {
       "url": "/index.html",
@@ -13,7 +13,7 @@
     },
     {
       "url": "/catalog.json",
-      "bytes": 162986
+      "bytes": 166356
     },
     {
       "url": "/offline-packs.json",
@@ -25,47 +25,51 @@
     },
     {
       "url": "/dist/checkout.js",
-      "bytes": 264873
+      "bytes": 266172
     },
     {
-      "url": "/dist/chunks/AdminPanelModal-H5EJOSCB.js",
-      "bytes": 57387
+      "url": "/dist/chunks/AdminPanelModal-5LF2Y3KY.js",
+      "bytes": 56715
     },
     {
-      "url": "/dist/chunks/ChangelogModal-H2Q5CYEJ.js",
+      "url": "/dist/chunks/ChangelogModal-CLIFLSKU.js",
       "bytes": 16471
     },
     {
-      "url": "/dist/chunks/SettingsModal-JL5M642J.js",
-      "bytes": 110983
+      "url": "/dist/chunks/SettingsModal-E25ZEFZA.js",
+      "bytes": 114592
+    },
+    {
+      "url": "/dist/chunks/chunk-4W74JGIW.js",
+      "bytes": 1876
+    },
+    {
+      "url": "/dist/chunks/chunk-6FCWP4CL.js",
+      "bytes": 29981
     },
     {
       "url": "/dist/chunks/chunk-G7ULGWO5.js",
       "bytes": 60165
     },
     {
-      "url": "/dist/chunks/chunk-HCFTW46V.js",
-      "bytes": 7883
+      "url": "/dist/chunks/chunk-GHEBXB7B.js",
+      "bytes": 38157
     },
     {
       "url": "/dist/chunks/chunk-HDFI2G67.js",
       "bytes": 713646
     },
     {
-      "url": "/dist/chunks/chunk-IDPCSWGC.js",
-      "bytes": 37480
+      "url": "/dist/chunks/chunk-S2GXZQ6S.js",
+      "bytes": 182956
     },
     {
-      "url": "/dist/chunks/chunk-SYRWHHC4.js",
-      "bytes": 29053
+      "url": "/dist/chunks/chunk-Y5ZMYC2A.js",
+      "bytes": 7883
     },
     {
       "url": "/dist/chunks/chunk-Y6SLVHK3.js",
       "bytes": 544
-    },
-    {
-      "url": "/dist/chunks/chunk-ZLXMXMJ7.js",
-      "bytes": 182595
     },
     {
       "url": "/dist/chunks/video.es-MNKDCNUF.js",
@@ -81,11 +85,11 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 927609
+      "bytes": 935335
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 74310
+      "bytes": 75872
     },
     {
       "url": "/dist/vendor/video-js.min.css",

@@ -134,6 +134,10 @@
       "destination": "https://imasdk.googleapis.com/js/sdkloader/:path*"
     },
     {
+      "source": "/adserv/:path*",
+      "destination": "https://youradexchange.com/:path*"
+    },
+    {
       "source": "/api/avatar",
       "destination": "/api/avatar"
     },

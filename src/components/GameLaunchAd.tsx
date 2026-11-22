@@ -6,9 +6,10 @@ import { GAME_AD_SLATE_SRC } from "@/lib/gameAdSlate";
 // Adcash In-stream Video, zone 12479070. Adcash delivers this format as a VAST
 // tag meant for a VAST-compatible player, and its documented integration is
 // Video.js with the IMA plugin, so this tag is handed to videojs-ima instead of
-// being parsed by the hub.
-export const GAME_AD_VAST_TAG_URL =
-  "https://youradexchange.com/video/select.php?r=12479070";
+// being parsed by the hub. The tag is fetched through the same-origin
+// `/adserv/*` Vercel rewrite (see vercel.json) so the request to
+// youradexchange.com leaves from the deployment, not the visitor's browser.
+export const GAME_AD_VAST_TAG_URL = "/adserv/video/select.php?r=12479070";
 
 // Video.js, contrib-ads and the IMA plugin are bundled locally (see
 // scripts/build-client.mjs), so the only other origin involved is Google's IMA
@@ -28,9 +29,9 @@ const AD_STYLESHEETS = [
   "/dist/vendor/videojs.ima.css",
 ];
 
-// A break that never starts must not hold the game hostage: with no ad after
-// this long, the hub assumes none was sold and launches the game.
-const NO_AD_TIMEOUT_MS = 15_000;
+// A break that never starts must not hold the game hostage: if the ad video has
+// not started within six seconds, the overlay closes and the game opens.
+const NO_AD_TIMEOUT_MS = 6_000;
 // A hard stop for an ad that starts but never finishes.
 const AD_RUN_TIMEOUT_MS = 180_000;
 
@@ -227,7 +228,9 @@ export function GameLaunchAd({
         player.on(["adend", "adserror", "adtimeout", "adscanceled", "error"], finish);
 
         player.ima({
-          adTagUrl: GAME_AD_VAST_TAG_URL,
+          // IMA wants an absolute tag URL, so resolve the proxied path against
+          // whatever origin is serving the hub.
+          adTagUrl: new URL(GAME_AD_VAST_TAG_URL, window.location.origin).href,
           adWillAutoPlay: true,
           adWillPlayMuted: true,
           adLabel: "Advertisement",

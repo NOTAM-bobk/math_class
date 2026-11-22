@@ -1,3 +1,11 @@
+# math_class Network
+
+Watch any movie or show free and unblocked here: [math_class-streaming](https://github.com/NOTAM-bobk/math_class-streaming).
+
+- **YouTube Proxy:** Watch YouTube videos (link not yet built)
+- **Chat:** Chat with anyone, anywhere, and create your own groups (link not yet built)
+- **More coming soon**
+
 # Math Class
 
 <div align="center">
@@ -56,112 +64,3 @@ Math Class brings hundreds of browser games and PolyTrack builds together in one
 ```bash
 npm install
 npm run build
-```
-
-Serve the repository root with any static file server:
-
-```bash
-npx serve .
-# or
-python3 -m http.server
-```
-
-Then open `index.html`. The React app in `src/` is bundled into `dist/home.bundle.js`; rebuild and reload after source changes.
-
-## Features
-
-### Games
-
-- **One catalog, many sources:** local HTML games, hosted games, and PolyTrack builds.
-- **Useful discovery:** category and source filters, A-Z sorting, trending, favourites, recently played, and most-played sorting.
-- **Card layouts:** compact row cards or a cover mosaic with generated fallback artwork.
-- **In-hub play:** launch games inside the page with reload, favourite, panic, and bug-report controls.
-- **Cover system:** stored artwork, live captures, blur-up placeholders, `srcset` support, and generated game-name covers.
-
-### Player stats
-
-The stats clock tracks real elapsed time only while the hub or a game is visible. It records total time, game launches, games played, sessions, and the most-played list. Everything stays in browser storage, and Settings can pause counting or reset the data.
-
-### Settings
-
-- Loading animation, side chat, visitor counter, footer, and ad-space controls
-- Halftone, solid-colour, and gradient appearances
-- Tab cloaks and a custom panic redirect
-- Password-gated Site Lock
-- Browser notifications for new games and chat
-- Downloadable offline packs and scheduled cache-first operation
-- Reachability checks for proxy sources
-- Read-only build stamps and changelog
-
-### Reporting and moderation
-
-Bug reports can be pre-filled with the game opened from the launcher. A password-protected admin panel manages bug reports, submissions, and per-game flags. Visitor counts and game click analytics pass through the Cloudflare Worker.
-
-## Scripts
-
-| Command | Purpose |
-| --- | --- |
-| `npm run build` | Build CSS, catalog data, offline packs, bundle, and offline manifest. |
-| `npm run build:css` | Rebuild `dist/styles.css` with Tailwind. |
-| `npm run build:catalog` | Export the game catalog into `api/`. |
-| `npm run build:offline-manifest` | Regenerate `offline-manifest.json`. |
-| `npm run build:packs` | Rebuild downloadable offline packs. |
-| `npm test` | Bundle `*.test.ts` files and run Node's test runner. |
-
-## Repository layout
-
-| Path | Contents |
-| --- | --- |
-| `src/` | React app, components, hooks, helpers, and styles. |
-| `src/lib/` | Settings, storage, stats, themes, and API helpers. |
-| `games/` | Self-hosted games and `games/config.json`. |
-| `0.3.1/`, `0.5.0/` | PolyTrack build archives. |
-| `api/` | Vercel serverless API functions. |
-| `cf/` | Cloudflare Worker services and manifests. |
-| `scripts/` | Catalog, cover, offline, and client build tools. |
-| `dist/` | Built CSS and JavaScript bundle. |
-| `covers/`, `images/` | Game artwork and app icons. |
-
-## How it works
-
-- **Catalog:** `DEFAULT_GAMES` in `src/components/GameCatalog.tsx` is the built-in list. `games/config.json` is merged at runtime, and server search results can extend the list.
-- **Storage:** preferences, favourites, stats, and offline schedules use `localStorage`. Settings includes a hard reset that clears the site's browser data.
-- **Stats:** `src/lib/playStats.ts` uses elapsed time, batched writes, and sleep-gap protection to avoid inflating totals.
-- **Card layout:** `src/lib/gameCardLayout.ts` persists the selected layout and updates the catalog without a reload.
-
-## Environment variables
-
-Analytics is optional. Set these values in the local shell or deployment provider before building:
-
-```bash
-PUBLIC_POSTHOG_KEY=phc_...
-PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
-```
-
-The names are documented in [`.env.example`](.env.example). Never commit real values.
-
-Backend deployments can also require:
-
-```text
-ADMIN_PASSWORD       Admin API password
-HUB_INTERNAL_KEY     Shared Cloudflare Worker authorization key
-```
-
-The Vercel API functions reject requests unless `ADMIN_PASSWORD` is set and matches. Keep `HUB_INTERNAL_KEY` identical in each deployment that uses proxy shortcuts.
-
-## PolyTrack archives
-
-**v0.5.0** is maintained and uses the simulation thread for replays. AI attempts can be watched after selecting a track.
-
-**v0.3.1** is kept for historical use. An early ghost-replay camera mod may leave the camera stuck after a completed run.
-
-## Notes
-
-- The site is deliberately blocked from search engines and automated crawlers.
-- `sw.js` and `notification-sw.js` handle offline caching and notification delivery.
-- Game-specific audio and fullscreen permissions belong to each game page.
-- The project is licensed under the [MIT License](LICENSE).
-
-<div align="center">
-  <sub>Explore the source on <a href="https://github.com/NOTAM-bobk/math_class">GitHub</a></sub>
-</div>

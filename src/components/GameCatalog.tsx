@@ -98,6 +98,9 @@ export const CATEGORY_FILTERS = [
 // The home catalog is a stack of genre shelves. Each shelf shows one row on
 // phones and two rows on wide screens, and both rows scroll sideways together.
 const SHELF_GAME_LIMIT = 24;
+// A shelf rests a few pixels right of zero because of its own px-1 padding and
+// scroll snapping, so the left arrow waits until the row is really scrolled.
+const SHELF_EDGE_SLACK_PX = 16;
 const GENRE_SHELVES = [
   "action",
   "driving",
@@ -273,7 +276,7 @@ function GameRail({
     const element = scrollerRef.current;
     if (!element) return;
     setEdges({
-      left: element.scrollLeft > 4,
+      left: element.scrollLeft > SHELF_EDGE_SLACK_PX,
       right: element.scrollLeft + element.clientWidth < element.scrollWidth - 4,
     });
   }, []);

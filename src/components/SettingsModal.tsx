@@ -31,6 +31,13 @@ import {
 import type { TabCloakSettings } from "@/lib/tabCloak";
 import { formatLastUpdated, LAST_UPDATED_ISO } from "@/lib/lastUpdated";
 import {
+  loadCheckoutSession,
+  signInCheckout,
+  signOutCheckout,
+  signUpCheckout,
+  type CheckoutUser,
+} from "@/lib/checkoutApi";
+import {
   deleteOfflineCache,
   downloadOfflineSite,
   formatBytes,
@@ -123,7 +130,7 @@ type DesktopTab = "account" | "general" | "install" | "shortcuts" | "stats" | "s
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
   { heading: "Account", items: [
-    { id: "account", label: "Account", icon: UserRound, keywords: "account sign in login sync save settings game data" },
+    { id: "account", label: "Account", icon: UserRound, keywords: "account sign in sign out login logout create account email password ultra checkout" },
   ] },
   { heading: "General", items: [
     { id: "general", label: "Layout & startup", icon: LayoutGrid, keywords: "loading animation side chat visitor counter ad space layout startup updates version check for update update now" },
@@ -426,6 +433,83 @@ export function SettingsModal({
 
   // Chat notifications
   const [chatNotificationsOn, setChatNotificationsOn] = React.useState(isChatNotificationsEnabled);
+
+  // Account: the same checkout account that owns Ultra orders. The session is
+  // a bearer token in localStorage, so it is restored on every open.
+  const [accountUser, setAccountUser] = React.useState<CheckoutUser | null>(null);
+  const [accountChecking, setAccountChecking] = React.useState(true);
+  const [accountMode, setAccountMode] = React.useState<"signin" | "signup">("signin");
+  const [accountName, setAccountName] = React.useState("");
+  const [accountEmail, setAccountEmail] = React.useState("");
+  const [accountPassword, setAccountPassword] = React.useState("");
+  const [accountBusy, setAccountBusy] = React.useState(false);
+  const [accountError, setAccountError] = React.useState("");
+  const [accountNotice, setAccountNotice] = React.useState("");
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setAccountChecking(true);
+    void loadCheckoutSession().then((user) => {
+      if (cancelled) return;
+      setAccountUser(user);
+      setAccountChecking(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
+  const accountInitials = React.useMemo(() => {
+    const name = (accountUser?.name || accountUser?.email || "").trim();
+    if (!name) return "?";
+    return (
+      name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join("") || "?"
+    );
+  }, [accountUser]);
+
+  const handleAccountSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (accountBusy) return;
+    setAccountError("");
+    setAccountNotice("");
+    setAccountBusy(true);
+    try {
+      const user =
+        accountMode === "signup"
+          ? await signUpCheckout({
+              name: accountName.trim(),
+              email: accountEmail.trim(),
+              password: accountPassword,
+            })
+          : await signInCheckout({ email: accountEmail.trim(), password: accountPassword });
+      setAccountUser(user);
+      setAccountPassword("");
+      setAccountNotice(accountMode === "signup" ? "Account created. You are signed in." : "Signed in.");
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : "Could not sign in.");
+    } finally {
+      setAccountBusy(false);
+    }
+  };
+
+  const handleAccountSignOut = async () => {
+    if (accountBusy) return;
+    setAccountBusy(true);
+    setAccountError("");
+    setAccountNotice("");
+    try {
+      await signOutCheckout();
+      setAccountUser(null);
+      setAccountNotice("Signed out of this browser.");
+    } finally {
+      setAccountBusy(false);
+    }
+  };
 
   // New game notifications
   const [notificationsOn, setNotificationsOn] = React.useState(isNotificationsEnabled);
@@ -1481,67 +1565,199 @@ export function SettingsModal({
         </section>
         </div>
 
-        {/* Account: sign-in is not available yet, so the whole block is disabled. */}
+        {/* Account: the same account that owns Ultra checkout orders. */}
         <div style={paneStyle("account")}>
         <section aria-labelledby="account-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
           <div className="flex items-start gap-2">
             <div
               style={ICON_TILE}
-              className="p-1.5 text-zinc-400"
+              className="p-1.5 text-zinc-300"
             >
               <UserRound aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-base font-medium text-zinc-100">
                 <span id="account-title">Account</span>
-                <span className="font-mono text-[11px] text-zinc-500">coming soon</span>
+                <span className={`font-mono text-[11px] ${accountUser ? "text-emerald-400" : "text-zinc-500"}`}>
+                  {accountUser ? "signed in" : "signed out"}
+                </span>
               </div>
               <div className="text-xs text-zinc-400">
-                Your settings and game data are saved on this device only
+                Sign in with the account that owns your Ultra orders
               </div>
             </div>
           </div>
 
-          <div
-            aria-disabled="true"
-            className="pointer-events-none select-none rounded-xl border border-dashed border-white/[0.12] bg-white/[0.015] p-4 opacity-50 grayscale"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.04] text-zinc-400">
-                <UserRound aria-hidden="true" className="h-5 w-5" />
+          {accountChecking ? (
+            <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-xs text-zinc-400">
+              Checking for a saved account…
+            </p>
+          ) : accountUser ? (
+            <div
+              style={{
+                borderRadius: 12,
+                background: "rgba(255, 255, 255, 0.02)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                padding: "12px",
+              }}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  aria-hidden="true"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.06] text-sm font-semibold text-zinc-200"
+                >
+                  {accountInitials}
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-zinc-100">{accountUser.name}</div>
+                  <div className="truncate text-xs text-zinc-500">{accountUser.email}</div>
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="text-sm font-medium text-zinc-300">Sign in</div>
-                <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
-                  Sign in to save your settings and game data to your account, then pick them up on any device.
-                </p>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href="/checkout"
+                  style={CHIP_STYLE}
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+                >
+                  <ExternalLink aria-hidden="true" className="h-3 w-3" />
+                  Ultra checkout
+                </a>
+                <button
+                  type="button"
+                  onClick={handleAccountSignOut}
+                  disabled={accountBusy}
+                  style={CHIP_STYLE}
+                  className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {accountBusy ? "Signing out…" : "Sign out"}
+                </button>
               </div>
             </div>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                tabIndex={-1}
-                className="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.05] text-xs font-medium text-zinc-400"
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                tabIndex={-1}
-                className="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.02] text-xs font-medium text-zinc-400"
-              >
-                Create account
-              </button>
-            </div>
-          </div>
+          ) : (
+            <form
+              onSubmit={handleAccountSubmit}
+              style={{
+                borderRadius: 12,
+                background: "rgba(255, 255, 255, 0.02)",
+                boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                padding: "12px",
+              }}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex flex-col gap-2">
+                {accountMode === "signup" && (
+                  <label htmlFor="account-name" className="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
+                    Name
+                    <input
+                      id="account-name"
+                      name="name"
+                      type="text"
+                      autoComplete="name"
+                      maxLength={60}
+                      value={accountName}
+                      onChange={(event) => setAccountName(event.target.value)}
+                      placeholder="Your name"
+                      required
+                      style={{
+                        borderRadius: 8,
+                        background: "rgba(255, 255, 255, 0.04)",
+                        boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                      }}
+                      className="w-full px-3 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                    />
+                  </label>
+                )}
+                <label htmlFor="account-email" className="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
+                  Email
+                  <input
+                    id="account-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    maxLength={200}
+                    value={accountEmail}
+                    onChange={(event) => setAccountEmail(event.target.value)}
+                    placeholder="you@school.edu"
+                    required
+                    style={{
+                      borderRadius: 8,
+                      background: "rgba(255, 255, 255, 0.04)",
+                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                    }}
+                    className="w-full px-3 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                  />
+                </label>
+                <label htmlFor="account-password" className="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
+                  Password
+                  <input
+                    id="account-password"
+                    name="password"
+                    type="password"
+                    autoComplete={accountMode === "signup" ? "new-password" : "current-password"}
+                    maxLength={200}
+                    minLength={accountMode === "signup" ? 8 : undefined}
+                    value={accountPassword}
+                    onChange={(event) => setAccountPassword(event.target.value)}
+                    placeholder={accountMode === "signup" ? "At least 8 characters" : "Your password"}
+                    required
+                    style={{
+                      borderRadius: 8,
+                      background: "rgba(255, 255, 255, 0.04)",
+                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+                    }}
+                    className="w-full px-3 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+                  />
+                </label>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={accountBusy}
+                  className="inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {accountBusy
+                    ? accountMode === "signup"
+                      ? "Creating account…"
+                      : "Signing in…"
+                    : accountMode === "signup"
+                      ? "Create account"
+                      : "Sign in"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAccountMode((current) => (current === "signin" ? "signup" : "signin"));
+                    setAccountError("");
+                  }}
+                  className="cursor-pointer text-[11px] font-medium text-zinc-400 underline underline-offset-2 transition-colors hover:text-white"
+                >
+                  {accountMode === "signin" ? "Create an account" : "I already have an account"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {accountError && (
+            <p
+              role="alert"
+              className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs leading-relaxed text-red-300"
+            >
+              {accountError}
+            </p>
+          )}
+
+          {accountNotice && (
+            <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+              <Check aria-hidden="true" className="h-3.5 w-3.5" />
+              {accountNotice}
+            </p>
+          )}
 
           <p className="text-[11px] leading-relaxed text-zinc-500">
-            Sign-in isn’t available yet. Everything stays saved in this browser until it is — a hard reset in
-            Layout &amp; startup clears it.
+            This is the account your Ultra orders are tied to. Settings and game data still live in this
+            browser only — a hard reset in Layout &amp; startup clears them.
           </p>
         </section>
         </div>

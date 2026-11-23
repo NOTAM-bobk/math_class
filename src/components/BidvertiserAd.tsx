@@ -5,19 +5,43 @@ import * as React from "react";
 // second widget would attach to the first one and only one ad would render.
 const WIDGET_BASE_ID = "ntv_2108105";
 const OWNER_ID = 2108105;
-const SCRIPT_PATH = "/bidvertiser/tags/active/bdvws.js";
 
-// The widget script loads from this origin, but it then asks its own ad server
-// (a CloudFront host) for the ad. A filtered network blocks that request, so the
-// slot would stay an empty hole. After this long without a rendered ad, the slot
-// fills itself from the hub's server-side feed, and with a house ad after that.
+// The tag is tried twice: straight from the ad CDN first, so BidVertiser
+// records the impression against the visitor's own request, and through
+// /api/bidvertiser on this origin (see api/bidvertiser.js) only when that
+// fails. The proxy serves the loader, its JSONP ad data, its native markup and
+// its creatives, so a network that blocks the ad domains still gets a filled
+// slot. The widget's own script lookup keeps working because the proxied URL
+// carries "bidvertiser" and "bvwidgetid" ("bdvws" too, which the loader
+// matches on when it scans for its own tag).
+const DIRECT_LOADER = "https://cdn.hyperpromote.com/bidvertiser/tags/active/bdvws.js";
+const PROXY_LOADER = "/api/bidvertiser?what=bdvws";
+
+// A blocked loader fires onerror at once, but one that loads and then cannot
+// reach its ad data or markup never reports anything, so the direct attempt is
+// given this long to put an ad in the slot before the proxy takes over.
+const DIRECT_ATTEMPT_MS = 3_000;
+
+// Even with the proxy in place the slot can come back empty (no fill for this
+// visitor, or the function unreachable). After this long without a rendered ad,
+// the slot fills itself from the hub's server-side feed, and with a house ad
+// after that.
 const WIDGET_GRACE_MS = 7_000;
 
 const FEED_MIN_WIDTH_CHARS = 12;
 
 let instanceCount = 0;
 
+type Attempt = "direct" | "proxy";
+
 type Fallback = null | "feed" | "house";
+
+function hasAd(host: HTMLElement) {
+  return (
+    host.querySelector("img, iframe, a, ins, object, embed") !== null ||
+    (host.textContent || "").trim().length >= FEED_MIN_WIDTH_CHARS
+  );
+}
 
 type FeedAd = {
   title: string;
@@ -54,7 +78,8 @@ export function BidvertiserAd({
   showClose?: boolean;
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null);
-  const loadedRef = React.useRef(false);
+  const loadedAttemptRef = React.useRef<Attempt | null>(null);
+  const [attempt, setAttempt] = React.useState<Attempt>("direct");
   const [closed, setClosed] = React.useState(false);
   const [fallback, setFallback] = React.useState<Fallback>(null);
   const [feedAd, setFeedAd] = React.useState<FeedAd | null>(null);
@@ -66,9 +91,9 @@ export function BidvertiserAd({
 
   React.useEffect(() => {
     const host = hostRef.current;
-    // One loader per slot: a re-render must not stack a second ad.
-    if (!host || loadedRef.current) return;
-    loadedRef.current = true;
+    // One loader per attempt per slot: a re-render must not stack a second ad.
+    if (!host || loadedAttemptRef.current === attempt) return;
+    loadedAttemptRef.current = attempt;
 
     const params: Record<string, string | number> = {
       bvwidgetid: widgetId,
@@ -84,19 +109,62 @@ export function BidvertiserAd({
       .map((key) => `${key}=${encodeURIComponent(String(params[key]))}`)
       .join("&");
 
+    // The retry starts from an empty slot: leftovers from the failed direct
+    // attempt (markup, a placeholder image) must not sit next to the ad.
+    if (attempt === "proxy") host.replaceChildren();
+
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.async = true;
-    // Same-origin path: vercel.json rewrites it to the ad CDN so restricted networks still load it.
-    script.src = `${SCRIPT_PATH}?${query}`;
+    script.src = attempt === "direct" ? `${DIRECT_LOADER}?${query}` : `${PROXY_LOADER}&${query}`;
+
+    let settled = false;
+    let timer: number | null = null;
+    let observer: MutationObserver | null = null;
+
+    const stopWatching = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      timer = null;
+      if (observer) observer.disconnect();
+      observer = null;
+    };
+
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      stopWatching();
+    };
+
+    const fallBack = () => {
+      if (settled) return;
+      settle();
+      setAttempt("proxy");
+    };
+
+    if (attempt === "direct") {
+      script.onerror = fallBack;
+      timer = window.setTimeout(fallBack, DIRECT_ATTEMPT_MS);
+      observer = new MutationObserver(() => {
+        if (hasAd(host)) settle();
+      });
+      observer.observe(host, { childList: true, subtree: true, characterData: true });
+    }
+
     host.appendChild(script);
-  }, [widgetId]);
+
+    return () => {
+      settle();
+      script.remove();
+    };
+  }, [widgetId, attempt]);
 
   // Watch the widget's host: if the network answers, its ad wins and the
   // stand-in is dropped. If nothing arrives, the slot still shows something.
+  // This only runs behind the proxy attempt; the direct attempt has its own
+  // deadline above.
   React.useEffect(() => {
     const host = hostRef.current;
-    if (!host) return;
+    if (!host || attempt !== "proxy") return;
 
     let cancelled = false;
     let timer: number | null = null;
@@ -104,10 +172,6 @@ export function BidvertiserAd({
       if (timer !== null) window.clearTimeout(timer);
       timer = null;
     };
-    const hasAd = () =>
-      host.querySelector("img, iframe, a, ins, object, embed") !== null ||
-      (host.textContent || "").trim().length >= FEED_MIN_WIDTH_CHARS;
-
     const fillSlot = async () => {
       try {
         const query = new URLSearchParams({ max: "1", q: slot, ref: location.href });
@@ -129,7 +193,7 @@ export function BidvertiserAd({
     timer = window.setTimeout(() => void fillSlot(), WIDGET_GRACE_MS);
 
     const observer = new MutationObserver(() => {
-      if (hasAd()) {
+      if (hasAd(host)) {
         stopTimer();
         setFallback(null);
       }
@@ -141,7 +205,7 @@ export function BidvertiserAd({
       stopTimer();
       observer.disconnect();
     };
-  }, [slot]);
+  }, [slot, attempt]);
 
   React.useEffect(() => {
     return () => {

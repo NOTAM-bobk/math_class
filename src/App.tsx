@@ -31,6 +31,7 @@ import {
   Flame,
   Gamepad2,
   Ghost,
+  Globe,
   Heart,
   History,
   Footprints,
@@ -1027,62 +1028,6 @@ export function App() {
               <Menu aria-hidden="true" className="h-4 w-4" />
             </button>
 
-            <div
-              ref={brandMenuRef}
-              className="relative order-1 col-start-2 row-start-1 min-w-0 shrink-0 justify-self-start"
-            >
-              <button
-                type="button"
-                onClick={() => setBrandMenuOpen((open) => !open)}
-                aria-label="math_games menu"
-                aria-haspopup="menu"
-                aria-expanded={brandMenuOpen}
-                title="Open the math_games menu"
-                className="group flex cursor-pointer items-center gap-2"
-              >
-                <span
-                  style={{
-                    borderRadius: 999,
-                    background: "rgba(255, 255, 255, 0.06)",
-                    boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
-                  }}
-                  className="whitespace-nowrap px-2 py-1 font-mono text-[11px] font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white sm:px-3 sm:text-xs"
-                >
-                  math_games
-                </span>
-              </button>
-              {brandMenuOpen && (
-                <div
-                  role="menu"
-                  aria-label="math_games"
-                  className="absolute left-0 top-[calc(100%+0.5rem)] z-40 w-56 overflow-hidden rounded-xl border border-white/[0.07] bg-[#1d1d1d] p-1 text-left"
-                >
-                  <a
-                    role="menuitem"
-                    href="https://watch.benlaunches.icu"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => setBrandMenuOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
-                  >
-                    <Film aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
-                    Unblocked movies
-                  </a>
-                  <a
-                    role="menuitem"
-                    href="https://poly2.benlaunches.icu"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => setBrandMenuOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
-                  >
-                    <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
-                    Unblocked games
-                  </a>
-                </div>
-              )}
-            </div>
-
             {/* Dead centre from lg up; on phones it takes its own row. */}
             <div
               className={`order-3 col-span-3 row-start-2 w-full min-w-0 sm:col-auto sm:row-auto lg:absolute lg:left-1/2 lg:top-1/2 lg:order-none lg:w-[26rem] lg:max-w-[42vw] lg:-translate-x-1/2 lg:-translate-y-1/2 ${
@@ -1144,6 +1089,80 @@ export function App() {
             </div>
 
             <div className="relative z-10 order-2 col-start-3 row-start-1 ml-auto flex shrink-0 items-center gap-1 justify-self-end sm:col-auto sm:row-auto sm:gap-2">
+              {/* The network switcher sits in the top right with the other header actions. */}
+              <div ref={brandMenuRef} className="relative hidden shrink-0 sm:block">
+                <button
+                  type="button"
+                  onClick={() => setBrandMenuOpen((open) => !open)}
+                  aria-label="math_class:network menu"
+                  aria-haspopup="menu"
+                  aria-expanded={brandMenuOpen}
+                  title="Open the math_class:network menu"
+                  className="group flex cursor-pointer items-center gap-2"
+                >
+                  <span
+                    style={{
+                      borderRadius: 999,
+                      background: "rgba(255, 255, 255, 0.06)",
+                      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)",
+                    }}
+                    className="whitespace-nowrap px-2 py-1 font-mono text-[11px] font-semibold tracking-tight text-zinc-100 transition-colors group-hover:text-white sm:px-3 sm:text-xs"
+                  >
+                    math_class:network
+                  </span>
+                </button>
+                {brandMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-label="math_class:network"
+                    className="absolute right-0 top-[calc(100%+0.5rem)] z-40 w-56 overflow-hidden rounded-xl border border-white/[0.07] bg-[#1d1d1d] p-1 text-left"
+                  >
+                    <a
+                      role="menuitem"
+                      href="https://watch.benlaunches.icu"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setBrandMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                    >
+                      <Film aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+                      Unblocked movies
+                    </a>
+                    <a
+                      role="menuitem"
+                      href="https://poly2.benlaunches.icu"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setBrandMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
+                    >
+                      <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
+                      Unblocked games
+                    </a>
+                    <div role="separator" className="my-1 h-px bg-white/[0.06]" />
+                    {[
+                      { label: "Chat", icon: MessageCircle },
+                      { label: "AI", icon: Sparkles },
+                      { label: "Web proxy", icon: Globe },
+                    ].map(({ label, icon: Icon }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        role="menuitem"
+                        disabled
+                        title="Coming soon"
+                        className="flex w-full cursor-not-allowed items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-500 opacity-60"
+                      >
+                        <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+                        {label}
+                        <span className="ml-auto text-[10px] uppercase tracking-wide text-zinc-600">
+                          Soon
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {/* Wide headers have room for the streak itself; narrower ones keep
                   it in the More menu. */}
               {streak.current > 0 && (

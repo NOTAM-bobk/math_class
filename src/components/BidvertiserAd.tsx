@@ -1,10 +1,10 @@
 import * as React from "react";
+import { bidvertiserOwnerId } from "@/lib/adAccounts";
 
-// Bidvertiser widget tag (account 2108105). The tag rewrites the id of the
-// element it finds, so every placement gets its own host id — otherwise the
-// second widget would attach to the first one and only one ad would render.
-const WIDGET_BASE_ID = "ntv_2108105";
-const OWNER_ID = 2108105;
+// Bidvertiser widget tag. The account depends on the domain (see
+// src/lib/adAccounts.ts), and the tag rewrites the id of the element it finds,
+// so every placement gets its own host id — otherwise the second widget would
+// attach to the first one and only one ad would render.
 
 // The tag is tried twice: straight from the ad CDN first, so BidVertiser
 // records the impression against the visitor's own request, and through
@@ -84,9 +84,10 @@ export function BidvertiserAd({
   const [fallback, setFallback] = React.useState<Fallback>(null);
   const [feedAd, setFeedAd] = React.useState<FeedAd | null>(null);
   const reopenTimerRef = React.useRef<number | null>(null);
+  const ownerId = React.useMemo(() => bidvertiserOwnerId(), []);
   const [widgetId] = React.useState(() => {
     instanceCount += 1;
-    return `${WIDGET_BASE_ID}_${slot}_${instanceCount}`;
+    return `ntv_${ownerId}_${slot}_${instanceCount}`;
   });
 
   React.useEffect(() => {
@@ -97,7 +98,7 @@ export function BidvertiserAd({
 
     const params: Record<string, string | number> = {
       bvwidgetid: widgetId,
-      bvlinksownid: OWNER_ID,
+      bvlinksownid: ownerId,
       rows: 1,
       cols: 1,
       textpos: "below",
@@ -156,7 +157,7 @@ export function BidvertiserAd({
       settle();
       script.remove();
     };
-  }, [widgetId, attempt]);
+  }, [widgetId, attempt, ownerId]);
 
   // Watch the widget's host: if the network answers, its ad wins and the
   // stand-in is dropped. If nothing arrives, the slot still shows something.

@@ -50,11 +50,18 @@
     <link rel="icon" href="/images/app-icon.svg?v=2" type="image/svg+xml">
     <meta name="monetag" content="a71e9b27288f5230ca0709c193abd848">
 
+    <!-- BidVertiser verification, one comment per publisher account. The widget
+         picks the account that owns the domain (see src/lib/adAccounts.ts):
+         poly2.benlaunches.icu is 2109175, games.mathclass.uk is 2108105. -->
     <!-- Bidvertiser2108105 -->
+    <!-- Bidvertiser2109175 -->
     <!-- BidVertiser XML feed ads (served by /api/bidvertiser). Respects the "Turn off ads" switch. -->
     <script>
       (function () {
         try { if (localStorage.getItem('polytrack_notification_ads') === 'off') return; } catch (e) {}
+        // This bar is the 2108105 account's XML feed, so it stays off
+        // poly2.benlaunches.icu, whose slots are filled by the 2109175 widget.
+        if (location.hostname.toLowerCase() === 'poly2.benlaunches.icu') return;
         function esc(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
         window.addEventListener('load', function () {
           fetch('/api/bidvertiser?max=3&q=games&ref=' + encodeURIComponent(location.href))

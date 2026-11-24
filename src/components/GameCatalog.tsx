@@ -919,7 +919,14 @@ function CatalogNativeAd({ hidden }: { hidden: boolean }) {
           Advertise
         </a>
       </div>
-      <BidvertiserAd slot="catalog-native" showClose={false} className="flex items-center justify-center" />
+      <BidvertiserAd
+        slot="catalog-native"
+        showClose={false}
+        rows={2}
+        cols={2}
+        feedMax={4}
+        className="flex flex-wrap items-center justify-center gap-2"
+      />
     </div>
   );
 }
@@ -2611,7 +2618,7 @@ export function GameCatalog({
               className={`flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
             >
               <span className="shrink-0 text-[11px] font-medium text-zinc-400">Ad</span>
-              <BidvertiserAd slot="catalog" showClose={false} className="flex items-center justify-center" />
+              <BidvertiserAd slot="catalog" showClose={false} feedMax={2} className="flex items-center justify-center" />
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
                 className="shrink-0 text-[11px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
@@ -2652,8 +2659,9 @@ export function GameCatalog({
                     onSeeAll={() => seeAllCategory(shelf.id)}
                     renderGame={(game) => renderGameCard(game)}
                   />
-                  {/* The larger ad follows the third shelf on the home view. */}
-                  {index === Math.min(2, genreShelves.length - 1) &&
+                  {/* The larger ad follows the third shelf on the home view, and
+                      a second one further down so the page carries more ads. */}
+                  {(index === Math.min(2, genreShelves.length - 1) || index === 6) &&
                     showAdSpot &&
                     lowerAdVisible && <CatalogNativeAd hidden={adSpotHidden} />}
                 </React.Fragment>

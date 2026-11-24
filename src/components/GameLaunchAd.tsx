@@ -1,7 +1,8 @@
 import * as React from "react";
-import { ArrowLeft, Play, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Play, Volume2, VolumeX, X } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { GAME_AD_SLATE_SRC } from "@/lib/gameAdSlate";
+import { BidvertiserAd } from "./BidvertiserAd";
 
 // Adcash In-stream Video, zone 12479070. Adcash delivers this format as a VAST
 // tag meant for a VAST-compatible player, and its documented integration is
@@ -35,7 +36,7 @@ const NO_AD_TIMEOUT_MS = 6_000;
 // A hard stop for an ad that starts but never finishes.
 const AD_RUN_TIMEOUT_MS = 180_000;
 
-type AdPhase = "loading" | "playing" | "needs-play";
+type AdPhase = "loading" | "playing" | "needs-play" | "skipped";
 
 let adStylesPromise: Promise<void> | null = null;
 
@@ -138,8 +139,11 @@ export function GameLaunchAd({
   const completeRef = React.useRef(onComplete);
   completeRef.current = onComplete;
   const finishedRef = React.useRef(false);
+  const playedRef = React.useRef(false);
+  const goneRef = React.useRef(false);
   const [phase, setPhase] = React.useState<AdPhase>("loading");
   const [muted, setMuted] = React.useState(false);
+  const [popupAd, setPopupAd] = React.useState(false);
 
   useDialogFocus({ active: true, onClose: onCancel, panelRef });
 
@@ -154,8 +158,22 @@ export function GameLaunchAd({
 
     const finish = () => {
       if (cancelled || finishedRef.current) return;
-      finishedRef.current = true;
       clearWatchdog();
+      // Every failure exit — an empty VAST response, a blocked tag, a dead SDK,
+      // the no-ad deadline — used to open the game straight away, which is why
+      // the video ad was always skipped. Nothing played, so hold the visitor
+      // with a popup ad instead; its Continue button is what launches the game.
+      if (!playedRef.current) {
+        try {
+          player?.muted?.(true);
+        } catch {
+          // A player mid-teardown cannot be muted; the popup covers it anyway.
+        }
+        setPhase("skipped");
+        setPopupAd(true);
+        return;
+      }
+      finishedRef.current = true;
       // Let the ad break unwind before the overlay (and its player) goes away.
       window.setTimeout(() => {
         if (!cancelled) completeRef.current();
@@ -218,6 +236,7 @@ export function GameLaunchAd({
 
         player.on("ads-ad-started", () => {
           if (cancelled) return;
+          playedRef.current = true;
           setPhase("playing");
           clearWatchdog();
           watchdog = window.setTimeout(finish, AD_RUN_TIMEOUT_MS);
@@ -247,6 +266,7 @@ export function GameLaunchAd({
 
     return () => {
       cancelled = true;
+      goneRef.current = true;
       clearWatchdog();
       startPlaybackRef.current = () => {};
       try {
@@ -258,6 +278,17 @@ export function GameLaunchAd({
       playerRef.current = null;
     };
   }, []);
+
+  // The popup only ever appears when no video ad played, so closing it is the
+  // visitor's way into the game.
+  const continueToGame = () => {
+    if (finishedRef.current || goneRef.current) return;
+    finishedRef.current = true;
+    setPopupAd(false);
+    window.setTimeout(() => {
+      if (!goneRef.current) completeRef.current();
+    }, 120);
+  };
 
   const toggleMute = () => {
     const player = playerRef.current;
@@ -272,7 +303,9 @@ export function GameLaunchAd({
       ? "Loading the advertisement…"
       : phase === "needs-play"
         ? "Tap play to watch the ad; your game opens when it ends."
-        : "Your game opens as soon as the ad ends.";
+        : phase === "skipped"
+          ? "The video ad could not play. Close the sponsor to continue."
+          : "Your game opens as soon as the ad ends.";
 
   return (
     <div
@@ -354,6 +387,50 @@ export function GameLaunchAd({
           </p>
         </div>
       </div>
+
+      {popupAd && (
+        <div className="fixed inset-0 z-[96] flex items-center justify-center bg-black/80 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Sponsored message"
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#171717] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-400">
+                Ad
+              </span>
+              <button
+                type="button"
+                onClick={continueToGame}
+                aria-label="Close the sponsor and open the game"
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <X aria-hidden="true" className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="mt-3 flex min-h-[96px] items-center justify-center rounded-xl bg-black/40 px-3 py-3 text-center">
+              <BidvertiserAd
+                slot="game-launch"
+                showClose={false}
+                feedMax={4}
+                className="flex flex-wrap items-center justify-center gap-2"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={continueToGame}
+              className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-100 active:scale-[0.98]"
+            >
+              <Play aria-hidden="true" className="h-4 w-4" />
+              Continue to {game.name}
+            </button>
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-zinc-500">
+              The video ad could not play, so here is a sponsor instead.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

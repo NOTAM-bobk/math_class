@@ -69,6 +69,9 @@ export function BidvertiserAd({
   className = "",
   reappearMs = 30_000,
   showClose = true,
+  rows = 1,
+  cols = 1,
+  feedMax = 1,
 }: {
   slot: string;
   className?: string;
@@ -76,13 +79,19 @@ export function BidvertiserAd({
   reappearMs?: number;
   // Parents that draw their own close button turn this one off.
   showClose?: boolean;
+  // The widget draws a rows × cols grid of ads; wide slots ask for more than
+  // one so a single placement still shows several units.
+  rows?: number;
+  cols?: number;
+  // How many text ads the feed stand-in may show when the widget is empty.
+  feedMax?: number;
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null);
   const loadedAttemptRef = React.useRef<Attempt | null>(null);
   const [attempt, setAttempt] = React.useState<Attempt>("direct");
   const [closed, setClosed] = React.useState(false);
   const [fallback, setFallback] = React.useState<Fallback>(null);
-  const [feedAd, setFeedAd] = React.useState<FeedAd | null>(null);
+  const [feedAds, setFeedAds] = React.useState<FeedAd[]>([]);
   const reopenTimerRef = React.useRef<number | null>(null);
   const ownerId = React.useMemo(() => bidvertiserOwnerId(), []);
   const [widgetId] = React.useState(() => {
@@ -99,8 +108,8 @@ export function BidvertiserAd({
     const params: Record<string, string | number> = {
       bvwidgetid: widgetId,
       bvlinksownid: ownerId,
-      rows: 1,
-      cols: 1,
+      rows: Math.min(Math.max(Math.round(rows), 1), 4),
+      cols: Math.min(Math.max(Math.round(cols), 1), 4),
       textpos: "below",
       imagewidth: 120,
       mobilecols: 1,
@@ -157,7 +166,7 @@ export function BidvertiserAd({
       settle();
       script.remove();
     };
-  }, [widgetId, attempt, ownerId]);
+  }, [widgetId, attempt, ownerId, rows, cols]);
 
   // Watch the widget's host: if the network answers, its ad wins and the
   // stand-in is dropped. If nothing arrives, the slot still shows something.
@@ -175,13 +184,17 @@ export function BidvertiserAd({
     };
     const fillSlot = async () => {
       try {
-        const query = new URLSearchParams({ max: "1", q: slot, ref: location.href });
+        const want = Math.min(Math.max(Math.round(feedMax), 1), 5);
+        const query = new URLSearchParams({ max: String(want), q: slot, ref: location.href });
         const response = await fetch(`/api/bidvertiser?${query.toString()}`);
         const data = await response.json();
-        const ad = readFeedAd(Array.isArray(data?.ads) ? data.ads[0] : null);
+        const ads = (Array.isArray(data?.ads) ? data.ads : [])
+          .map(readFeedAd)
+          .filter((ad: FeedAd | null): ad is FeedAd => ad !== null)
+          .slice(0, want);
         if (cancelled) return;
-        if (ad) {
-          setFeedAd(ad);
+        if (ads.length) {
+          setFeedAds(ads);
           setFallback("feed");
           return;
         }
@@ -206,7 +219,7 @@ export function BidvertiserAd({
       stopTimer();
       observer.disconnect();
     };
-  }, [slot, attempt]);
+  }, [slot, attempt, feedMax]);
 
   React.useEffect(() => {
     return () => {
@@ -229,19 +242,24 @@ export function BidvertiserAd({
       aria-hidden={closed || undefined}
     >
       <div ref={hostRef} id={widgetId} data-ad-slot={slot} className={className} />
-      {fallback === "feed" && feedAd && (
-        <a
-          href={feedAd.redirect}
-          target="_blank"
-          rel="noopener sponsored nofollow"
-          title={feedAd.description || feedAd.title}
-          className="flex min-w-0 max-w-[44ch] items-baseline gap-1.5 truncate text-[11px] text-zinc-300 transition-colors hover:text-white"
-        >
-          <span className="truncate font-medium">{feedAd.title}</span>
-          {feedAd.displayURL && (
-            <span className="shrink-0 text-zinc-500">{feedAd.displayURL}</span>
-          )}
-        </a>
+      {fallback === "feed" && feedAds.length > 0 && (
+        <div className="flex min-w-0 max-w-[44ch] flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[11px] text-zinc-300">
+          {feedAds.map((ad) => (
+            <a
+              key={ad.redirect}
+              href={ad.redirect}
+              target="_blank"
+              rel="noopener sponsored nofollow"
+              title={ad.description || ad.title}
+              className="flex min-w-0 max-w-[22ch] items-baseline gap-1.5 truncate transition-colors hover:text-white"
+            >
+              <span className="truncate font-medium">{ad.title}</span>
+              {ad.displayURL && (
+                <span className="shrink-0 text-zinc-500">{ad.displayURL}</span>
+              )}
+            </a>
+          ))}
+        </div>
       )}
       {fallback === "house" && (
         <a

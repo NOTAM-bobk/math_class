@@ -388,8 +388,10 @@ export function GameLaunchAd({
         </div>
       </div>
 
+      {/* z-[1001] keeps this above videojs-ima's own ad container (z-index
+          1000), which could otherwise paint an empty black box over it. */}
       {popupAd && (
-        <div className="fixed inset-0 z-[96] flex items-center justify-center bg-black/80 p-4">
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black/80 p-4">
           <div
             role="dialog"
             aria-modal="true"

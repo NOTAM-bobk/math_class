@@ -66,6 +66,13 @@
       "category": "driving"
     },
     {
+      "subdomain": "super",
+      "name": "Super Liquid Soccer",
+      "url": "https://super.benlaunches.icu/",
+      "description": "Boot wobbling ragdoll players around a chaotic physics pitch and score wild goals in this two-player soccer brawler.",
+      "category": "sports"
+    },
+    {
       "subdomain": "moto-x3m",
       "name": "Moto X3M",
       "url": "/games/moto-x3m.html",

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T18:34:32.760Z",
-  "totalBytes": 354140969,
+  "generatedAt": "2026-11-24T18:36:35.267Z",
+  "totalBytes": 354141553,
   "files": [
     {
       "url": "/index.html",
@@ -13,7 +13,7 @@
     },
     {
       "url": "/catalog.json",
-      "bytes": 518382
+      "bytes": 518673
     },
     {
       "url": "/offline-packs.json",
@@ -21,7 +21,7 @@
     },
     {
       "url": "/games/config.json",
-      "bytes": 14784
+      "bytes": 15077
     },
     {
       "url": "/dist/checkout.js",

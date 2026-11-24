@@ -357,6 +357,13 @@ export const DEFAULT_GAMES: GameItem[] = [
     tags: ["Puzzle", "Physics", "Classic", "Logic"]
   },
   {
+    id: "game-super-liquid-soccer",
+    name: "Super Liquid Soccer",
+    url: "https://super.benlaunches.icu/",
+    description: "Boot wobbling ragdoll players around a chaotic physics pitch and score wild goals in this two-player soccer brawler.",
+    tags: ["Sports", "Soccer", "Physics", "2 Player", "Funny"]
+  },
+  {
     id: "game-geometry-dash",
     name: "Geometry Dash",
     url: "/games/geometry-dash.html",

@@ -421,6 +421,13 @@ export const DEFAULT_GAMES: GameItem[] = [
     tags: ["Casual", "Training", "Racing", "Pets", "Upgrade"]
   },
   {
+    id: "game-duck-life-5",
+    name: "Duck Life 5: Treasure Hunt",
+    url: "/games/duck-life-5.html",
+    description: "Set sail for treasure island, train your duck's running, flying, and swimming skills, and race rivals to the loot.",
+    tags: ["Flash", "Casual", "Training", "Racing", "Pets", "Adventure"]
+  },
+  {
     id: "game-vex-4",
     name: "Vex 4",
     url: "/games/vex-4.html",

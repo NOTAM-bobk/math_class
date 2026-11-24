@@ -333,6 +333,34 @@ export function LiveMessageBoard({
     autoScrolledRef.current = true;
   }, [messages.length, isScrolledUp, scrollToBottom]);
 
+  // A reload always lands on the newest message. Browsers restore the scroll
+  // position of scrollable panels, and the phone's chat tab starts hidden with
+  // no height to scroll, so the first completed load (and the panel's first
+  // real size) pins the log to the bottom once.
+  const initialPinDoneRef = React.useRef(false);
+  const pinToLatestOnLoad = React.useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (initialPinDoneRef.current || loading || !container) return;
+    // Nothing to pin while the panel is hidden: wait for its first layout.
+    if (container.scrollHeight <= container.clientHeight) return;
+    initialPinDoneRef.current = true;
+    container.scrollTop = container.scrollHeight;
+    setIsScrolledUp(false);
+    setUnreadCount(0);
+  }, [loading]);
+
+  React.useLayoutEffect(() => {
+    pinToLatestOnLoad();
+  }, [pinToLatestOnLoad, messages.length]);
+
+  React.useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => pinToLatestOnLoad());
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [pinToLatestOnLoad]);
+
   React.useEffect(() => {
     window.PolyTrackChat = {
       addMessage: (newMessage) => {

@@ -7,6 +7,57 @@ const PROXY_ORIGINS = {
   ogc: "https://cloud.onlinegames.io",
 };
 
+// BidVertiser verifies a site by looking for its own code on the homepage, and
+// it gets it wrong when another account's code comes first. Each domain is its
+// own property, so this rewrite leaves exactly one code on the page: the one
+// for the account that domain was verified under. index.html carries the
+// default; games.mathclass.uk gets its own here. Keep this in step with
+// src/lib/adAccounts.ts.
+const VERIFICATION_HOSTS = {
+  "poly2.benlaunches.icu": "Bidvertiser2108105",
+  "games.mathclass.uk": "Bidvertiser2109175",
+};
+const VERIFICATION_COMMENT = /<!--\s*Bidvertiser\d+\s*-->\s*/g;
+const CHARSET_TAG = /<meta\s+charset\s*=\s*["']?utf-8["']?\s*>/i;
+
+function verificationCommentFor(hostname) {
+  const host = String(hostname || "").toLowerCase();
+  for (const [domain, code] of Object.entries(VERIFICATION_HOSTS)) {
+    if (host === domain || host.endsWith("." + domain)) return `<!-- ${code} -->`;
+  }
+  return null;
+}
+
+function withVerificationComment(html, hostname) {
+  const comment = verificationCommentFor(hostname);
+  if (!comment) return html;
+  const stripped = html.replace(VERIFICATION_COMMENT, "");
+  if (CHARSET_TAG.test(stripped)) {
+    return stripped.replace(CHARSET_TAG, (tag) => `${tag}\n    ${comment}`);
+  }
+  return stripped.replace(/<head[^>]*>/i, (tag) => `${tag}\n    ${comment}`);
+}
+
+// Every SPA route is the same index.html, so the verification code is chosen
+// here rather than in the static file.
+async function htmlAsset(request, env) {
+  const response = await env.ASSETS.fetch(request);
+  const type = response.headers.get("content-type") || "";
+  if (request.method !== "GET" || response.status !== 200 || !/text\/html/i.test(type)) {
+    return response;
+  }
+  const html = withVerificationComment(await response.text(), new URL(request.url).hostname);
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  headers.delete("content-encoding");
+  headers.delete("etag");
+  // The body depends on the hostname, so a cached copy must never be replayed
+  // for another domain or left over from before a verification attempt.
+  headers.set("Cache-Control", "no-store");
+  headers.set("CDN-Cache-Control", "no-store");
+  return new Response(html, { status: 200, headers });
+}
+
 function withCors(response, cacheControl = "no-store") {
   const headers = new Headers(response.headers);
   headers.set("Access-Control-Allow-Origin", "*");
@@ -124,7 +175,6 @@ export default {
     if (pathname.startsWith("/api/mp/")) return proxyMathpapers(request, pathname);
     if (pathname.startsWith("/api/proxy/og/") || pathname.startsWith("/api/proxy/ogc/")) return proxyExternalGame(request, pathname);
 
-    const asset = await env.ASSETS.fetch(request);
-    return asset;
+    return htmlAsset(request, env);
   },
 };

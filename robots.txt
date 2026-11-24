@@ -1,6 +1,10 @@
 # This hub is not for search engines, automated crawlers or AI training.
-# Every agent, including the ones that claim to be a browser, is asked to stay out.
+# Every agent, including the ones that claim to be a browser, is asked to stay
+# out, except for the homepage: site-verification services must be able to read
+# it. It still sends noindex, so it cannot be indexed.
 User-agent: *
+Allow: /$
+Allow: /index.html$
 Disallow: /
 
 # AI crawlers and training agents, listed explicitly so there is no ambiguity.

@@ -13,7 +13,7 @@ Watch any movie or show free and unblocked here: [math_class-streaming](https://
 
   **A classroom-friendly browser game hub for quick, easy play.**
 
-  [![Live site](https://img.shields.io/badge/Live-Site-2563eb?style=for-the-badge)](https://poly2.benlaunches.icu)
+  [![Live site](https://img.shields.io/badge/Live-Site-2563eb?style=for-the-badge)](https://games.mathclass.uk)
   [![Version](https://img.shields.io/badge/Version-v1.7.6-7c3aed?style=for-the-badge)](src/lib/changelog.ts)
   [![License](https://img.shields.io/badge/License-MIT-16a34a?style=for-the-badge)](LICENSE)
 </div>
@@ -51,7 +51,8 @@ Math Class brings hundreds of browser games and PolyTrack builds together in one
 
 | Mirror | Notes |
 | --- | --- |
-| [poly2.benlaunches.icu](https://poly2.benlaunches.icu) | Primary mirror |
+| [games.mathclass.uk](https://games.mathclass.uk) | Primary mirror |
+| [poly2.benlaunches.icu](https://poly2.benlaunches.icu) | Original mirror |
 | [polytrack.sawyerbobk563.deno.net](https://polytrack.sawyerbobk563.deno.net) | May lag behind updates |
 | [polytrack.sawyerbobk563.workers.dev](https://polytrack.sawyerbobk563.workers.dev) | Cloudflare mirror |
 | [basket-random-1df0d.containers.snapdeploy.app](https://basket-random-1df0d.containers.snapdeploy.app) | May take a minute to start |

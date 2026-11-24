@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-23T16:35:57.233Z",
-  "totalBytes": 348349160,
+  "generatedAt": "2026-11-24T00:25:11.126Z",
+  "totalBytes": 348349254,
   "files": [
     {
       "url": "/index.html",
@@ -32,27 +32,27 @@
       "bytes": 56716
     },
     {
-      "url": "/dist/chunks/ChangelogModal-HJFASGMQ.js",
+      "url": "/dist/chunks/ChangelogModal-NWW4B76Y.js",
       "bytes": 16471
     },
     {
-      "url": "/dist/chunks/SettingsModal-ZKEWCWTG.js",
-      "bytes": 114592
+      "url": "/dist/chunks/SettingsModal-VU3DIHUO.js",
+      "bytes": 114668
+    },
+    {
+      "url": "/dist/chunks/chunk-2KRAQPU2.js",
+      "bytes": 38157
     },
     {
       "url": "/dist/chunks/chunk-4W74JGIW.js",
       "bytes": 1876
     },
     {
-      "url": "/dist/chunks/chunk-4Y4GY65Y.js",
-      "bytes": 182956
-    },
-    {
       "url": "/dist/chunks/chunk-6FCWP4CL.js",
       "bytes": 29981
     },
     {
-      "url": "/dist/chunks/chunk-EVOSJJNA.js",
+      "url": "/dist/chunks/chunk-D6WL7YKB.js",
       "bytes": 7883
     },
     {
@@ -60,8 +60,8 @@
       "bytes": 713646
     },
     {
-      "url": "/dist/chunks/chunk-HJU4USIQ.js",
-      "bytes": 38157
+      "url": "/dist/chunks/chunk-R35WVRGL.js",
+      "bytes": 182956
     },
     {
       "url": "/dist/chunks/chunk-VKJEDUXL.js",
@@ -85,7 +85,7 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 937655
+      "bytes": 937673
     },
     {
       "url": "/dist/styles.css",

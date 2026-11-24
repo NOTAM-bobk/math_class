@@ -6,6 +6,7 @@
 // Usage:
 //   npm run check:games                     # scans the live site
 //   node scripts/check-games.mjs --base=http://localhost:3006
+//   CHECK_BASE=https://poly2.benlaunches.icu npm run check:games
 //   node scripts/check-games.mjs --limit=20 --filter=hf-
 //   node scripts/check-games.mjs --resume    # continue an interrupted scan
 //
@@ -28,7 +29,7 @@ const args = new Map(
   }),
 );
 
-const base = (args.get("base") || process.env.CHECK_BASE || "https://poly2.benlaunches.icu").replace(/\/+$/, "");
+const base = (args.get("base") || process.env.CHECK_BASE || "https://games.mathclass.uk").replace(/\/+$/, "");
 const concurrency = Math.max(1, Number(args.get("concurrency") || 10));
 const timeoutMs = Math.max(1000, Number(args.get("timeout") || 20000));
 const limit = Number(args.get("limit") || 0);

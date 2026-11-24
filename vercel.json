@@ -101,6 +101,9 @@
     }
   ],
   "rewrites": [
+    { "source": "/games", "destination": "/index.html" },
+    { "source": "/games/", "destination": "/index.html" },
+    { "source": "/game/:path*", "destination": "/index.html" },
     {
       "source": "/bug",
       "destination": "/index.html"

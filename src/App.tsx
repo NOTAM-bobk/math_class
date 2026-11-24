@@ -1130,14 +1130,14 @@ export function App() {
                     </a>
                     <a
                       role="menuitem"
-                      href="https://poly2.benlaunches.icu"
+                      href="https://games.mathclass.uk"
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => setBrandMenuOpen(false)}
                       className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
                     >
                       <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
-                      Unblocked games
+                      Unblocked games (games.mathclass.uk)
                     </a>
                     <div role="separator" className="my-1 h-px bg-white/[0.06]" />
                     {[

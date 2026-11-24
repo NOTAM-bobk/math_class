@@ -117,6 +117,7 @@ const PANIC_PRESETS = [
 ];
 
 const SITE_MIRRORS = [
+  { name: "games.mathclass.uk", url: "https://games.mathclass.uk/", timeoutMs: 10000 },
   { name: "poly2.benlaunches.icu", url: "https://poly2.benlaunches.icu/", timeoutMs: 10000 },
   { name: "polytrack.sawyerbobk563.deno.net", url: "https://polytrack.sawyerbobk563.deno.net/", timeoutMs: 10000 },
   { name: "polytrack.sawyerbobk563.workers.dev", url: "https://polytrack.sawyerbobk563.workers.dev/", timeoutMs: 10000 },

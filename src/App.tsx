@@ -1066,57 +1066,41 @@ export function App() {
                   aria-label="math_class:network"
                   className="absolute left-0 top-[calc(100%+0.5rem)] z-40 w-56 overflow-hidden rounded-xl border border-white/[0.07] bg-[#1d1d1d] p-1 text-left"
                 >
-                  <a
-                    role="menuitem"
-                    href="https://watch.benlaunches.icu"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => setBrandMenuOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
-                  >
-                    <Film aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
-                    Unblocked movies
-                  </a>
-                  <a
-                    role="menuitem"
-                    href="https://games.mathclass.uk"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => setBrandMenuOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
-                  >
-                    <Gamepad2 aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
-                    Unblocked games (games.mathclass.uk)
-                  </a>
-                  <div role="separator" className="my-1 h-px bg-white/[0.06]" />
-                  <a
-                    role="menuitem"
-                    href="https://chat.mathclass.uk"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => setBrandMenuOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06]"
-                  >
-                    <MessageCircle aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />
-                    Chat
-                  </a>
                   {[
-                    { label: "AI", icon: Sparkles },
-                    { label: "Web proxy", icon: Globe },
-                  ].map(({ label, icon: Icon }) => (
+                    { id: "movies", label: "Unblocked movies", icon: Film, href: "https://watch.benlaunches.icu" },
+                    { id: "games", label: "Unblocked games", icon: Gamepad2, href: "https://games.mathclass.uk" },
+                    { id: "chat", label: "Chat", icon: MessageCircle, href: "https://chat.mathclass.uk" },
+                  ].map(({ id, label, icon: Icon, href }) => (
+                    <a
+                      key={id}
+                      role="menuitem"
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setBrandMenuOpen(false)}
+                      className="flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs text-zinc-200 transition-colors hover:bg-white/[0.06] hover:text-white"
+                    >
+                      <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-zinc-400" />
+                      {label}
+                    </a>
+                  ))}
+                  <div role="separator" className="my-1 h-px bg-white/[0.06]" />
+                  {[
+                    { id: "ai", label: "AI", icon: Sparkles },
+                    { id: "proxy", label: "Web proxy", icon: Globe },
+                  ].map(({ id, label, icon: Icon }) => (
                     <button
-                      key={label}
+                      key={id}
                       type="button"
                       role="menuitem"
                       disabled
-                      title="Coming soon"
-                      className="flex w-full cursor-not-allowed items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-500 opacity-60"
+                      aria-disabled="true"
+                      title={`${label} is not built yet`}
+                      className="flex h-8 w-full cursor-not-allowed items-center gap-2 rounded-lg px-2.5 text-xs text-zinc-400"
                     >
-                      <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+                      <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-zinc-500" />
                       {label}
-                      <span className="ml-auto text-[10px] uppercase tracking-wide text-zinc-600">
-                        Soon
-                      </span>
+                      <span className="ml-auto font-mono text-[10px] text-zinc-500">Soon</span>
                     </button>
                   ))}
                 </div>

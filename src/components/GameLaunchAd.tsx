@@ -2,6 +2,7 @@ import * as React from "react";
 import { ArrowLeft, Play, Volume2, VolumeX, X } from "lucide-react";
 import { useDialogFocus } from "@/lib/dialogFocus";
 import { GAME_AD_SLATE_SRC } from "@/lib/gameAdSlate";
+import { SPONSOR_OFFER_URL, consumeSponsorOfferClick } from "@/lib/sponsorAd";
 import { BidvertiserAd } from "./BidvertiserAd";
 
 // Adcash In-stream Video, zone 12479070. Adcash delivers this format as a VAST
@@ -281,13 +282,24 @@ export function GameLaunchAd({
 
   // The popup only ever appears when no video ad played, so closing it is the
   // visitor's way into the game.
-  const continueToGame = () => {
+  const openGame = () => {
     if (finishedRef.current || goneRef.current) return;
     finishedRef.current = true;
     setPopupAd(false);
     window.setTimeout(() => {
       if (!goneRef.current) completeRef.current();
     }, 120);
+  };
+
+  // Every third Continue click also opens the sponsor's offer in a new tab.
+  // The game still opens here, and the tab is requested straight from the
+  // click so the popup blocker accepts it.
+  const continueToGame = () => {
+    if (finishedRef.current || goneRef.current) return;
+    if (consumeSponsorOfferClick()) {
+      window.open(SPONSOR_OFFER_URL, "_blank", "noopener,noreferrer");
+    }
+    openGame();
   };
 
   const toggleMute = () => {
@@ -404,7 +416,7 @@ export function GameLaunchAd({
               </span>
               <button
                 type="button"
-                onClick={continueToGame}
+                onClick={openGame}
                 aria-label="Close the sponsor and open the game"
                 className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
               >

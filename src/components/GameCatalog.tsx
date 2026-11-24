@@ -108,6 +108,9 @@ const TWO_ROW_SHELVES = new Set<string>(["arcade", "action", "driving"]);
 // A shelf rests a few pixels right of zero because of its own px-1 padding and
 // scroll snapping, so the left arrow waits until the row is really scrolled.
 const SHELF_EDGE_SLACK_PX = 16;
+// Sideways scrolling into the end of a shelf fetches the next batch of that
+// category on the spot, so the row keeps going instead of dead-ending at 24.
+const SHELF_EDGE_LOAD_PX = 64;
 const GENRE_SHELVES = [
   "action",
   "driving",
@@ -296,6 +299,28 @@ function GameRail({
     });
   }, []);
 
+  // One append per run to the end: smooth scrolling fires a burst of scroll
+  // events, and each must not stack another batch on the same gesture.
+  const edgeLoadArmedRef = React.useRef(true);
+  const loadMoreFromEdge = React.useCallback(() => {
+    const element = scrollerRef.current;
+    if (!element || element.scrollLeft <= SHELF_EDGE_SLACK_PX) return;
+    const atEdge =
+      element.scrollLeft + element.clientWidth >= element.scrollWidth - SHELF_EDGE_LOAD_PX;
+    if (!atEdge) {
+      edgeLoadArmedRef.current = true;
+      return;
+    }
+    if (!edgeLoadArmedRef.current) return;
+    edgeLoadArmedRef.current = false;
+    setVisible((count) => (count < games.length ? count + SHELF_LOAD_MORE_STEP : count));
+  }, [games.length]);
+
+  const handleScroll = React.useCallback(() => {
+    updateEdges();
+    loadMoreFromEdge();
+  }, [updateEdges, loadMoreFromEdge]);
+
   React.useEffect(() => {
     updateEdges();
     const element = scrollerRef.current;
@@ -355,7 +380,7 @@ function GameRail({
           role="region"
           aria-label={`${title} games`}
           tabIndex={0}
-          onScroll={updateEdges}
+          onScroll={handleScroll}
           className={`-mx-1 snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [&::-webkit-scrollbar]:hidden ${
             twoRows
               ? "grid grid-flow-col grid-rows-1 [grid-auto-columns:9.5rem] sm:grid-rows-2 sm:[grid-auto-columns:11.5rem] lg:[grid-auto-columns:13rem] xl:[grid-auto-columns:13.5rem]"

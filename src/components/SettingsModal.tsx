@@ -1,6 +1,6 @@
 import { checkForUpdate, applyUpdate, type CheckUpdateResult } from "@/lib/updateChecker";
 import * as React from "react";
-import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard, RefreshCw, CheckCircle2, Share2 } from "lucide-react";
+import { X, ArrowLeft, ChevronRight, Lock, ShieldAlert, Check, Key, ShieldCheck, Eye, EyeOff, Bell, BellOff, History, Palette, Github, Globe, Download, Trash2, Clock, Bug, Shield, BarChart3, Timer, MousePointerClick, Gamepad2, Trophy, Search, Flame, CalendarDays, LayoutGrid, Megaphone, WifiOff, EyeOff as CloakIcon, Siren, Link2, Mail, ScrollText, UserRound, RotateCcw, Type, Gift, ExternalLink, Keyboard, RefreshCw, CheckCircle2, Share2 } from "lucide-react";
 import { loadReferrals, type ReferralLink } from "@/lib/referrals";
 import { GitHubActivityGrid } from "./GitHubActivityGrid";
 import { getUpdateHistoryDays } from "@/lib/updateHistory";
@@ -127,7 +127,7 @@ const SITE_MIRRORS = [
 
 type ProxyCheckStatus = "idle" | "checking" | "reachable" | "blocked";
 
-type DesktopTab = "account" | "general" | "install" | "shortcuts" | "stats" | "streak" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "launched" | "offline" | "proxies" | "changelog" | "admin";
+type DesktopTab = "account" | "general" | "install" | "shortcuts" | "stats" | "streak" | "security" | "notifications" | "appearance" | "cloak" | "panic" | "ads" | "referrals" | "launched" | "support" | "offline" | "proxies" | "changelog" | "admin";
 
 const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; icon: React.ComponentType<{ className?: string }>; keywords: string }[] }[] = [
   { heading: "Account", items: [
@@ -154,6 +154,7 @@ const DESKTOP_NAV: { heading: string; items: { id: DesktopTab; label: string; ic
     { id: "ads", label: "Ad", icon: Megaphone, keywords: "ad ads notification ads block" },
     { id: "referrals", label: "Referrals", icon: Gift, keywords: "referral referrals reward rewards links partners support exclusive" },
     { id: "launched", label: "Launched on", icon: Trophy, keywords: "launched on launch streak launchstreak badge listed directory" },
+    { id: "support", label: "Support", icon: Mail, keywords: "support contact email help games@mathclass.uk bug report message" },
   ] },
   { heading: "Admin", items: [
     { id: "admin", label: "Admin", icon: Shield, keywords: "admin built by ss last updated time footer credit" },
@@ -2111,6 +2112,14 @@ export function SettingsModal({
               <Shield aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
               <span>Admin</span>
             </button>
+            <a
+              href="mailto:games@mathclass.uk?subject=math_games%20support"
+              style={CHIP_STYLE}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+            >
+              <Mail aria-hidden="true" className="h-3.5 w-3.5 text-amber-400" />
+              <span>Email support</span>
+            </a>
           </div>
         </section>
         )}
@@ -3570,6 +3579,57 @@ export function SettingsModal({
             Last updated {formatLastUpdated()}
           </p>
                 </section>
+        </div>
+
+        {/* Support: the address visitors should write to for help. */}
+        <div style={paneStyle("support")}>
+        <section aria-labelledby="support-title" className="flex flex-col gap-3 border-t border-white/[0.08] pt-3">
+          <div className="flex items-start gap-2">
+            <div
+              style={ICON_TILE}
+              className="p-1.5 text-zinc-300"
+            >
+              <Mail aria-hidden="true" className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h3 id="support-title" className="text-base font-medium text-zinc-100">
+                Support
+              </h3>
+              <p className="text-xs leading-relaxed text-zinc-400">
+                Questions, a broken game, account help or anything else — email us and we will get back to you.
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 12,
+              background: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.06)",
+            }}
+            className="flex flex-col gap-1.5 p-3"
+          >
+            <span className="text-[11px] font-medium text-zinc-400">Email</span>
+            <a
+              href="mailto:games@mathclass.uk?subject=math_games%20support"
+              className="break-all text-sm font-medium text-amber-300 underline decoration-amber-300/30 underline-offset-2 transition-colors hover:text-amber-200"
+            >
+              games@mathclass.uk
+            </a>
+            <p className="text-[11px] leading-relaxed text-zinc-500">
+              Include the game or page name and what happened so we can help faster.
+            </p>
+          </div>
+
+          <a
+            href="mailto:games@mathclass.uk?subject=math_games%20support"
+            style={CHIP_STYLE}
+            className="inline-flex self-start items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+          >
+            <Mail aria-hidden="true" className="h-3.5 w-3.5 text-zinc-500" />
+            Email support
+          </a>
+        </section>
         </div>
 
         {/* Admin: footer credit lines, kept above the Ad pane */}

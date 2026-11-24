@@ -326,6 +326,16 @@ export function BugReportModal({ isOpen, onClose, sourcePath, initialGame }: Bug
               </div>
             )}
 
+            <p className="text-[11px] text-zinc-500">
+              Prefer email? Write to{" "}
+              <a
+                href="mailto:games@mathclass.uk?subject=math_games%20bug%20report"
+                className="text-zinc-300 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
+              >
+                games@mathclass.uk
+              </a>
+            </p>
+
             {/* Submit Button */}
             <div className="flex items-center justify-end gap-2 border-t border-white/[0.08] pt-3">
               <button

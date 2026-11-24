@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T00:57:48.621Z",
-  "totalBytes": 348350563,
+  "generatedAt": "2026-11-24T01:23:32.059Z",
+  "totalBytes": 348354357,
   "files": [
     {
       "url": "/index.html",
@@ -13,7 +13,7 @@
     },
     {
       "url": "/catalog.json",
-      "bytes": 166356
+      "bytes": 167118
     },
     {
       "url": "/offline-packs.json",
@@ -28,16 +28,16 @@
       "bytes": 266172
     },
     {
-      "url": "/dist/chunks/AdminPanelModal-UULO4PPJ.js",
+      "url": "/dist/chunks/AdminPanelModal-AACICXZW.js",
       "bytes": 56717
     },
     {
-      "url": "/dist/chunks/ChangelogModal-7FU6PDZQ.js",
+      "url": "/dist/chunks/ChangelogModal-2JRQZXAB.js",
       "bytes": 16471
     },
     {
-      "url": "/dist/chunks/SettingsModal-ERNGQZLO.js",
-      "bytes": 114669
+      "url": "/dist/chunks/SettingsModal-7UR7BVM6.js",
+      "bytes": 116912
     },
     {
       "url": "/dist/chunks/chunk-4W74JGIW.js",
@@ -48,24 +48,24 @@
       "bytes": 29981
     },
     {
-      "url": "/dist/chunks/chunk-COFFEA3P.js",
-      "bytes": 61051
+      "url": "/dist/chunks/chunk-7YYUPUOR.js",
+      "bytes": 182956
+    },
+    {
+      "url": "/dist/chunks/chunk-CDLAH7PX.js",
+      "bytes": 7883
     },
     {
       "url": "/dist/chunks/chunk-HDFI2G67.js",
       "bytes": 713646
     },
     {
-      "url": "/dist/chunks/chunk-HFRJZYB4.js",
-      "bytes": 182956
-    },
-    {
-      "url": "/dist/chunks/chunk-IYPAOC5Q.js",
+      "url": "/dist/chunks/chunk-PKZLVPE6.js",
       "bytes": 38157
     },
     {
-      "url": "/dist/chunks/chunk-OIC72K6W.js",
-      "bytes": 7883
+      "url": "/dist/chunks/chunk-XSG63WZQ.js",
+      "bytes": 61051
     },
     {
       "url": "/dist/chunks/chunk-Y6SLVHK3.js",
@@ -85,11 +85,11 @@
     },
     {
       "url": "/dist/home.bundle.js",
-      "bytes": 938607
+      "bytes": 939137
     },
     {
       "url": "/dist/styles.css",
-      "bytes": 75872
+      "bytes": 76100
     },
     {
       "url": "/dist/vendor/video-js.min.css",
@@ -1277,7 +1277,7 @@
     },
     {
       "url": "/terms/index.html",
-      "bytes": 3870
+      "bytes": 3901
     },
     {
       "url": "/submit/index.html",

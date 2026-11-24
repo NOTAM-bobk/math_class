@@ -1504,6 +1504,9 @@ export function App() {
             </div>
           </div>
           <nav aria-label="Footer" className="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-1">
+            <a href="mailto:games@mathclass.uk?subject=math_games%20support" className={`transition-colors ${footerIsLight ? "text-black/70 hover:text-black" : "hover:text-zinc-200"}`}>
+              games@mathclass.uk
+            </a>
             <a href="mailto:hello@base31.org" className={`transition-colors ${footerIsLight ? "text-black/70 hover:text-black" : "hover:text-zinc-200"}`}>
               hello@base31.org
             </a>

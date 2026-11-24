@@ -119,6 +119,7 @@ const GENRE_SHELVES = [
   "idle",
   "horror",
   "flash",
+  "tools",
 ] as const;
 
 // Each genre gets its own accent colour so cards and chips read as distinct categories.

@@ -29,6 +29,50 @@
     "disabled": true
   },
   {
+    "id": "tool-videos",
+    "name": "Videos",
+    "url": "https://videos.mathclass.uk",
+    "description": "Watch videos on videos.mathclass.uk, part of the math_class network.",
+    "tags": [
+      "Tools",
+      "Video",
+      "Unblocked"
+    ]
+  },
+  {
+    "id": "tool-chat",
+    "name": "Chat",
+    "url": "https://chat.mathclass.uk",
+    "description": "Chat with everyone else on chat.mathclass.uk, the network's own message board.",
+    "tags": [
+      "Tools",
+      "Chat",
+      "Community"
+    ]
+  },
+  {
+    "id": "tool-ai",
+    "name": "AI",
+    "url": "https://ai.mathclass.uk",
+    "description": "Ask questions and study with the AI helper on ai.mathclass.uk.",
+    "tags": [
+      "Tools",
+      "AI",
+      "Study"
+    ]
+  },
+  {
+    "id": "tool-yt",
+    "name": "YouTube",
+    "url": "https://yt.mathclass.uk",
+    "description": "Search and watch YouTube videos on yt.mathclass.uk without opening youtube.com.",
+    "tags": [
+      "Tools",
+      "Video",
+      "Unblocked"
+    ]
+  },
+  {
     "id": "game-retro-bowl",
     "name": "Retro Bowl",
     "url": "/games/retro-bowl.html",

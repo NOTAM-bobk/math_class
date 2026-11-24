@@ -39,7 +39,7 @@ Math Class brings hundreds of browser games and PolyTrack builds together in one
 
 | | |
 | --- | --- |
-| **637-game catalog** | Search, category filters, Editor's Picks, verified games, bug flags, and sorting. |
+| **Game catalog** | Search, category filters, Editor's Picks, verified games, bug flags, and sorting. |
 | **Flexible layouts** | Switch between compact row cards and an artwork-first cover mosaic. |
 | **Your device, your data** | Favourites and recently played games remain on the current device. |
 | **Detailed stats** | Track session time, launches, games played, and most-played titles locally. |

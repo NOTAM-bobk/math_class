@@ -399,7 +399,7 @@ function GameRail({
   );
 }
 
-export type SpecialFilterId = "buggy" | "blocked";
+export type SpecialFilterId = "buggy" | "blocked" | "mobile";
 export type CategoryId = (typeof CATEGORY_FILTERS)[number]["id"] | SpecialFilterId;
 
 // Readable names for the catalog heading, e.g. "82 games in Driving".
@@ -430,6 +430,7 @@ const CATEGORY_NAMES: Record<CategoryId, string> = {
   horror: "Horror",
   buggy: "Error: bug",
   blocked: "Blocked",
+  mobile: "Mobile games",
 };
 
 type SortOption = "popular" | "featured" | "recent" | "az" | "default";
@@ -439,6 +440,7 @@ const DEFAULT_SORT: SortOption = "popular";
 const TAG_FILTERS = [
   { id: "editors", icon: Star, label: "Editor's picks" },
   { id: "verified", icon: BadgeCheck, label: "Verified" },
+  { id: "mobile", icon: Smartphone, label: "Mobile only" },
   { id: "hidden", icon: EyeOff, label: "Hidden" },
   { id: "buggy", icon: Bug, label: "Error: bug" },
   { id: "blocked", icon: Ban, label: "Blocked" },
@@ -502,7 +504,7 @@ export function initialSearchQuery() {
 export function initialCategory(): CategoryId {
   try {
     const param = new URLSearchParams(window.location.search).get(CATEGORY_PARAM);
-    if (param && (CATEGORY_FILTERS.some((c) => c.id === param) || param === "buggy" || param === "blocked")) {
+    if (param && (CATEGORY_FILTERS.some((c) => c.id === param) || param === "buggy" || param === "blocked" || param === "mobile")) {
       // A shared ?c=offline link should not hide every chip on an online device.
       if (param === OFFLINE_CATEGORY && navigator.onLine) return "all";
       return param as CategoryId;
@@ -1989,6 +1991,9 @@ export function GameCatalog({
       list = list.filter((game) => blockedIds.has(game.id));
     } else if (selectedCategory === OFFLINE_CATEGORY) {
       list = list.filter((game) => offlinePackIds.has(game.id));
+    } else if (selectedCategory === "mobile") {
+      // Only the games whose GameMonetize feed entry is built for phones.
+      list = list.filter((game) => !!game.mobile);
     } else if (selectedCategory !== "all") {
       list = list.filter((game) => matchesCategory(game, selectedCategory));
     }
@@ -2183,6 +2188,7 @@ export function GameCatalog({
       hidden: Object.keys(hiddenGames).length,
       buggy: games.filter((game) => buggyIds.has(game.id) || !!game.errorBug).length,
       blocked: blockedIds.size,
+      mobile: games.filter((game) => !!game.mobile).length,
     }),
     [games, verifiedIds, buggyIds, blockedIds, hiddenGames, isEditorPick]
   );

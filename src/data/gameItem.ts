@@ -13,6 +13,7 @@ export interface GameItem {
   badgeColor?: string;
   clicks?: number;
   editorsPick?: boolean;
+  mobile?: boolean;
   errorBug?: boolean;
   verified?: boolean;
 }

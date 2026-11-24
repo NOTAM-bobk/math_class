@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.7";
+export const SITE_VERSION = "1.7.8";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.8",
+    date: "November 2026",
+    title: "150 more games and a Mobile only filter",
+    changes: [
+      "The catalog gained 150 games from the GameMonetize feed, including arcade, racing, puzzle and shooter titles.",
+      "The new Mobile only filter in the filter menu shows just the GameMonetize games built for phones and touch screens.",
+      "Each imported game keeps its own GameMonetize player and cover art, so the cards load straight from the catalog.",
+    ],
+  },
   {
     version: "1.7.7",
     date: "November 2026",

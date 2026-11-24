@@ -8,13 +8,23 @@
 // GameMonetize tags the games it built for phones with "Mobile"; portrait
 // games are treated as mobile too. The catalog's Mobile filter reads that flag.
 //
-// Usage: node scripts/import-gamemonetize.mjs   (GM_PAGES=2 for fewer pages)
+// Usage: node scripts/import-gamemonetize.mjs
+//   GM_START=4 GM_PAGES=5   fetch pages 4-8 and append them to the current list
+//   GM_PAGES=2              fetch pages 1-2 from scratch
+//   GM_REFRESH=1            rebuild the whole list from the fetched pages
+//
+// Runs are incremental: the entries already in src/data/gamemonetizeGames.ts
+// are kept (and skipped by name, URL and id), so a new range of pages can be
+// imported without refetching the earlier ones.
 
 import fs from "node:fs";
 import path from "node:path";
 
 const FEED_BASE = "https://gamemonetize.com/feed.php?format=0&num=50&page=";
+const START_PAGE = Math.max(1, Number(process.env.GM_START) || 1);
 const PAGES = Math.max(1, Number(process.env.GM_PAGES) || 3);
+const END_PAGE = START_PAGE + PAGES - 1;
+const REFRESH = process.env.GM_REFRESH === "1";
 const CATALOG_PATH = "catalog.json";
 const OUT_PATH = "src/data/gamemonetizeGames.ts";
 const COVER_DIR = "covers";
@@ -133,25 +143,45 @@ async function downloadCover(game) {
   }
 }
 
+// The generated file is the running list this script appends to.
+function loadExistingGames() {
+  if (!fs.existsSync(OUT_PATH)) return [];
+  const source = fs.readFileSync(OUT_PATH, "utf8");
+  const match = source.match(/GAMEMONETIZE_GAMES[^=]*=\s*(\[[\s\S]*\]);\s*$/);
+  if (!match) return [];
+  try {
+    const parsed = JSON.parse(match[1]);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 async function main() {
   const catalog = fs.existsSync(CATALOG_PATH) ? JSON.parse(fs.readFileSync(CATALOG_PATH, "utf8")) : [];
+  const existing = REFRESH ? [] : loadExistingGames();
   const seenNames = new Set();
   const seenUrls = new Set();
   const seenIds = new Set();
 
   for (const game of Array.isArray(catalog) ? catalog : []) {
-    // The previous GameMonetize import is rebuilt from the feed, so its own
-    // entries must not make the importer skip every game on the next run.
+    // The GameMonetize entries are the ones this script owns, so they are
+    // deduped through `existing` below instead of skipping everything.
     if (typeof game?.id === "string" && game.id.startsWith("gm-")) continue;
+    seenIds.add(game?.id);
+    seenNames.add(normalize(game?.name));
+    seenUrls.add(String(game?.url || "").replace(/\/+$/, ""));
+  }
+  for (const game of existing) {
     seenIds.add(game?.id);
     seenNames.add(normalize(game?.name));
     seenUrls.add(String(game?.url || "").replace(/\/+$/, ""));
   }
 
   const imported = [];
-  for (let page = 1; page <= PAGES; page++) {
-    if (page > 1) await sleep(FEED_DELAY_MS);
-    console.log(`Fetching feed page ${page}/${PAGES}…`);
+  for (let page = START_PAGE; page <= END_PAGE; page++) {
+    if (page > START_PAGE) await sleep(FEED_DELAY_MS);
+    console.log(`Fetching feed page ${page} (${page - START_PAGE + 1}/${PAGES})…`);
     const entries = await fetchPage(page);
     for (const entry of Array.isArray(entries) ? entries : []) {
       const name = decodeEntities(entry.title);
@@ -195,23 +225,26 @@ async function main() {
   }
   for (const game of games) delete game.coverless;
 
+  const combined = [...existing, ...games];
   const date = new Date().toISOString().slice(0, 10);
-  const mobileCount = games.filter((game) => game.mobile).length;
+  const mobileCount = combined.filter((game) => game.mobile).length;
   const source = `import type { GameItem } from "./gameItem";
 
 // Games from the GameMonetize feed
 // (https://gamemonetize.com/feed.php?format=0&num=50&page=1), imported on
-// ${date} from pages 1-${PAGES}. Each entry keeps the feed's own player URL, so
+// ${date} in batches (this run: pages ${START_PAGE}-${END_PAGE}). Each entry keeps the feed's own player URL, so
 // the games load from html5.gamemonetize.co instead of being copied into this
 // repo. Entries the feed tags as "Mobile" (or that ship a portrait player) carry
 // \`mobile: true\`, which is what the catalog's Mobile filter selects. Their
 // thumbnails are saved under ./covers so the cards survive the image host being
 // blocked. Re-run scripts/import-gamemonetize.mjs to refresh the list.
-export const GAMEMONETIZE_GAMES: GameItem[] = ${JSON.stringify(games, null, 2)};
+export const GAMEMONETIZE_GAMES: GameItem[] = ${JSON.stringify(combined, null, 2)};
 `;
 
   fs.writeFileSync(OUT_PATH, source);
-  console.log(`Wrote ${OUT_PATH} (${games.length} games, ${mobileCount} mobile)`);
+  console.log(
+    `Wrote ${OUT_PATH} (${games.length} new, ${combined.length} total, ${mobileCount} mobile)`
+  );
 }
 
 main().catch((error) => {

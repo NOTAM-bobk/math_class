@@ -1,7 +1,7 @@
 // Single source of truth for the site version and its user-facing change log.
 // Bump SITE_VERSION and add a new entry at the top for every major update.
 
-export const SITE_VERSION = "1.7.8";
+export const SITE_VERSION = "1.7.9";
 
 export interface ChangelogEntry {
   version: string;
@@ -11,6 +11,18 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.9",
+    date: "November 2026",
+    title: "Hundreds more games, a three-ad line and Load more",
+    changes: [
+      "The catalog gained 648 more GameMonetize games, so the genre shelves, search and Mobile only filter are much fuller.",
+      "The ad line under Recently played now holds three sponsor slots side by side instead of one.",
+      "Every genre shelf has a Load more button that adds another batch of cards without leaving the home page.",
+      "The full catalog grid also loads a screenful at a time, with a Load more games button at the bottom.",
+      "Unblocked movies and Unblocked chat buttons now sit right below Browse all.",
+    ],
+  },
   {
     version: "1.7.8",
     date: "November 2026",

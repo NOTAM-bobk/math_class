@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, BadgeCheck, Ban, Star, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff, ChevronLeft, ChevronRight, LayoutGrid, Zap, Car, Trophy, Puzzle, Coffee, Users, Crosshair, Swords, Hourglass, Wrench, Layers, Compass, Boxes, Footprints, Ghost } from "lucide-react";
+import { Play, Gamepad2, Clock3, RotateCcw, X, Flame, Sparkles, SlidersHorizontal, Check, Heart, Bug, BadgeCheck, Ban, Star, Smartphone, ArrowLeft, ExternalLink, EyeOff, ShieldCheck, WifiOff, ChevronLeft, ChevronRight, ChevronDown, Film, MessageCircle, LayoutGrid, Zap, Car, Trophy, Puzzle, Coffee, Users, Crosshair, Swords, Hourglass, Wrench, Layers, Compass, Boxes, Footprints, Ghost } from "lucide-react";
 import { loadBuggyGameIds, onBuggyGamesChange, saveBuggyGameIds } from "@/lib/buggyGames";
 import { loadVerifiedGameIds, onVerifiedGamesChange, saveVerifiedGameIds } from "@/lib/verifiedGames";
 import { loadNotMobileGameIds, onNotMobileGamesChange, saveNotMobileGameIds } from "@/lib/notMobileGames";
@@ -99,6 +99,11 @@ export const CATEGORY_FILTERS = [
 // categories get a second row on wide screens, and both rows scroll sideways
 // together so the shelf stays one horizontal gesture.
 const SHELF_GAME_LIMIT = 24;
+// Load more appends this many cards to a shelf, and this many to the full grid.
+const SHELF_LOAD_MORE_STEP = 24;
+const ALL_GAMES_PAGE_SIZE = 60;
+// Three BidVertiser fills share the one ad line at the top of the catalog.
+const CATALOG_AD_SLOTS = ["catalog-bar-1", "catalog-bar-2", "catalog-bar-3"];
 const TWO_ROW_SHELVES = new Set<string>(["arcade", "action", "driving"]);
 // A shelf rests a few pixels right of zero because of its own px-1 padding and
 // scroll snapping, so the left arrow waits until the row is really scrolled.
@@ -277,6 +282,10 @@ function GameRail({
 }) {
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   const [edges, setEdges] = React.useState({ left: false, right: false });
+  // A shelf starts with one screenful of cards; Load more appends another
+  // batch to the same row without leaving the home page.
+  const [visible, setVisible] = React.useState(SHELF_GAME_LIMIT);
+  const visibleGames = games.slice(0, visible);
 
   const updateEdges = React.useCallback(() => {
     const element = scrollerRef.current;
@@ -300,7 +309,7 @@ function GameRail({
       observer?.disconnect();
       window.removeEventListener("resize", updateEdges);
     };
-  }, [updateEdges, games.length]);
+  }, [updateEdges, visibleGames.length]);
 
   const scrollShelf = (direction: 1 | -1) => {
     const element = scrollerRef.current;
@@ -353,7 +362,7 @@ function GameRail({
               : "flex"
           }`}
         >
-          {games.map((game) => (
+          {visibleGames.map((game) => (
             <div
               key={game.id}
               className={
@@ -395,6 +404,23 @@ function GameRail({
           </>
         )}
       </div>
+
+      {games.length > visible && (
+        <div className="-mt-1 flex justify-center sm:justify-start">
+          <button
+            type="button"
+            onClick={() => setVisible((count) => count + SHELF_LOAD_MORE_STEP)}
+            aria-label={`Load ${Math.min(SHELF_LOAD_MORE_STEP, games.length - visible)} more ${title} games`}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-zinc-300 transition-colors hover:border-white/15 hover:bg-white/[0.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
+            Load more
+            <span className="font-mono text-[10px] font-normal tabular-nums text-zinc-500">
+              {games.length - visible} left
+            </span>
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -1180,6 +1206,8 @@ export function GameCatalog({
   const [sortOption, setSortOption] = React.useState<SortOption>(initialSortOption);
   // The full grid is kept behind a Browse all button on the unfiltered home view.
   const [showAllGames, setShowAllGames] = React.useState(false);
+  // The grid pages in, so a big category does not mount hundreds of cards at once.
+  const [allGamesLimit, setAllGamesLimit] = React.useState(ALL_GAMES_PAGE_SIZE);
   const [cardLayout, setCardLayout] = React.useState<GameCardLayout>(loadGameCardLayout);
   React.useEffect(() => onGameCardLayoutChange(setCardLayout), []);
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -2205,6 +2233,7 @@ export function GameCatalog({
   React.useEffect(() => {
     // A new search or category always starts from the shelves again.
     setShowAllGames(false);
+    setAllGamesLimit(ALL_GAMES_PAGE_SIZE);
   }, [searchQuery, selectedCategory]);
 
   React.useEffect(() => {
@@ -2222,7 +2251,7 @@ export function GameCatalog({
         title: CATEGORY_NAMES[id],
         icon: CATEGORY_ICONS[id],
         total: matches.length,
-        games: matches.slice(0, SHELF_GAME_LIMIT),
+        games: matches,
       };
     }).filter((shelf) => shelf.games.length >= 3);
   }, [isFiltered, sortedPlayableGames]);
@@ -2615,10 +2644,26 @@ export function GameCatalog({
                 background: "rgba(255, 255, 255, 0.015)",
                 boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.03)",
               }}
-              className={`flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
+              className={`items-center gap-x-2 px-3 py-1.5 ${adSpotHidden ? "hidden" : "flex"}`}
             >
               <span className="shrink-0 text-[11px] font-medium text-zinc-400">Ad</span>
-              <BidvertiserAd slot="catalog" showClose={false} feedMax={2} className="flex items-center justify-center" />
+              {/* One ad line, several fills side by side; on phones it scrolls
+                  instead of stacking into a tall block. */}
+              <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {CATALOG_AD_SLOTS.map((slot) => (
+                  <div
+                    key={slot}
+                    className="flex min-w-[9rem] flex-1 items-center justify-center overflow-hidden px-1"
+                  >
+                    <BidvertiserAd
+                      slot={slot}
+                      showClose={false}
+                      feedMax={2}
+                      className="flex items-center justify-center"
+                    />
+                  </div>
+                ))}
+              </div>
               <a
                 href="mailto:hello@base31.org?subject=Ad%20space%20on%20math_games"
                 className="shrink-0 text-[11px] text-zinc-400 underline decoration-white/10 underline-offset-2 transition-colors hover:text-zinc-300"
@@ -2670,7 +2715,7 @@ export function GameCatalog({
           )}
 
           {!isFiltered && playableGames.length > 0 && !showAllGames && (
-            <div className="flex justify-center pt-1">
+            <div className="flex flex-col items-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setShowAllGames(true)}
@@ -2679,6 +2724,29 @@ export function GameCatalog({
                 <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" />
                 Browse all {playableGames.length} games
               </button>
+              {/* The network's other unblocked sites, right under Browse all. */}
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <a
+                  href="https://watch.benlaunches.icu"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-400/[0.08] px-3 py-1.5 text-[11px] font-semibold text-amber-200 transition-colors hover:border-amber-300/35 hover:bg-amber-400/[0.14] hover:text-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                >
+                  <Film aria-hidden="true" className="h-3.5 w-3.5" />
+                  Unblocked movies
+                  <ExternalLink aria-hidden="true" className="h-3 w-3 text-amber-300/70" />
+                </a>
+                <a
+                  href="https://chat.mathclass.uk"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-sky-300/20 bg-sky-400/[0.08] px-3 py-1.5 text-[11px] font-semibold text-sky-200 transition-colors hover:border-sky-300/35 hover:bg-sky-400/[0.14] hover:text-sky-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+                >
+                  <MessageCircle aria-hidden="true" className="h-3.5 w-3.5" />
+                  Unblocked chat
+                  <ExternalLink aria-hidden="true" className="h-3 w-3 text-sky-300/70" />
+                </a>
+              </div>
             </div>
           )}
 
@@ -2707,7 +2775,7 @@ export function GameCatalog({
                 </span>
               </div>
               <div className={cardLayout === "mosaic" ? MOSAIC_GRID_CLASS : CLASSIC_GRID_CLASS}>
-              {sortedPlayableGames.map((game, index) => (
+              {sortedPlayableGames.slice(0, allGamesLimit).map((game, index) => (
                 <React.Fragment key={game.id}>
                   {/* The larger ad waits until a few rows of games have gone by,
                       and only exists on the unfiltered home view. */}
@@ -2718,6 +2786,21 @@ export function GameCatalog({
                 </React.Fragment>
               ))}
               </div>
+              {sortedPlayableGames.length > allGamesLimit && (
+                <div className="flex justify-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setAllGamesLimit((limit) => limit + ALL_GAMES_PAGE_SIZE)}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
+                    Load more games
+                    <span className="font-mono text-[10px] font-normal tabular-nums text-zinc-500">
+                      {sortedPlayableGames.length - allGamesLimit} left
+                    </span>
+                  </button>
+                </div>
+              )}
             </section>
           )}
 

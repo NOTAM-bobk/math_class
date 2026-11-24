@@ -1,0 +1,20 @@
+# Never upload repository metadata or local dependencies.
+.git/
+node_modules/
+.github/
+
+# The Worker serves the built static output, not development sources/tooling.
+src/
+scripts/
+package.json
+package-lock.json
+wrangler.jsonc
+vercel.json
+README.md
+LICENSE
+
+# Local-only notes and editor/configuration files.
+*.md
+*.log
+.vscode/
+.idea/

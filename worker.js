@@ -1,3 +1,5 @@
+import { handleSiteApi } from "./worker-api.js";
+
 const HUB_ORIGIN = "https://polytrack-hub-api.sawyerbobk563.workers.dev";
 const THUM_BASE = "https://image.thum.io/get/width/800/crop/800/";
 const MAX_COVER_BYTES = 4_000_000;
@@ -168,6 +170,13 @@ export default {
     if (pathname === "/api/flags" && request.method === "GET") {
       return withCors(await fetch(`${HUB_ORIGIN}/api/games/flags`, { headers: { Accept: "application/json" } }));
     }
+    // Routes that only existed as Vercel functions in api/ or as vercel.json
+    // rewrites. Handled before the generic /api/hub proxy so the aliases
+    // (/api/hub/submit-game, /api/hub/games/flags) keep their Vercel meaning.
+    // Returns null for anything it does not own.
+    const siteApi = await handleSiteApi(request, url, env);
+    if (siteApi) return siteApi;
+
     if (pathname.startsWith("/api/hub/")) {
       if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, X-Admin-Password" } });
       return withCors(await proxyHub(request, pathname));

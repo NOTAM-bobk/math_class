@@ -53,7 +53,7 @@ walk("images");
 walk("games");
 
 // The catalog's Polytrack entry and the small hub pages are same-origin too.
-for (const directory of ["0.5.0", "0.3.1", "outside", "ai", "terms", "submit", "yt"]) {
+for (const directory of ["0.5.0", "outside", "ai", "terms", "submit", "yt"]) {
   walk(directory);
 }
 

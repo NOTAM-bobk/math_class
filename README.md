@@ -65,3 +65,32 @@ Math Class brings hundreds of browser games and PolyTrack builds together in one
 ```bash
 npm install
 npm run build
+```
+
+## Deploying
+
+Two hosts serve this one repo. Vercel runs the functions in `api/` and the rewrites in `vercel.json`; Cloudflare serves the same build through `worker.js` (`wrangler deploy`, configured by `wrangler.jsonc`).
+
+The Worker answers the routes that would otherwise only exist as Vercel functions or rewrites, so the Cloudflare mirror is a full site and not just static files:
+
+| Route | Served by |
+| --- | --- |
+| `/api/hub/*` | the D1 hub Worker (`polytrack-hub-api`) |
+| `/api/flags` (GET/POST), `/api/games/flags`, `/api/hub/games/flags`, `/api/hub/admin/flags` | game badges from that Worker, written with `ADMIN_PASSWORD` |
+| `/api/admin` | bug reports and badge changes, gated by `ADMIN_PASSWORD` |
+| `/api/submissions`, `/api/hub/submit-game` | game requests stored as titled bug reports |
+| `/api/search` | the built `catalog.json` |
+| `/api/turnstile` | Cloudflare Turnstile siteverify |
+| `/api/avatar` | DiceBear proxy with an offline SVG fallback |
+| `/api/editor-picks`, `/api/share-email`, `/api/uptime`, `/api/bidvertiser` | forwarded to `VERCEL_ORIGIN`, which owns those integrations' keys |
+| `/api/cover`, `/api/version`, `/api/mp/*`, `/api/proxy/og*` | `worker.js` |
+
+Set these on the Worker before the Cloudflare mirror can use them:
+
+```bash
+npx wrangler secret put ADMIN_PASSWORD
+npx wrangler secret put TURNSTILE_SECRET_KEY
+npx wrangler secret put VERCEL_ORIGIN   # optional, e.g. https://math-class.vercel.app
+```
+
+`TURNSTILE_SITE_KEY` and `TURNSTILE_ALLOWED_HOSTNAMES` are public and live in `wrangler.jsonc`. Without `VERCEL_ORIGIN` the four integration routes answer with a JSON `503` instead of the page, and the app degrades to its built-in fallbacks.

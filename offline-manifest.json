@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T23:50:42.898Z",
-  "totalBytes": 354141781,
+  "generatedAt": "2026-11-25T01:26:52.861Z",
+  "totalBytes": 341524753,
   "files": [
     {
       "url": "/index.html",
@@ -32,11 +32,11 @@
       "bytes": 56717
     },
     {
-      "url": "/dist/chunks/ChangelogModal-QXTQTSUD.js",
+      "url": "/dist/chunks/ChangelogModal-C67UB4GK.js",
       "bytes": 16471
     },
     {
-      "url": "/dist/chunks/SettingsModal-Y7VSEN7A.js",
+      "url": "/dist/chunks/SettingsModal-FN34SZWV.js",
       "bytes": 116912
     },
     {
@@ -44,11 +44,7 @@
       "bytes": 1876
     },
     {
-      "url": "/dist/chunks/chunk-7NDVJJ2T.js",
-      "bytes": 38157
-    },
-    {
-      "url": "/dist/chunks/chunk-APPAS2IJ.js",
+      "url": "/dist/chunks/chunk-FSQUDBN7.js",
       "bytes": 184008
     },
     {
@@ -60,7 +56,11 @@
       "bytes": 38807
     },
     {
-      "url": "/dist/chunks/chunk-PC65XKCT.js",
+      "url": "/dist/chunks/chunk-NEROXP2Y.js",
+      "bytes": 38157
+    },
+    {
+      "url": "/dist/chunks/chunk-WA4O5QIJ.js",
       "bytes": 7883
     },
     {
@@ -914,366 +914,6 @@
     {
       "url": "/0.5.0/tracks/official/winter4.track",
       "bytes": 3081
-    },
-    {
-      "url": "/0.3.1/audio/checkpoint.flac",
-      "bytes": 16602
-    },
-    {
-      "url": "/0.3.1/audio/click.flac",
-      "bytes": 4610
-    },
-    {
-      "url": "/0.3.1/audio/collision.flac",
-      "bytes": 45310
-    },
-    {
-      "url": "/0.3.1/audio/editor_edit.flac",
-      "bytes": 9316
-    },
-    {
-      "url": "/0.3.1/audio/engine.flac",
-      "bytes": 135575
-    },
-    {
-      "url": "/0.3.1/audio/music.mp3",
-      "bytes": 2933146
-    },
-    {
-      "url": "/0.3.1/audio/skidding.flac",
-      "bytes": 32285
-    },
-    {
-      "url": "/0.3.1/audio/suspension.flac",
-      "bytes": 18873
-    },
-    {
-      "url": "/0.3.1/audio/tires.flac",
-      "bytes": 136455
-    },
-    {
-      "url": "/0.3.1/css/css-checkpoint_ui.css",
-      "bytes": 575
-    },
-    {
-      "url": "/0.3.1/css/css-customization.css",
-      "bytes": 1153
-    },
-    {
-      "url": "/0.3.1/css/css-debug_ui.css",
-      "bytes": 159
-    },
-    {
-      "url": "/0.3.1/css/css-editor.css",
-      "bytes": 2082
-    },
-    {
-      "url": "/0.3.1/css/css-editor_checkpoint_order.css",
-      "bytes": 969
-    },
-    {
-      "url": "/0.3.1/css/css-editor_height_selector.css",
-      "bytes": 957
-    },
-    {
-      "url": "/0.3.1/css/css-hint.css",
-      "bytes": 420
-    },
-    {
-      "url": "/0.3.1/css/css-leaderboard.css",
-      "bytes": 2448
-    },
-    {
-      "url": "/0.3.1/css/css-loading_spinner.css",
-      "bytes": 334
-    },
-    {
-      "url": "/0.3.1/css/css-loading_ui.css",
-      "bytes": 768
-    },
-    {
-      "url": "/0.3.1/css/css-menu.css",
-      "bytes": 1898
-    },
-    {
-      "url": "/0.3.1/css/css-message_box_ui.css",
-      "bytes": 873
-    },
-    {
-      "url": "/0.3.1/css/css-nickname.css",
-      "bytes": 1081
-    },
-    {
-      "url": "/0.3.1/css/css-settings_menu.css",
-      "bytes": 3871
-    },
-    {
-      "url": "/0.3.1/css/css-speedometer.css",
-      "bytes": 697
-    },
-    {
-      "url": "/0.3.1/css/css-theme.css",
-      "bytes": 2805
-    },
-    {
-      "url": "/0.3.1/css/css-time_announcer.css",
-      "bytes": 1286
-    },
-    {
-      "url": "/0.3.1/css/css-timer.css",
-      "bytes": 1730
-    },
-    {
-      "url": "/0.3.1/css/css-track_export_ui.css",
-      "bytes": 1100
-    },
-    {
-      "url": "/0.3.1/css/css-track_info.css",
-      "bytes": 1762
-    },
-    {
-      "url": "/0.3.1/css/css-track_selection_ui.css",
-      "bytes": 2558
-    },
-    {
-      "url": "/0.3.1/css/css-transition_system.css",
-      "bytes": 194
-    },
-    {
-      "url": "/0.3.1/css/css-verifier.css",
-      "bytes": 460
-    },
-    {
-      "url": "/0.3.1/dist/simulation_worker.bundle.js",
-      "bytes": 828951
-    },
-    {
-      "url": "/0.3.1/dist/simulation_worker.bundle_old.js",
-      "bytes": 842708
-    },
-    {
-      "url": "/0.3.1/fonts/forced_square.ttf",
-      "bytes": 50276
-    },
-    {
-      "url": "/0.3.1/fonts/forced_square.woff",
-      "bytes": 17268
-    },
-    {
-      "url": "/0.3.1/fonts/forced_square.woff2",
-      "bytes": 16128
-    },
-    {
-      "url": "/0.3.1/forced_square.json",
-      "bytes": 47132
-    },
-    {
-      "url": "/0.3.1/forced_square.woff2",
-      "bytes": 16128
-    },
-    {
-      "url": "/0.3.1/images/apply.svg",
-      "bytes": 185
-    },
-    {
-      "url": "/0.3.1/images/arrow_down.svg",
-      "bytes": 139
-    },
-    {
-      "url": "/0.3.1/images/arrow_up.svg",
-      "bytes": 138
-    },
-    {
-      "url": "/0.3.1/images/back.svg",
-      "bytes": 1278
-    },
-    {
-      "url": "/0.3.1/images/cancel.svg",
-      "bytes": 258
-    },
-    {
-      "url": "/0.3.1/images/clouds (1).jpg",
-      "bytes": 322867
-    },
-    {
-      "url": "/0.3.1/images/clouds.jpg",
-      "bytes": 322867
-    },
-    {
-      "url": "/0.3.1/images/copy.svg",
-      "bytes": 1266
-    },
-    {
-      "url": "/0.3.1/images/customize.svg",
-      "bytes": 4314
-    },
-    {
-      "url": "/0.3.1/images/discord.svg",
-      "bytes": 1225
-    },
-    {
-      "url": "/0.3.1/images/editor.svg",
-      "bytes": 2496
-    },
-    {
-      "url": "/0.3.1/images/erase.svg",
-      "bytes": 1852
-    },
-    {
-      "url": "/0.3.1/images/export.svg",
-      "bytes": 1408
-    },
-    {
-      "url": "/0.3.1/images/helmet.svg",
-      "bytes": 6715
-    },
-    {
-      "url": "/0.3.1/images/import.svg",
-      "bytes": 1393
-    },
-    {
-      "url": "/0.3.1/images/load.svg",
-      "bytes": 1304
-    },
-    {
-      "url": "/0.3.1/images/logo.svg",
-      "bytes": 6911
-    },
-    {
-      "url": "/0.3.1/images/play.svg",
-      "bytes": 1581
-    },
-    {
-      "url": "/0.3.1/images/quit.svg",
-      "bytes": 227
-    },
-    {
-      "url": "/0.3.1/images/random.svg",
-      "bytes": 3600
-    },
-    {
-      "url": "/0.3.1/images/reset_settings.svg",
-      "bytes": 1115
-    },
-    {
-      "url": "/0.3.1/images/save.svg",
-      "bytes": 210
-    },
-    {
-      "url": "/0.3.1/images/settings.svg",
-      "bytes": 785
-    },
-    {
-      "url": "/0.3.1/images/smoke (1).png",
-      "bytes": 30359
-    },
-    {
-      "url": "/0.3.1/images/smoke.png",
-      "bytes": 30359
-    },
-    {
-      "url": "/0.3.1/images/state_invalid.svg",
-      "bytes": 356
-    },
-    {
-      "url": "/0.3.1/images/state_pending.svg",
-      "bytes": 208
-    },
-    {
-      "url": "/0.3.1/images/state_verified.svg",
-      "bytes": 271
-    },
-    {
-      "url": "/0.3.1/images/test.svg",
-      "bytes": 893
-    },
-    {
-      "url": "/0.3.1/index.html",
-      "bytes": 2560
-    },
-    {
-      "url": "/0.3.1/js/2176-lib-ammo.js",
-      "bytes": 1765599
-    },
-    {
-      "url": "/0.3.1/js/9209-dist-main.bundle.js",
-      "bytes": 1784118
-    },
-    {
-      "url": "/0.3.1/js/9209-dist-main.bundle_old.js",
-      "bytes": 1547350
-    },
-    {
-      "url": "/0.3.1/models/block.glb",
-      "bytes": 13180
-    },
-    {
-      "url": "/0.3.1/models/car.glb",
-      "bytes": 79024
-    },
-    {
-      "url": "/0.3.1/models/pillar.glb",
-      "bytes": 28132
-    },
-    {
-      "url": "/0.3.1/models/plane.glb",
-      "bytes": 76392
-    },
-    {
-      "url": "/0.3.1/models/road.glb",
-      "bytes": 504608
-    },
-    {
-      "url": "/0.3.1/models/road_wide.glb",
-      "bytes": 418300
-    },
-    {
-      "url": "/0.3.1/models/signs.glb",
-      "bytes": 37896
-    },
-    {
-      "url": "/0.3.1/models/wall_track.glb",
-      "bytes": 379016
-    },
-    {
-      "url": "/0.3.1/tracks/track1.track",
-      "bytes": 1981
-    },
-    {
-      "url": "/0.3.1/tracks/track10.track",
-      "bytes": 3535
-    },
-    {
-      "url": "/0.3.1/tracks/track2.track",
-      "bytes": 1364
-    },
-    {
-      "url": "/0.3.1/tracks/track3.track",
-      "bytes": 2941
-    },
-    {
-      "url": "/0.3.1/tracks/track4.track",
-      "bytes": 3207
-    },
-    {
-      "url": "/0.3.1/tracks/track5.track",
-      "bytes": 7038
-    },
-    {
-      "url": "/0.3.1/tracks/track6.track",
-      "bytes": 8223
-    },
-    {
-      "url": "/0.3.1/tracks/track7.track",
-      "bytes": 6136
-    },
-    {
-      "url": "/0.3.1/tracks/track8.track",
-      "bytes": 8602
-    },
-    {
-      "url": "/0.3.1/tracks/track9.track",
-      "bytes": 10303
     },
     {
       "url": "/outside/index.html",

@@ -3,6 +3,14 @@
   "name": "mathclassgames",
   "main": "worker.js",
   "compatibility_date": "2026-11-23",
+  // Cloudflare Turnstile. Only public values belong in this file: the site key
+  // ships to the browser and the allowed hostnames are not sensitive. The secret
+  // key stays out of the repository and is set with
+  // `wrangler secret put TURNSTILE_SECRET_KEY`.
+  "vars": {
+    "TURNSTILE_ALLOWED_HOSTNAMES": "games.mathclass.uk",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAGD_UD2iO_H1KdGs"
+  },
   "observability": {
     "enabled": true
   },

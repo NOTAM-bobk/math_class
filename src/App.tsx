@@ -223,18 +223,20 @@ function settingsOpenFromUrl() {
 export function App() {
   // Every visitor counts as online while the page is open, chat shown or not.
   usePresenceHeartbeat();
+  // The startup animation is off unless the visitor turns it on in Settings.
   const [loadingRevealEnabled, setLoadingRevealEnabled] = React.useState(() => {
     try {
-      return localStorage.getItem("polytrack_loading_reveal_enabled") !== "false";
+      return localStorage.getItem("polytrack_loading_reveal_enabled") === "true";
     } catch {
-      return true;
+      return false;
     }
   });
-  // Skip the intro if it is off in Settings, on a repeat load, or when the page
-  // was already usable; if the page has actually been waiting, let it play through.
+  // Skip the intro unless it is on in Settings; also skip it on a repeat load
+  // or when the page was already usable. If the page has actually been waiting,
+  // let it play through.
   const [showLoadReveal, setShowLoadReveal] = React.useState(() => {
     try {
-      if (localStorage.getItem("polytrack_loading_reveal_enabled") === "false") {
+      if (localStorage.getItem("polytrack_loading_reveal_enabled") !== "true") {
         return false;
       }
     } catch {}

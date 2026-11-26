@@ -213,7 +213,7 @@ export function SettingsModal({
   onSideChatChange,
   adSpotEnabled,
   siteMeta,
-  loadingRevealEnabled = true,
+  loadingRevealEnabled = false,
   onLoadingRevealChange,
   footerHidden = false,
   onFooterHiddenChange,
